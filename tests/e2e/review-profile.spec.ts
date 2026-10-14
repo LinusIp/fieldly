@@ -19,7 +19,11 @@ test('a missed question comes back in review with new numbers', async ({ page })
   await expect(page.getByTestId('result')).toContainText('Not this time');
 
   // Make the item due now (it would normally wait a day).
-  await page.waitForTimeout(400); // let the debounced save land
+  // Wait for the debounced save to write the review entry.
+  await page.waitForFunction(() => {
+    const p = JSON.parse(localStorage.getItem('fieldly:progress') ?? '{}');
+    return Object.keys(p.review ?? {}).length > 0;
+  });
   await page.evaluate(() => {
     const key = 'fieldly:progress';
     const p = JSON.parse(localStorage.getItem(key)!);
@@ -38,7 +42,7 @@ test('a missed question comes back in review with new numbers', async ({ page })
   expect(reviewPrompt).toMatch(/battery is connected across a single/);
 
   // Answer it correctly (I = V/R from the new numbers) → it moves up to box 2.
-  const nums = reviewPrompt.match(/(d+(?:.d+)?) V battery.*?(d+(?:.d+)?) Ω/s)!;
+  const nums = reviewPrompt.match(/(\d+(?:\.\d+)?) V battery.*?(\d+(?:\.\d+)?) Ω/s)!;
   const label = `${Number((Number(nums[1]) / Number(nums[2])).toPrecision(3))} A`;
   await reviewCard
     .locator('label[data-option]')
