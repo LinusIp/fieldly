@@ -10,3 +10,4 @@ BUILD_SPEC.md
 *.md
 tests/fixtures
 .claude
+archive

@@ -41,6 +41,7 @@ units:
       - id: discrete.u2.l4
         title: "Mathematical induction"
         concepts: [induction]
+        tryFirst: true
       - id: discrete.u2.l5
         title: "Strong induction & well-ordering"
         concepts: [strong-induction, well-ordering]
@@ -76,12 +77,14 @@ units:
       - id: discrete.u4.l2
         title: "Permutations & combinations"
         concepts: [permutations, combinations]
+        tryFirst: true
       - id: discrete.u4.l3
         title: "Binomial theorem"
         concepts: [binomial-theorem]
       - id: discrete.u4.l4
         title: "Pigeonhole principle"
         concepts: [pigeonhole]
+        tryFirst: true
       - id: discrete.u4.l5
         title: "Inclusion–exclusion"
         concepts: [inclusion-exclusion]
@@ -126,6 +129,7 @@ units:
       - id: discrete.u6.l3
         title: "Euler & Hamilton paths"
         concepts: [euler-hamilton]
+        tryFirst: true
       - id: discrete.u6.l4
         title: "Bipartite graphs & colouring"
         concepts: [bipartite-colouring]

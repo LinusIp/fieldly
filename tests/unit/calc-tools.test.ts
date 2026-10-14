@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { graphLogic, model } from '../../src/challenges/graph-manipulator/logic';
-import { approximate, effectiveN, riemannLogic } from '../../src/challenges/riemann-sum/logic';
-import { seriesLogic, taylorCoefficients } from '../../src/challenges/series-explorer/logic';
-import { makeResolveCtx, type ChallengeLogic } from '../../src/challenges/types';
+import { graphLogic, model } from '../../src/interactives/graph-manipulator/model';
+import { approximate, effectiveN, riemannLogic } from '../../src/interactives/riemann-sum/model';
+import { seriesLogic, taylorCoefficients } from '../../src/interactives/series-explorer/model';
+import { makeResolveCtx, type ChallengeLogic } from '../../src/interactives/types';
 import { evalNumber } from '../../src/engine/expr';
 import { derivativeAt, integrate, maxAbsOn } from '../../src/engine/numeric';
 import { renderTemplate } from '../../src/engine/template';

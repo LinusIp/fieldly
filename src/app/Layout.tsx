@@ -2,8 +2,8 @@ import { NavLink, Outlet, Link } from 'react-router';
 import { APP_NAME } from '../config';
 
 const navItems = [
-  { to: '/', label: 'Subjects', end: true },
-  { to: '/review', label: 'Review', end: false },
+  { to: '/', label: 'Today', end: true },
+  { to: '/subjects', label: 'Subjects', end: false },
   { to: '/profile', label: 'Profile', end: false },
   { to: '/settings', label: 'Settings', end: false },
 ];

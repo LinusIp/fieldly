@@ -25,6 +25,7 @@ units:
       - id: probstat.u1.l5
         title: "Total probability & Bayes' theorem"
         concepts: [total-probability, bayes-theorem]
+        tryFirst: true
   - id: probstat.u2
     title: "Random Variables"
     baseDifficulty: 3
@@ -69,6 +70,7 @@ units:
       - id: probstat.u3.l5
         title: "The central limit theorem"
         concepts: [central-limit-theorem]
+        tryFirst: true
   - id: probstat.u4
     title: "Statistical Inference"
     baseDifficulty: 4
@@ -82,9 +84,11 @@ units:
       - id: probstat.u4.l3
         title: "Confidence intervals"
         concepts: [confidence-intervals]
+        tryFirst: true
       - id: probstat.u4.l4
         title: "Hypothesis testing"
         concepts: [hypothesis-testing]
+        tryFirst: true
       - id: probstat.u4.l5
         title: "Errors & power"
         concepts: [errors-power]

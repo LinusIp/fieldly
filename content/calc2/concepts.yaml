@@ -1,36 +1,36 @@
 - { id: area-between-curves, title: "Area between curves" }
-- { id: volume-slicing, title: "Volumes by slicing" }
-- { id: disk-washer, title: "Disk & washer methods" }
-- { id: cylindrical-shells, title: "Cylindrical shells" }
-- { id: arc-length, title: "Arc length" }
-- { id: surface-area, title: "Surface area of revolution" }
-- { id: work-integrals, title: "Work by integration" }
-- { id: hydrostatic-force, title: "Hydrostatic force" }
-- { id: moments-centroids, title: "Moments & centroids" }
-- { id: integration-by-parts, title: "Integration by parts" }
-- { id: trig-integrals, title: "Trigonometric integrals" }
-- { id: trig-substitution, title: "Trigonometric substitution" }
-- { id: partial-fractions, title: "Partial fractions" }
-- { id: integration-strategy, title: "Choosing a technique" }
-- { id: improper-integrals, title: "Improper integrals" }
-- { id: comparison-integrals, title: "Comparison for integrals" }
-- { id: numerical-integration, title: "Numerical integration" }
-- { id: sequences, title: "Sequences" }
-- { id: partial-sums, title: "Partial sums" }
-- { id: geometric-series, title: "Geometric series" }
-- { id: telescoping-series, title: "Telescoping series" }
-- { id: divergence-test, title: "nth-term (divergence) test" }
-- { id: integral-test, title: "Integral test" }
-- { id: p-series, title: "p-series" }
-- { id: comparison-tests, title: "Comparison tests" }
-- { id: alternating-series, title: "Alternating series test" }
-- { id: absolute-convergence, title: "Absolute vs conditional convergence" }
-- { id: ratio-root-tests, title: "Ratio & root tests" }
-- { id: power-series, title: "Power series" }
-- { id: interval-of-convergence, title: "Interval of convergence" }
-- { id: taylor-series, title: "Taylor & Maclaurin series" }
-- { id: taylor-error, title: "Taylor polynomial error" }
-- { id: parametric-curves, title: "Parametric curves" }
-- { id: parametric-calculus, title: "Calculus with parametric curves" }
-- { id: polar-coordinates, title: "Polar coordinates" }
-- { id: polar-area-length, title: "Area & length in polar" }
+- { id: volume-slicing, title: "Volumes by slicing", requires: [area-between-curves] }
+- { id: disk-washer, title: "Disk & washer methods", requires: [volume-slicing] }
+- { id: cylindrical-shells, title: "Cylindrical shells", requires: [volume-slicing] }
+- { id: arc-length, title: "Arc length", requires: [cylindrical-shells] }
+- { id: surface-area, title: "Surface area of revolution", requires: [arc-length] }
+- { id: work-integrals, title: "Work by integration", requires: [arc-length] }
+- { id: hydrostatic-force, title: "Hydrostatic force", requires: [work-integrals] }
+- { id: moments-centroids, title: "Moments & centroids", requires: [work-integrals] }
+- { id: integration-by-parts, title: "Integration by parts", requires: [moments-centroids] }
+- { id: trig-integrals, title: "Trigonometric integrals", requires: [integration-by-parts] }
+- { id: trig-substitution, title: "Trigonometric substitution", requires: [trig-integrals] }
+- { id: partial-fractions, title: "Partial fractions", requires: [trig-substitution] }
+- { id: integration-strategy, title: "Choosing a technique", requires: [partial-fractions] }
+- { id: improper-integrals, title: "Improper integrals", requires: [integration-strategy] }
+- { id: comparison-integrals, title: "Comparison for integrals", requires: [improper-integrals] }
+- { id: numerical-integration, title: "Numerical integration", requires: [improper-integrals] }
+- { id: sequences, title: "Sequences", requires: [numerical-integration] }
+- { id: partial-sums, title: "Partial sums", requires: [sequences] }
+- { id: geometric-series, title: "Geometric series", requires: [partial-sums] }
+- { id: telescoping-series, title: "Telescoping series", requires: [partial-sums] }
+- { id: divergence-test, title: "nth-term (divergence) test", requires: [partial-sums] }
+- { id: integral-test, title: "Integral test", requires: [divergence-test] }
+- { id: p-series, title: "p-series", requires: [divergence-test] }
+- { id: comparison-tests, title: "Comparison tests", requires: [divergence-test] }
+- { id: alternating-series, title: "Alternating series test", requires: [comparison-tests] }
+- { id: absolute-convergence, title: "Absolute vs conditional convergence", requires: [alternating-series] }
+- { id: ratio-root-tests, title: "Ratio & root tests", requires: [alternating-series] }
+- { id: power-series, title: "Power series", requires: [ratio-root-tests] }
+- { id: interval-of-convergence, title: "Interval of convergence", requires: [power-series] }
+- { id: taylor-series, title: "Taylor & Maclaurin series", requires: [power-series] }
+- { id: taylor-error, title: "Taylor polynomial error", requires: [taylor-series] }
+- { id: parametric-curves, title: "Parametric curves", requires: [taylor-error] }
+- { id: parametric-calculus, title: "Calculus with parametric curves", requires: [parametric-curves] }
+- { id: polar-coordinates, title: "Polar coordinates", requires: [parametric-calculus] }
+- { id: polar-area-length, title: "Area & length in polar", requires: [polar-coordinates] }

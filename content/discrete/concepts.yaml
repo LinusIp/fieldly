@@ -1,45 +1,45 @@
 - { id: propositions, title: "Propositions" }
-- { id: connectives, title: "Logical connectives" }
-- { id: truth-tables, title: "Truth tables" }
-- { id: logical-equivalence, title: "Logical equivalence" }
-- { id: conditionals, title: "Converse, inverse, contrapositive" }
-- { id: quantifiers, title: "Predicates & quantifiers" }
-- { id: rules-of-inference, title: "Rules of inference" }
-- { id: direct-proof, title: "Direct proof" }
-- { id: proof-by-contrapositive, title: "Proof by contrapositive" }
-- { id: proof-by-contradiction, title: "Proof by contradiction" }
-- { id: proof-by-cases, title: "Proof by cases" }
-- { id: counterexamples, title: "Counterexamples" }
-- { id: induction, title: "Mathematical induction" }
-- { id: strong-induction, title: "Strong induction" }
-- { id: well-ordering, title: "Well-ordering principle" }
-- { id: sets, title: "Sets" }
-- { id: set-operations, title: "Set operations" }
-- { id: injective-surjective, title: "Injective, surjective, bijective" }
-- { id: function-inverses, title: "Inverses & composition" }
-- { id: cardinality, title: "Cardinality" }
-- { id: relation-properties, title: "Properties of relations" }
-- { id: equivalence-relations, title: "Equivalence relations" }
-- { id: partial-orders, title: "Partial orders" }
-- { id: sum-product-rules, title: "Sum & product rules" }
-- { id: permutations, title: "Permutations" }
-- { id: combinations, title: "Combinations" }
-- { id: binomial-theorem, title: "Binomial theorem" }
-- { id: pigeonhole, title: "Pigeonhole principle" }
-- { id: inclusion-exclusion, title: "Inclusion–exclusion" }
-- { id: stars-and-bars, title: "Stars and bars" }
-- { id: recurrences-discrete, title: "Recurrence relations" }
-- { id: divisibility, title: "Divisibility" }
-- { id: modular-arithmetic, title: "Modular arithmetic" }
-- { id: gcd-euclid, title: "GCD & Euclid's algorithm" }
-- { id: bezout, title: "Bézout's identity" }
-- { id: primes, title: "Primes" }
-- { id: modular-inverses, title: "Modular inverses" }
-- { id: rsa, title: "RSA" }
-- { id: graph-basics, title: "Graph basics" }
-- { id: handshake-lemma, title: "Handshake lemma" }
-- { id: paths-connectivity, title: "Paths & connectivity" }
-- { id: euler-hamilton, title: "Euler & Hamilton paths" }
-- { id: bipartite-colouring, title: "Bipartite graphs & colouring" }
-- { id: planar-graphs, title: "Planar graphs" }
-- { id: trees-discrete, title: "Trees" }
+- { id: connectives, title: "Logical connectives", requires: [propositions] }
+- { id: truth-tables, title: "Truth tables", requires: [propositions] }
+- { id: logical-equivalence, title: "Logical equivalence", requires: [truth-tables] }
+- { id: conditionals, title: "Converse, inverse, contrapositive", requires: [truth-tables] }
+- { id: quantifiers, title: "Predicates & quantifiers", requires: [conditionals] }
+- { id: rules-of-inference, title: "Rules of inference", requires: [quantifiers] }
+- { id: direct-proof, title: "Direct proof", requires: [rules-of-inference] }
+- { id: proof-by-contrapositive, title: "Proof by contrapositive", requires: [direct-proof] }
+- { id: proof-by-contradiction, title: "Proof by contradiction", requires: [proof-by-contrapositive] }
+- { id: proof-by-cases, title: "Proof by cases", requires: [proof-by-contrapositive] }
+- { id: counterexamples, title: "Counterexamples", requires: [proof-by-cases] }
+- { id: induction, title: "Mathematical induction", requires: [proof-by-cases] }
+- { id: strong-induction, title: "Strong induction", requires: [induction] }
+- { id: well-ordering, title: "Well-ordering principle", requires: [strong-induction] }
+- { id: sets, title: "Sets", requires: [strong-induction] }
+- { id: set-operations, title: "Set operations", requires: [sets] }
+- { id: injective-surjective, title: "Injective, surjective, bijective", requires: [sets] }
+- { id: function-inverses, title: "Inverses & composition", requires: [injective-surjective] }
+- { id: cardinality, title: "Cardinality", requires: [injective-surjective] }
+- { id: relation-properties, title: "Properties of relations", requires: [cardinality] }
+- { id: equivalence-relations, title: "Equivalence relations", requires: [relation-properties] }
+- { id: partial-orders, title: "Partial orders", requires: [equivalence-relations] }
+- { id: sum-product-rules, title: "Sum & product rules", requires: [partial-orders] }
+- { id: permutations, title: "Permutations", requires: [sum-product-rules] }
+- { id: combinations, title: "Combinations", requires: [permutations] }
+- { id: binomial-theorem, title: "Binomial theorem", requires: [permutations] }
+- { id: pigeonhole, title: "Pigeonhole principle", requires: [binomial-theorem] }
+- { id: inclusion-exclusion, title: "Inclusion–exclusion", requires: [pigeonhole] }
+- { id: stars-and-bars, title: "Stars and bars", requires: [inclusion-exclusion] }
+- { id: recurrences-discrete, title: "Recurrence relations", requires: [stars-and-bars] }
+- { id: divisibility, title: "Divisibility", requires: [recurrences-discrete] }
+- { id: modular-arithmetic, title: "Modular arithmetic", requires: [divisibility] }
+- { id: gcd-euclid, title: "GCD & Euclid's algorithm", requires: [modular-arithmetic] }
+- { id: bezout, title: "Bézout's identity", requires: [gcd-euclid] }
+- { id: primes, title: "Primes", requires: [gcd-euclid] }
+- { id: modular-inverses, title: "Modular inverses", requires: [primes] }
+- { id: rsa, title: "RSA", requires: [modular-inverses] }
+- { id: graph-basics, title: "Graph basics", requires: [rsa] }
+- { id: handshake-lemma, title: "Handshake lemma", requires: [graph-basics] }
+- { id: paths-connectivity, title: "Paths & connectivity", requires: [graph-basics] }
+- { id: euler-hamilton, title: "Euler & Hamilton paths", requires: [paths-connectivity] }
+- { id: bipartite-colouring, title: "Bipartite graphs & colouring", requires: [euler-hamilton] }
+- { id: planar-graphs, title: "Planar graphs", requires: [bipartite-colouring] }
+- { id: trees-discrete, title: "Trees", requires: [planar-graphs] }

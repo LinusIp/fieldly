@@ -44,7 +44,8 @@ export function watchContent(): void {
   const dirs = [
     CONTENT,
     join(ROOT, 'scripts'),
-    join(ROOT, 'src', 'challenges'),
+    join(ROOT, 'src', 'interactives'),
+    join(ROOT, 'src', 'widgets'),
     join(ROOT, 'src', 'engine'),
     join(ROOT, 'src', 'content'),
   ];

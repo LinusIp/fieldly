@@ -13,6 +13,17 @@ export const DEFAULTS = {
   codeLang: 'python' as 'python' | 'javascript',
 };
 
+/**
+ * Parts of the product that exist so far (§14 builds them phase by phase). Path-map nodes and
+ * navigation for a feature that isn't built yet show "Coming soon" instead of a dead link.
+ */
+export const FEATURES = {
+  lessonPlayer: false,
+  practice: false,
+  puzzles: false,
+  sandbox: false,
+};
+
 /** Pinned Pyodide release, loaded from the CDN only when a Python code challenge runs. */
 export const PYODIDE_VERSION = '314.0.7';
 export const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;

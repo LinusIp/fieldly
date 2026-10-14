@@ -19,6 +19,7 @@ units:
       - id: phys2.u1.l3
         title: "The electric field"
         concepts: [electric-field, point-charge-field]
+        tryFirst: true
       - id: phys2.u1.l4
         title: "Field lines"
         concepts: [field-lines]
@@ -38,6 +39,7 @@ units:
       - id: phys2.u2.l2
         title: "Gauss's law"
         concepts: [gauss-law]
+        tryFirst: true
       - id: phys2.u2.l3
         title: "Conductors in equilibrium"
         concepts: [conductors-equilibrium]
@@ -70,6 +72,7 @@ units:
       - id: phys2.u3.l5
         title: "Kirchhoff's rules"
         concepts: [junction-rule, loop-rule]
+        tryFirst: true
       - id: phys2.u3.l6
         title: "Meters in circuits"
         concepts: [ammeters-voltmeters, meter-loading]
@@ -111,6 +114,7 @@ units:
       - id: phys2.u5.l1
         title: "Faraday's law"
         concepts: [magnetic-flux, faradays-law]
+        tryFirst: true
       - id: phys2.u5.l2
         title: "Lenz's law"
         concepts: [lenzs-law]

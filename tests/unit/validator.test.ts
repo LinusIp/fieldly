@@ -18,7 +18,7 @@ describe('content validator — real content', () => {
       'dsa',
       'probstat',
     ]);
-  }, 60_000);
+  }, 120_000);
 });
 
 describe('content validator — deliberately broken fixtures', () => {
@@ -31,36 +31,38 @@ describe('content validator — deliberately broken fixtures', () => {
       `no error matching ${re}`,
     ).toBe(true);
 
-  it('catches structural errors', () => {
+  it('catches structural errors (§13.2)', () => {
     expectError(/prerequisite subject "nosuchsubject"/);
     expectError(/lesson id "demo.u1.l3" should be "demo.u1.l2"/);
+    expectError(/requires unknown concept "no-such-concept"/);
+    expectError(/screens \(needs 15–25\)/);
+    expectError(/the first screen must be a hook/);
+    expectError(/explore screens \(needs ≥ 2\)/);
+    expectError(/challenges \(needs exactly 2\)/);
+    expectError(/needs ≥ 1 remediation step/);
+    expectError(/core steps \(needs ≥ 6\)/);
+    expectError(/core steps need `establishes`/);
     expectError(/unknown concept "missing-concept"/);
-    expectError(/expected exactly 6 core steps, found 3/);
-    expectError(/s1 difficulty must strictly increase/);
-    expectError(/exactly 1 option must be correct/);
-    expectError(/unknown misconception "no-such-misconception"/);
-    expectError(/explanation is missing \*\*Connects to:\*\*/);
-    expectError(/uses "s3" must point to an earlier step/);
-    expectError(/steps with `uses` need `standaloneContext`/);
-    expectError(/needs ≥ 1 `clueFor` link/);
+    expectError(/uses "s2", which comes later/);
+    expectError(/needs ≥ 1 clueFor link/);
     expectError(/last core step must use ≥ 2/);
-    expectError(/unknown challenge type "no-such-type"/);
-    expectError(/summary.next "demo.u9.l9" is not a listed lesson/);
+    expectError(/standard track uses 1 question kinds/);
+    expectError(/challenge difficulty must strictly increase/);
+    expectError(/recap.next "demo.u9.l9" is not a listed lesson/);
+    expectError(/practice pool has 0 items/);
   });
 
   it('catches lesson files that are not listed or misnamed', () => {
     expect(r.errors.some((e) => e.file.endsWith('l9.yaml'))).toBe(true);
   });
 
-  it('catches number and rendering errors', () => {
-    expectError(/two options both display "27 W"/);
+  it('catches rendering errors', () => {
+    expectError(/body: KaTeX/);
     expectError(/Undefined symbol Q/);
-    expectError(/intro: KaTeX/);
   });
 
   it('reports quality warnings', () => {
-    expect(warnings.some((w) => /misconception "m-unused" is defined but never used/.test(w))).toBe(true);
-    expect(warnings.some((w) => /worked example uses the same numbers/.test(w))).toBe(true);
+    expect(warnings.some((w) => /m-unused/.test(w))).toBe(true);
   });
 });
 

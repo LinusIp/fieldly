@@ -15,6 +15,7 @@ units:
       - id: calc2.u1.l2
         title: "Volumes by slicing"
         concepts: [volume-slicing, disk-washer]
+        tryFirst: true
       - id: calc2.u1.l3
         title: "Volumes by cylindrical shells"
         concepts: [cylindrical-shells]
@@ -62,6 +63,7 @@ units:
       - id: calc2.u3.l2
         title: "Series & geometric series"
         concepts: [partial-sums, geometric-series, telescoping-series]
+        tryFirst: true
       - id: calc2.u3.l3
         title: "Divergence & integral tests"
         concepts: [divergence-test, integral-test, p-series]
@@ -80,6 +82,7 @@ units:
       - id: calc2.u3.l8
         title: "Taylor & Maclaurin series"
         concepts: [taylor-series]
+        tryFirst: true
       - id: calc2.u3.l9
         title: "Taylor polynomial error"
         concepts: [taylor-error]

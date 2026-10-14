@@ -1,63 +1,63 @@
 - { id: domain-range, title: "Domain & range" }
-- { id: function-composition, title: "Function composition" }
-- { id: inverse-functions, title: "Inverse functions" }
-- { id: graph-transformations, title: "Graph transformations" }
-- { id: limit-graphs-tables, title: "Limits from graphs and tables" }
-- { id: one-sided-limits, title: "One-sided limits" }
-- { id: limit-nonexistence, title: "When a limit fails to exist" }
-- { id: limit-laws, title: "Limit laws" }
-- { id: direct-substitution, title: "Direct substitution" }
-- { id: limit-algebraic-techniques, title: "Factoring and rationalizing" }
-- { id: indeterminate-0-0, title: "0/0 forms" }
-- { id: end-behaviour, title: "End behaviour" }
-- { id: asymptotes, title: "Horizontal & vertical asymptotes" }
-- { id: dominant-terms, title: "Dominant terms" }
-- { id: continuity, title: "Continuity" }
-- { id: discontinuity-types, title: "Types of discontinuity" }
-- { id: intermediate-value-theorem, title: "Intermediate Value Theorem" }
-- { id: squeeze-theorem, title: "Squeeze theorem" }
-- { id: trig-limits, title: "Trigonometric limits" }
-- { id: epsilon-delta, title: "ε–δ definition of a limit" }
-- { id: secant-tangent, title: "Secant to tangent" }
-- { id: difference-quotient, title: "Difference quotient" }
-- { id: derivative-at-point, title: "Derivative at a point" }
-- { id: differentiability, title: "Differentiability vs continuity" }
-- { id: power-rule, title: "Power rule" }
-- { id: constant-multiple-sum-rules, title: "Constant multiple & sum rules" }
-- { id: polynomial-derivatives, title: "Derivatives of polynomials" }
-- { id: product-rule, title: "Product rule" }
-- { id: quotient-rule, title: "Quotient rule" }
-- { id: chain-rule, title: "Chain rule" }
-- { id: trig-derivatives, title: "Derivatives of trig functions" }
-- { id: exp-derivatives, title: "Derivatives of exponentials" }
-- { id: log-derivatives, title: "Derivatives of logarithms" }
-- { id: logarithmic-differentiation, title: "Logarithmic differentiation" }
-- { id: implicit-differentiation, title: "Implicit differentiation" }
-- { id: inverse-trig-derivatives, title: "Derivatives of inverse trig functions" }
-- { id: related-rates, title: "Related rates" }
-- { id: linear-approximation, title: "Linear approximation" }
-- { id: differentials, title: "Differentials" }
-- { id: critical-points, title: "Critical points" }
-- { id: closed-interval-method, title: "Closed-interval method" }
-- { id: rolles-theorem, title: "Rolle's theorem" }
-- { id: mean-value-theorem, title: "Mean Value Theorem" }
-- { id: monotonicity, title: "Increasing & decreasing" }
-- { id: first-derivative-test, title: "First derivative test" }
-- { id: concavity, title: "Concavity & inflection points" }
-- { id: second-derivative-test, title: "Second derivative test" }
-- { id: curve-sketching, title: "Curve sketching" }
-- { id: optimization, title: "Optimization" }
-- { id: lhopital, title: "L'Hôpital's rule" }
-- { id: indeterminate-forms, title: "Indeterminate forms" }
-- { id: newtons-method, title: "Newton's method" }
-- { id: antiderivatives, title: "Antiderivatives" }
-- { id: initial-value-problems, title: "Initial value problems" }
-- { id: sigma-notation, title: "Sigma notation" }
-- { id: riemann-sums, title: "Riemann sums" }
-- { id: definite-integral, title: "The definite integral" }
-- { id: signed-area, title: "Signed area" }
-- { id: ftc-part-1, title: "FTC part 1" }
-- { id: ftc-part-2, title: "FTC part 2" }
-- { id: u-substitution, title: "u-substitution" }
-- { id: net-change, title: "Net change" }
-- { id: average-value, title: "Average value of a function" }
+- { id: function-composition, title: "Function composition", requires: [domain-range] }
+- { id: inverse-functions, title: "Inverse functions", requires: [domain-range] }
+- { id: graph-transformations, title: "Graph transformations", requires: [domain-range] }
+- { id: limit-graphs-tables, title: "Limits from graphs and tables", requires: [domain-range] }
+- { id: one-sided-limits, title: "One-sided limits", requires: [limit-graphs-tables] }
+- { id: limit-nonexistence, title: "When a limit fails to exist", requires: [limit-graphs-tables] }
+- { id: limit-laws, title: "Limit laws", requires: [limit-graphs-tables] }
+- { id: direct-substitution, title: "Direct substitution", requires: [limit-laws] }
+- { id: limit-algebraic-techniques, title: "Factoring and rationalizing", requires: [limit-laws] }
+- { id: indeterminate-0-0, title: "0/0 forms", requires: [limit-laws] }
+- { id: end-behaviour, title: "End behaviour", requires: [limit-laws] }
+- { id: asymptotes, title: "Horizontal & vertical asymptotes", requires: [end-behaviour] }
+- { id: dominant-terms, title: "Dominant terms", requires: [end-behaviour] }
+- { id: continuity, title: "Continuity", requires: [end-behaviour] }
+- { id: discontinuity-types, title: "Types of discontinuity", requires: [continuity] }
+- { id: intermediate-value-theorem, title: "Intermediate Value Theorem", requires: [continuity] }
+- { id: squeeze-theorem, title: "Squeeze theorem", requires: [continuity] }
+- { id: trig-limits, title: "Trigonometric limits", requires: [squeeze-theorem] }
+- { id: epsilon-delta, title: "ε–δ definition of a limit", requires: [squeeze-theorem] }
+- { id: secant-tangent, title: "Secant to tangent", requires: [epsilon-delta] }
+- { id: difference-quotient, title: "Difference quotient", requires: [secant-tangent] }
+- { id: derivative-at-point, title: "Derivative at a point", requires: [secant-tangent] }
+- { id: differentiability, title: "Differentiability vs continuity", requires: [secant-tangent] }
+- { id: power-rule, title: "Power rule", requires: [secant-tangent] }
+- { id: constant-multiple-sum-rules, title: "Constant multiple & sum rules", requires: [power-rule] }
+- { id: polynomial-derivatives, title: "Derivatives of polynomials", requires: [power-rule] }
+- { id: product-rule, title: "Product rule", requires: [power-rule] }
+- { id: quotient-rule, title: "Quotient rule", requires: [product-rule] }
+- { id: chain-rule, title: "Chain rule", requires: [product-rule] }
+- { id: trig-derivatives, title: "Derivatives of trig functions", requires: [chain-rule] }
+- { id: exp-derivatives, title: "Derivatives of exponentials", requires: [trig-derivatives] }
+- { id: log-derivatives, title: "Derivatives of logarithms", requires: [trig-derivatives] }
+- { id: logarithmic-differentiation, title: "Logarithmic differentiation", requires: [trig-derivatives] }
+- { id: implicit-differentiation, title: "Implicit differentiation", requires: [trig-derivatives] }
+- { id: inverse-trig-derivatives, title: "Derivatives of inverse trig functions", requires: [implicit-differentiation] }
+- { id: related-rates, title: "Related rates", requires: [implicit-differentiation] }
+- { id: linear-approximation, title: "Linear approximation", requires: [related-rates] }
+- { id: differentials, title: "Differentials", requires: [linear-approximation] }
+- { id: critical-points, title: "Critical points", requires: [linear-approximation] }
+- { id: closed-interval-method, title: "Closed-interval method", requires: [critical-points] }
+- { id: rolles-theorem, title: "Rolle's theorem", requires: [critical-points] }
+- { id: mean-value-theorem, title: "Mean Value Theorem", requires: [rolles-theorem] }
+- { id: monotonicity, title: "Increasing & decreasing", requires: [rolles-theorem] }
+- { id: first-derivative-test, title: "First derivative test", requires: [monotonicity] }
+- { id: concavity, title: "Concavity & inflection points", requires: [monotonicity] }
+- { id: second-derivative-test, title: "Second derivative test", requires: [monotonicity] }
+- { id: curve-sketching, title: "Curve sketching", requires: [monotonicity] }
+- { id: optimization, title: "Optimization", requires: [curve-sketching] }
+- { id: lhopital, title: "L'Hôpital's rule", requires: [optimization] }
+- { id: indeterminate-forms, title: "Indeterminate forms", requires: [lhopital] }
+- { id: newtons-method, title: "Newton's method", requires: [lhopital] }
+- { id: antiderivatives, title: "Antiderivatives", requires: [newtons-method] }
+- { id: initial-value-problems, title: "Initial value problems", requires: [antiderivatives] }
+- { id: sigma-notation, title: "Sigma notation", requires: [antiderivatives] }
+- { id: riemann-sums, title: "Riemann sums", requires: [sigma-notation] }
+- { id: definite-integral, title: "The definite integral", requires: [sigma-notation] }
+- { id: signed-area, title: "Signed area", requires: [definite-integral] }
+- { id: ftc-part-1, title: "FTC part 1", requires: [definite-integral] }
+- { id: ftc-part-2, title: "FTC part 2", requires: [ftc-part-1] }
+- { id: u-substitution, title: "u-substitution", requires: [ftc-part-1] }
+- { id: net-change, title: "Net change", requires: [u-substitution] }
+- { id: average-value, title: "Average value of a function", requires: [net-change] }

@@ -1,4 +1,11 @@
-import type { Question } from '../content/schema';
+/** The option-bearing fields of an mcq question (computed or static, §9.2). */
+export interface OptionQuestion {
+  id: string;
+  fixedOrder?: boolean;
+  answer?: { expr: string; unit?: string; sig?: number };
+  distractors?: { expr: string; unit?: string; sig?: number; misconception: string }[];
+  options?: { text: string; correct?: boolean; misconception?: string }[];
+}
 import { evalNumber, type Scope } from './expr';
 import { formatNumber } from './format';
 import { mulberry32 } from './params';
@@ -13,7 +20,7 @@ export interface DisplayOption {
   value?: number;
 }
 
-export function isComputed(q: Question): boolean {
+export function isComputed(q: OptionQuestion): boolean {
   return q.answer !== undefined;
 }
 
@@ -35,7 +42,7 @@ export function formatNumericOption(value: number, unit?: string, sig?: number):
  * Build the four options in display order. Computed options are sorted ascending by value
  * (position gives no clue); static options are shuffled with a seed unless `fixedOrder`.
  */
-export function buildOptions(q: Question, scope: Scope, seed: number): DisplayOption[] {
+export function buildOptions(q: OptionQuestion, scope: Scope, seed: number): DisplayOption[] {
   if (q.answer) {
     const authored = [
       { ...q.answer, misconception: undefined as string | undefined, correct: true },

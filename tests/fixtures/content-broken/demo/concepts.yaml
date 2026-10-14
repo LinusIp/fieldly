@@ -1,1 +1,2 @@
 - { id: ohms-law, title: "Ohm's law" }
+- { id: power, title: "Power", requires: [no-such-concept] }

@@ -1,4 +1,4 @@
-import type { Concept, Lesson, Misconception } from './schema';
+import type { Concept, Lesson, Misconception, MixedSet, PuzzlePack, SpeedRound } from './schema';
 
 /** Shapes of the JSON the content build emits into public/content/. */
 
@@ -7,17 +7,41 @@ export interface LessonMeta {
   title: string;
   concepts: string[];
   prerequisites: string[];
-  /** false → listed in the syllabus but no lesson file yet ("Coming soon"). */
+  tryFirst: boolean;
+  /** false → listed in the syllabus but no valid lesson file yet ("Coming soon"). */
   available: boolean;
   estimatedMinutes?: number;
+  screens?: number;
   coreSteps?: number;
+  practiceItems?: number;
 }
 
 export interface UnitMeta {
   id: string;
   title: string;
   baseDifficulty: number;
+  checkpointItems: number;
   lessons: LessonMeta[];
+}
+
+export interface MixedSetMeta {
+  id: string;
+  title: string;
+  lessons: string[];
+}
+
+export interface SpeedRoundMeta {
+  id: string;
+  title: string;
+  unlockAfter: string;
+}
+
+export interface PuzzlePackMeta {
+  id: string;
+  title: string;
+  interactive: string;
+  unlockAfter: string;
+  levels: number;
 }
 
 export interface SubjectMeta {
@@ -28,6 +52,10 @@ export interface SubjectMeta {
   prerequisites: string[];
   background?: string;
   units: UnitMeta[];
+  mixed: MixedSetMeta[];
+  speed: SpeedRoundMeta[];
+  /** Packs whose `unlockAfter` lesson belongs to this subject. */
+  puzzles: PuzzlePackMeta[];
 }
 
 export interface ContentIndex {
@@ -40,4 +68,13 @@ export interface SubjectContent {
   concepts: Concept[];
   misconceptions: Misconception[];
   lessons: Record<string, Lesson>;
+  mixed: Record<string, MixedSet>;
+  speed: Record<string, SpeedRound>;
+}
+
+export type PuzzleContent = Record<string, PuzzlePack>;
+
+/** Concept and misconception ids are namespaced by subject: "<subject>/<slug>" (§7.3). */
+export function nsId(subject: string, slug: string): string {
+  return slug.includes('/') ? slug : `${subject}/${slug}`;
 }

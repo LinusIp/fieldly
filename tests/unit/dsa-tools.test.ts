@@ -7,16 +7,16 @@ import {
   dynamicArray,
   guessNumber,
   listReverse,
-} from '../../src/challenges/algorithm-stepper/algorithms';
-import { parseCell, parseNode, type Trace } from '../../src/challenges/algorithm-stepper/trace';
-import { compareOutput } from '../../src/challenges/code-runner/compare';
-import { generate } from '../../src/challenges/code-runner/generators';
-import { runJsTests } from '../../src/challenges/code-runner/harness';
+} from '../../src/interactives/algorithm-stepper/algorithms';
+import { parseCell, parseNode, type Trace } from '../../src/interactives/algorithm-stepper/trace';
+import { compareOutput } from '../../src/interactives/code-runner/compare';
+import { generate } from '../../src/interactives/code-runner/generators';
+import { runJsTests } from '../../src/interactives/code-runner/harness';
 import {
   checkScope as parsonsScope,
   initialState as parsonsInit,
   solutionScope as parsonsSol,
-} from '../../src/challenges/parsons/logic';
+} from '../../src/interactives/parsons/model';
 import { mulberry32 } from '../../src/engine/params';
 
 const cells = (t: Trace) => t.steps.map((s) => parseCell(s.correct));

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { expectedScore, kFactor, questionRating, updateRatings } from '../../src/engine/elo';
 import { evalBoolean, evalNumber, near } from '../../src/engine/expr';
 import { formatNumber } from '../../src/engine/format';
-import { buildOptions } from '../../src/engine/options';
+import { buildOptions, type OptionQuestion } from '../../src/engine/options';
 import {
   applyDerived,
   buildScope,
@@ -14,7 +14,6 @@ import { dueItems, recordLessonAnswer, recordReviewAnswer } from '../../src/engi
 import { challengeScore, computeStars, conceptStatus, stepScore } from '../../src/engine/scoring';
 import { chooseVariant, modeFromHistory, targetP } from '../../src/engine/select';
 import { renderTemplate } from '../../src/engine/template';
-import type { Question } from '../../src/content/schema';
 
 describe('format', () => {
   it('handles the edge cases from §13.1', () => {
@@ -85,18 +84,14 @@ describe('params', () => {
 });
 
 describe('options', () => {
-  const q: Question = {
+  const q: OptionQuestion = {
     id: 'q',
-    difficulty: 2,
-    prompt: 'p',
     answer: { expr: 'V / R', unit: 'A' },
     distractors: [
       { expr: 'V * R', unit: 'A', misconception: 'a' },
       { expr: 'R / V', unit: 'A', misconception: 'b' },
       { expr: 'V', unit: 'A', misconception: 'c' },
     ],
-    hints: { nudge: 'n', partial: 'p' },
-    explanation: 'e',
   };
   it('sorts computed options ascending', () => {
     const o = buildOptions(q, { V: 6, R: 3 }, 1);
@@ -104,7 +99,7 @@ describe('options', () => {
     expect(o.find((x) => x.correct)?.text).toBe('2 A');
   });
   it('shuffles static options deterministically', () => {
-    const s: Question = {
+    const s: OptionQuestion = {
       ...q,
       answer: undefined,
       distractors: undefined,

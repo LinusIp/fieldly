@@ -1,44 +1,44 @@
 - { id: big-o, title: "Big-O, Θ, Ω" }
-- { id: growth-rates, title: "Growth rates" }
-- { id: loop-analysis, title: "Analysing loops" }
-- { id: recursion, title: "Recursion" }
-- { id: recurrences-dsa, title: "Recurrences & the master theorem" }
-- { id: amortized-analysis, title: "Amortized analysis" }
-- { id: arrays, title: "Arrays & dynamic arrays" }
-- { id: linked-lists, title: "Linked lists" }
-- { id: stacks, title: "Stacks" }
-- { id: queues, title: "Queues & deques" }
-- { id: two-pointers, title: "Two pointers" }
-- { id: sliding-window, title: "Sliding window" }
-- { id: prefix-sums, title: "Prefix sums" }
-- { id: hash-tables, title: "Hash tables" }
-- { id: collision-handling, title: "Collision handling" }
-- { id: load-factor, title: "Load factor & resizing" }
-- { id: hash-map-patterns, title: "Hash map patterns" }
-- { id: binary-search, title: "Binary search" }
-- { id: elementary-sorts, title: "Elementary sorts" }
-- { id: sort-stability, title: "Stability" }
-- { id: merge-sort, title: "Merge sort" }
-- { id: quicksort, title: "Quicksort" }
-- { id: heaps, title: "Heaps & heapsort" }
-- { id: sorting-lower-bound, title: "Comparison sorting lower bound" }
-- { id: linear-sorts, title: "Counting & radix sort" }
-- { id: tree-traversals, title: "Tree traversals" }
-- { id: bst, title: "Binary search trees" }
-- { id: balanced-trees, title: "Balanced trees" }
-- { id: priority-queues, title: "Priority queues" }
-- { id: tries, title: "Tries" }
-- { id: tree-recursion, title: "Tree recursion patterns" }
-- { id: graph-representations, title: "Graph representations" }
-- { id: bfs, title: "Breadth-first search" }
-- { id: dfs, title: "Depth-first search" }
-- { id: topological-sort, title: "Topological sort" }
-- { id: dijkstra, title: "Dijkstra's algorithm" }
-- { id: bellman-ford, title: "Bellman–Ford" }
-- { id: mst, title: "Minimum spanning trees" }
-- { id: union-find, title: "Union–find" }
-- { id: greedy, title: "Greedy algorithms" }
-- { id: divide-and-conquer, title: "Divide & conquer" }
-- { id: dp-1d, title: "1D dynamic programming" }
-- { id: dp-2d, title: "2D dynamic programming" }
-- { id: backtracking, title: "Backtracking" }
+- { id: growth-rates, title: "Growth rates", requires: [big-o] }
+- { id: loop-analysis, title: "Analysing loops", requires: [big-o] }
+- { id: recursion, title: "Recursion", requires: [loop-analysis] }
+- { id: recurrences-dsa, title: "Recurrences & the master theorem", requires: [recursion] }
+- { id: amortized-analysis, title: "Amortized analysis", requires: [recurrences-dsa] }
+- { id: arrays, title: "Arrays & dynamic arrays", requires: [amortized-analysis] }
+- { id: linked-lists, title: "Linked lists", requires: [arrays] }
+- { id: stacks, title: "Stacks", requires: [linked-lists] }
+- { id: queues, title: "Queues & deques", requires: [stacks] }
+- { id: two-pointers, title: "Two pointers", requires: [queues] }
+- { id: sliding-window, title: "Sliding window", requires: [two-pointers] }
+- { id: prefix-sums, title: "Prefix sums", requires: [sliding-window] }
+- { id: hash-tables, title: "Hash tables", requires: [prefix-sums] }
+- { id: collision-handling, title: "Collision handling", requires: [hash-tables] }
+- { id: load-factor, title: "Load factor & resizing", requires: [collision-handling] }
+- { id: hash-map-patterns, title: "Hash map patterns", requires: [load-factor] }
+- { id: binary-search, title: "Binary search", requires: [hash-map-patterns] }
+- { id: elementary-sorts, title: "Elementary sorts", requires: [binary-search] }
+- { id: sort-stability, title: "Stability", requires: [elementary-sorts] }
+- { id: merge-sort, title: "Merge sort", requires: [elementary-sorts] }
+- { id: quicksort, title: "Quicksort", requires: [merge-sort] }
+- { id: heaps, title: "Heaps & heapsort", requires: [quicksort] }
+- { id: sorting-lower-bound, title: "Comparison sorting lower bound", requires: [heaps] }
+- { id: linear-sorts, title: "Counting & radix sort", requires: [sorting-lower-bound] }
+- { id: tree-traversals, title: "Tree traversals", requires: [sorting-lower-bound] }
+- { id: bst, title: "Binary search trees", requires: [tree-traversals] }
+- { id: balanced-trees, title: "Balanced trees", requires: [bst] }
+- { id: priority-queues, title: "Priority queues", requires: [balanced-trees] }
+- { id: tries, title: "Tries", requires: [priority-queues] }
+- { id: tree-recursion, title: "Tree recursion patterns", requires: [tries] }
+- { id: graph-representations, title: "Graph representations", requires: [tree-recursion] }
+- { id: bfs, title: "Breadth-first search", requires: [graph-representations] }
+- { id: dfs, title: "Depth-first search", requires: [bfs] }
+- { id: topological-sort, title: "Topological sort", requires: [dfs] }
+- { id: dijkstra, title: "Dijkstra's algorithm", requires: [dfs] }
+- { id: bellman-ford, title: "Bellman–Ford", requires: [dijkstra] }
+- { id: mst, title: "Minimum spanning trees", requires: [bellman-ford] }
+- { id: union-find, title: "Union–find", requires: [mst] }
+- { id: greedy, title: "Greedy algorithms", requires: [mst] }
+- { id: divide-and-conquer, title: "Divide & conquer", requires: [greedy] }
+- { id: dp-1d, title: "1D dynamic programming", requires: [divide-and-conquer] }
+- { id: dp-2d, title: "2D dynamic programming", requires: [dp-1d] }
+- { id: backtracking, title: "Backtracking", requires: [dp-2d] }

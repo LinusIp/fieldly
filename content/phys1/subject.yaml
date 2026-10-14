@@ -25,6 +25,7 @@ units:
       - id: phys1.u1.l5
         title: "Projectile motion"
         concepts: [projectile-motion]
+        tryFirst: true
       - id: phys1.u1.l6
         title: "Relative motion"
         concepts: [relative-motion]
@@ -41,6 +42,7 @@ units:
       - id: phys1.u2.l2
         title: "Newton's first and second laws"
         concepts: [inertia, newtons-second-law]
+        tryFirst: true
       - id: phys1.u2.l3
         title: "Newton's third law & connected objects"
         concepts: [newtons-third-law, connected-objects]
@@ -69,6 +71,7 @@ units:
       - id: phys1.u3.l3
         title: "Potential energy & conservation"
         concepts: [potential-energy, energy-conservation]
+        tryFirst: true
       - id: phys1.u3.l4
         title: "Non-conservative forces"
         concepts: [non-conservative-forces]
@@ -91,6 +94,7 @@ units:
       - id: phys1.u4.l3
         title: "Collisions in one dimension"
         concepts: [collisions-1d]
+        tryFirst: true
       - id: phys1.u4.l4
         title: "Collisions in two dimensions"
         concepts: [collisions-2d]
@@ -113,6 +117,7 @@ units:
       - id: phys1.u5.l4
         title: "Rotational dynamics"
         concepts: [rotational-dynamics]
+        tryFirst: true
       - id: phys1.u5.l5
         title: "Rotational energy & rolling"
         concepts: [rolling-energy]

@@ -2,116 +2,56 @@
  * Content validator (§13.2). `npm run content:check` runs it; `build-content.ts` reuses it.
  * Errors fail CI; warnings are printed.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import katex from 'katex';
-import YAML from 'yaml';
-import type { z } from 'zod';
-import { challengeLogic } from '../src/challenges/logic';
-import { makeResolveCtx } from '../src/challenges/types';
 import {
   ConceptsSchema,
   LessonSchema,
   MisconceptionsSchema,
+  MixedSetSchema,
+  PuzzlePackSchema,
+  SpeedRoundSchema,
   SubjectSchema,
   SubjectsListSchema,
   type Lesson,
   type Misconception,
+  type MixedSet,
+  type PuzzlePack,
   type Question,
-  type Step,
+  type SpeedRound,
   type Subject,
 } from '../src/content/schema';
-import type { ContentIndex, LessonMeta, SubjectContent, SubjectMeta } from '../src/content/types';
-import { evalBoolean, evalNumber, evaluate, type Scope } from '../src/engine/expr';
-import { buildOptions } from '../src/engine/options';
-import { applyDerived, enumerateParamValues, mulberry32 } from '../src/engine/params';
-import { renderTemplate } from '../src/engine/template';
-import { flushCodeChecks, runCodeChecks } from './code-check';
+import type { ContentIndex, PuzzleContent, SubjectContent, SubjectMeta } from '../src/content/types';
+import { flushCodeChecks } from './code-check';
+import { validateInteractiveVariant } from './validate/interactive';
+import { kindsUsed, validateLesson, workedExampleWarnings } from './validate/lesson';
+import { validateQuestion } from './validate/questions';
+import {
+  Collector,
+  formatZodError,
+  readYaml,
+  renderAndCheck,
+  reporterFor,
+  scopesOf,
+  textLeaves,
+  type Issue,
+} from './validate/util';
 
-export interface Issue {
-  file: string;
-  where?: string;
-  message: string;
-}
+export type { Issue } from './validate/util';
+export { checkKatex, mathSegments } from './validate/util';
 
 export interface ValidationResult {
   errors: Issue[];
   warnings: Issue[];
   index: ContentIndex;
   subjects: Record<string, SubjectContent>;
-}
-
-const EXPLANATION_LABELS = ['**Answer:**', '**Why:**', '**Common mistakes:**', '**Connects to:**'];
-
-function wordCount(s: string): number {
-  return s.split(/\s+/).filter(Boolean).length;
-}
-
-function formatZodError(err: z.ZodError): string {
-  return err.issues
-    .slice(0, 8)
-    .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
-    .join('; ');
-}
-
-/** Every `$…$` and `$$…$$` segment in a Markdown string. */
-export function mathSegments(src: string): { tex: string; display: boolean }[] {
-  const out: { tex: string; display: boolean }[] = [];
-  // Strip fenced and inline code first — `$` there is not math.
-  let s = src.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ');
-  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex: string) => {
-    out.push({ tex, display: true });
-    return ' ';
-  });
-  for (const m of s.matchAll(/(?<!\\)\$([^$]+?)(?<!\\)\$/g)) out.push({ tex: m[1], display: false });
-  return out;
-}
-
-export function checkKatex(src: string): string | null {
-  for (const seg of mathSegments(src)) {
-    try {
-      katex.renderToString(seg.tex, { throwOnError: true, displayMode: seg.display, strict: 'ignore' });
-    } catch (e) {
-      return `KaTeX: ${(e as Error).message.split('\n')[0]} in "${seg.tex.trim().slice(0, 80)}"`;
-    }
-  }
-  return null;
-}
-
-function readYaml(file: string): unknown {
-  return YAML.parse(readFileSync(file, 'utf8'), { prettyErrors: true, merge: true });
-}
-
-function numbersIn(s: string): Set<number> {
-  const out = new Set<number>();
-  for (const m of s.matchAll(/(?<![\w.])\d+(?:\.\d+)?(?![\w.]*\d)/g)) out.add(Number(m[0]));
-  return out;
-}
-
-class Collector {
-  errors: Issue[] = [];
-  warnings: Issue[] = [];
-  constructor(private root: string) {}
-  rel(file: string): string {
-    return relative(this.root, file).replace(/\\/g, '/');
-  }
-  error(file: string, message: string, where?: string) {
-    this.errors.push({ file: this.rel(file), where, message });
-  }
-  warn(file: string, message: string, where?: string) {
-    this.warnings.push({ file: this.rel(file), where, message });
-  }
-}
-
-function allQuestions(step: Step): [string, Question][] {
-  return (['easier', 'standard', 'harder'] as const)
-    .filter((k) => step.variants[k])
-    .map((k) => [k, step.variants[k]!]);
+  puzzles: PuzzleContent;
 }
 
 interface SubjectCtx {
   subject: Subject;
+  dir: string;
   conceptIds: Set<string>;
   misconceptions: Map<string, Misconception>;
   listedLessonIds: Set<string>;
@@ -119,16 +59,25 @@ interface SubjectCtx {
   unitBase: Map<string, number>;
 }
 
+function yamlFilesIn(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
+    .map((f) => join(dir, f));
+}
+
 export function validateContent(contentDir: string, opts: { runCode?: boolean } = {}): ValidationResult {
   const root = resolve(contentDir, '..');
   const c = new Collector(root);
   const index: ContentIndex = { builtAt: new Date().toISOString(), subjects: [] };
   const subjects: Record<string, SubjectContent> = {};
+  const puzzles: PuzzleContent = {};
+  const result = () => ({ errors: c.errors, warnings: c.warnings, index, subjects, puzzles });
 
   const subjectsFile = join(contentDir, 'subjects.yaml');
   if (!existsSync(subjectsFile)) {
     c.error(subjectsFile, 'missing subjects.yaml');
-    return { errors: c.errors, warnings: c.warnings, index, subjects };
+    return result();
   }
   let subjectIds: string[] = [];
   try {
@@ -140,21 +89,13 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
   }
   if (new Set(subjectIds).size !== subjectIds.length) c.error(subjectsFile, 'duplicate subject id');
 
-  // Pass 1: syllabus manifests, concepts, misconceptions.
+  // ── Pass 1: syllabus manifests, concepts, misconceptions ─────────────────────
   const ctxs = new Map<string, SubjectCtx>();
-  const allListedLessons = new Set<string>();
-  const seenIds = new Map<string, string>();
-  const claim = (id: string, file: string, what: string) => {
-    const prev = seenIds.get(id);
-    if (prev) c.error(file, `duplicate id "${id}" (${what}; also ${prev})`);
-    else seenIds.set(id, what);
-  };
-
+  const allListedLessons = new Map<string, string>(); // lesson id → subject id
+  const conceptsBySubject = new Map<string, Map<string, string[]>>(); // slug → requires
   for (const sid of subjectIds) {
     const dir = join(contentDir, sid);
     const subjectFile = join(dir, 'subject.yaml');
-    const conceptsFile = join(dir, 'concepts.yaml');
-    const miscFile = join(dir, 'misconceptions.yaml');
     if (!existsSync(subjectFile)) {
       c.error(subjectFile, `subject "${sid}" has no subject.yaml`);
       continue;
@@ -172,47 +113,43 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
       continue;
     }
     if (subject.id !== sid) c.error(subjectFile, `id "${subject.id}" does not match directory "${sid}"`);
-    claim(subject.id, subjectFile, 'subject');
 
-    const conceptIds = new Set<string>();
+    const conceptsFile = join(dir, 'concepts.yaml');
+    const concepts = new Map<string, string[]>();
+    subjects[sid] = { id: sid, concepts: [], misconceptions: [], lessons: {}, mixed: {}, speed: {} };
     if (!existsSync(conceptsFile)) c.error(conceptsFile, 'missing concepts.yaml');
-    else {
+    else
       try {
         const parsed = ConceptsSchema.safeParse(readYaml(conceptsFile));
         if (!parsed.success) c.error(conceptsFile, formatZodError(parsed.error));
-        else
+        else {
           for (const k of parsed.data) {
-            if (conceptIds.has(k.id)) c.error(conceptsFile, `duplicate concept "${k.id}"`);
-            conceptIds.add(k.id);
+            if (concepts.has(k.id)) c.error(conceptsFile, `duplicate concept "${k.id}"`);
+            concepts.set(k.id, k.requires ?? []);
           }
-        subjects[sid] = {
-          id: sid,
-          concepts: parsed.success ? parsed.data : [],
-          misconceptions: [],
-          lessons: {},
-        };
+          subjects[sid].concepts = parsed.data;
+        }
       } catch (e) {
         c.error(conceptsFile, (e as Error).message);
       }
-    }
-    subjects[sid] ??= { id: sid, concepts: [], misconceptions: [], lessons: {} };
+    conceptsBySubject.set(sid, concepts);
 
+    const miscFile = join(dir, 'misconceptions.yaml');
     const misconceptions = new Map<string, Misconception>();
-    if (existsSync(miscFile)) {
+    if (existsSync(miscFile))
       try {
-        const raw = readYaml(miscFile) ?? [];
-        const parsed = MisconceptionsSchema.safeParse(raw);
+        const parsed = MisconceptionsSchema.safeParse(readYaml(miscFile) ?? []);
         if (!parsed.success) c.error(miscFile, formatZodError(parsed.error));
-        else
+        else {
           for (const m of parsed.data) {
             if (misconceptions.has(m.id)) c.error(miscFile, `duplicate misconception "${m.id}"`);
             misconceptions.set(m.id, m);
           }
-        subjects[sid].misconceptions = [...misconceptions.values()];
+          subjects[sid].misconceptions = parsed.data;
+        }
       } catch (e) {
         c.error(miscFile, (e as Error).message);
       }
-    }
 
     const listed = new Set<string>();
     const unitBase = new Map<string, number>();
@@ -224,42 +161,50 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
       prerequisites: subject.prerequisites,
       background: subject.background,
       units: [],
+      mixed: [],
+      speed: [],
+      puzzles: [],
     };
-    let prevLesson: string | undefined;
+    let tryFirstCount = 0;
     subject.units.forEach((unit, ui) => {
-      const expectedUnit = `${sid}.u${ui + 1}`;
-      if (unit.id !== expectedUnit) c.error(subjectFile, `unit id "${unit.id}" should be "${expectedUnit}"`);
-      claim(unit.id, subjectFile, 'unit');
+      if (unit.id !== `${sid}.u${ui + 1}`)
+        c.error(subjectFile, `unit id "${unit.id}" should be "${sid}.u${ui + 1}"`);
       unitBase.set(unit.id, unit.baseDifficulty);
-      const unitMeta = {
+      let prevLesson: string | undefined;
+      const unitMeta: SubjectMeta['units'][number] = {
         id: unit.id,
         title: unit.title,
         baseDifficulty: unit.baseDifficulty,
-        lessons: [] as LessonMeta[],
+        checkpointItems: unit.checkpoint?.items ?? 12,
+        lessons: [],
       };
       unit.lessons.forEach((l, li) => {
-        const expected = `${unit.id}.l${li + 1}`;
-        if (l.id !== expected) c.error(subjectFile, `lesson id "${l.id}" should be "${expected}"`);
-        claim(l.id, subjectFile, 'lesson');
+        if (l.id !== `${unit.id}.l${li + 1}`)
+          c.error(subjectFile, `lesson id "${l.id}" should be "${unit.id}.l${li + 1}"`);
+        if (allListedLessons.has(l.id)) c.error(subjectFile, `duplicate lesson id "${l.id}"`);
         listed.add(l.id);
-        allListedLessons.add(l.id);
+        allListedLessons.set(l.id, sid);
         for (const k of l.concepts)
-          if (!conceptIds.has(k)) c.error(subjectFile, `unknown concept "${k}"`, l.id);
+          if (!concepts.has(k)) c.error(subjectFile, `unknown concept "${k}"`, l.id);
+        if (l.tryFirst) tryFirstCount++;
         unitMeta.lessons.push({
           id: l.id,
           title: l.title,
           concepts: l.concepts,
           prerequisites: l.prerequisites ?? (prevLesson ? [prevLesson] : []),
+          tryFirst: l.tryFirst ?? false,
           available: false,
         });
         prevLesson = l.id;
       });
       meta.units.push(unitMeta);
     });
+    if (tryFirstCount < 3) c.warn(subjectFile, `only ${tryFirstCount} tryFirst lessons (§2.8 suggests 3–5)`);
     index.subjects.push(meta);
     ctxs.set(sid, {
       subject,
-      conceptIds,
+      dir,
+      conceptIds: new Set(concepts.keys()),
       misconceptions,
       listedLessonIds: listed,
       usedMisconceptions: new Set(),
@@ -267,9 +212,9 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
     });
   }
 
-  // Subject prerequisites and misconception `lessons` refer to known things.
+  // Cross-references: prerequisites, concept `requires` (bare or "<subject>/<slug>"), misconception lessons.
   for (const [sid, ctx] of ctxs) {
-    const subjectFile = join(contentDir, sid, 'subject.yaml');
+    const subjectFile = join(ctx.dir, 'subject.yaml');
     for (const p of ctx.subject.prerequisites)
       if (!ctxs.has(p)) c.error(subjectFile, `prerequisite subject "${p}" does not exist`);
     for (const unit of ctx.subject.units)
@@ -277,24 +222,30 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
         for (const p of l.prerequisites ?? [])
           if (!allListedLessons.has(p))
             c.error(subjectFile, `prerequisite lesson "${p}" is not listed`, l.id);
+    const conceptsFile = join(ctx.dir, 'concepts.yaml');
+    for (const [slug, reqs] of conceptsBySubject.get(sid) ?? [])
+      for (const r of reqs) {
+        const [rs, rslug] = r.includes('/') ? r.split('/', 2) : [sid, r];
+        if (!conceptsBySubject.get(rs)?.has(rslug))
+          c.error(conceptsFile, `requires unknown concept "${r}"`, slug);
+        if (rs === sid && rslug === slug) c.error(conceptsFile, 'a concept cannot require itself', slug);
+      }
     for (const m of ctx.misconceptions.values())
       for (const l of m.lessons)
         if (!allListedLessons.has(l))
-          c.error(join(contentDir, sid, 'misconceptions.yaml'), `lesson "${l}" is not listed`, m.id);
+          c.error(join(ctx.dir, 'misconceptions.yaml'), `lesson "${l}" is not listed`, m.id);
   }
 
-  // Pass 2: lesson files.
+  // ── Pass 2: lessons, mixed sets, speed rounds ──────────────────────────────
   for (const [sid, ctx] of ctxs) {
-    const dir = join(contentDir, sid);
     const lessonFiles: string[] = [];
-    for (const u of readdirSync(dir)) {
-      const ud = join(dir, u);
-      if (!statSync(ud).isDirectory()) continue;
-      for (const f of readdirSync(ud))
-        if (f.endsWith('.yaml') || f.endsWith('.yml')) lessonFiles.push(join(ud, f));
+    for (const u of readdirSync(ctx.dir)) {
+      const ud = join(ctx.dir, u);
+      if (statSync(ud).isDirectory() && !['mixed', 'speed'].includes(u)) lessonFiles.push(...yamlFilesIn(ud));
     }
+    const unitKinds = new Map<string, Set<string>>();
     for (const file of lessonFiles) {
-      const m = relative(dir, file)
+      const m = relative(ctx.dir, file)
         .replace(/\\/g, '/')
         .match(/^(u\d+)\/(l\d+)\.ya?ml$/);
       if (!m) {
@@ -318,355 +269,232 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
         c.error(file, `id "${lesson.id}" does not match file path (${expectedId})`);
       if (!ctx.listedLessonIds.has(lesson.id))
         c.error(file, `lesson "${lesson.id}" is not listed in subject.yaml`);
-      if (lesson.summary.next && !allListedLessons.has(lesson.summary.next))
-        c.error(file, `summary.next "${lesson.summary.next}" is not a listed lesson`);
+      const recap = lesson.screens[lesson.screens.length - 1];
+      if (recap?.type === 'recap' && recap.next && !allListedLessons.has(recap.next))
+        c.error(file, `recap.next "${recap.next}" is not a listed lesson`);
       const errorsBefore = c.errors.length;
-      validateLesson(c, file, lesson, ctx, opts);
+      const rep = reporterFor(c, file);
+      const unitId = lesson.id.split('.').slice(0, 2).join('.');
+      validateLesson(lesson, {
+        rep,
+        conceptIds: ctx.conceptIds,
+        misconceptions: new Set(ctx.misconceptions.keys()),
+        usedMisconceptions: ctx.usedMisconceptions,
+        unitBase: ctx.unitBase.get(unitId),
+        runCode: opts.runCode !== false,
+      });
+      workedExampleWarnings(lesson, rep);
+      const kinds = unitKinds.get(unitId) ?? new Set<string>();
+      for (const k of kindsUsed(lesson)) kinds.add(k);
+      unitKinds.set(unitId, kinds);
       subjects[sid].lessons[lesson.id] = lesson;
-      // Mark available in the index.
       for (const u of index.subjects.find((s) => s.id === sid)!.units)
         for (const l of u.lessons)
           if (l.id === lesson.id) {
             l.available = c.errors.length === errorsBefore;
             l.estimatedMinutes = lesson.estimatedMinutes;
-            l.coreSteps = lesson.chain.filter((s) => s.role === 'core').length;
+            l.screens = lesson.screens.length;
+            l.coreSteps = lesson.screens.filter((s) => s.type === 'question' && s.role === 'core').length;
+            l.practiceItems = lesson.practice.length;
           }
     }
-    for (const m of ctx.misconceptions.keys())
-      if (!ctx.usedMisconceptions.has(m))
-        c.warn(join(dir, 'misconceptions.yaml'), `misconception "${m}" is defined but never used`);
+    for (const [unitId, kinds] of unitKinds)
+      if (!kinds.has('find-the-error'))
+        c.warn(join(ctx.dir, 'subject.yaml'), `unit ${unitId} has no find-the-error question`);
+
+    validateMixedAndSpeed(
+      c,
+      sid,
+      ctx,
+      subjects[sid],
+      index.subjects.find((s) => s.id === sid)!,
+      allListedLessons,
+    );
+
+    const unused = [...ctx.misconceptions.keys()].filter((m) => !ctx.usedMisconceptions.has(m));
+    if (Object.keys(subjects[sid].lessons).length === 0 && unused.length > 0)
+      c.warn(
+        join(ctx.dir, 'misconceptions.yaml'),
+        `${unused.length} misconceptions are defined; no lesson uses them yet`,
+      );
+    else
+      for (const m of unused)
+        c.warn(join(ctx.dir, 'misconceptions.yaml'), `misconception "${m}" is defined but never used`);
     // The profile's "Revisit" links come from `lessons`: add every lesson that actually tags the
     // misconception, in syllabus order, after the ones listed by hand.
-    const order = [...ctx.listedLessonIds];
-    for (const m of ctx.misconceptions.values()) {
-      const used = order.filter((id) => {
+    for (const mis of ctx.misconceptions.values()) {
+      const used = [...ctx.listedLessonIds].filter((id) => {
         const l = subjects[sid].lessons[id];
-        return l !== undefined && lessonTags(l).has(m.id);
+        return l !== undefined && lessonTags(l).has(mis.id);
       });
-      m.lessons = [...new Set([...m.lessons, ...used])];
+      mis.lessons = [...new Set([...mis.lessons, ...used])];
     }
   }
 
-  // Python reference solutions run in one batch at the end.
+  // ── Pass 3: puzzle packs ────────────────────────────────────────────────────
+  validatePuzzles(c, contentDir, puzzles, index, allListedLessons, ctxs);
+
   if (opts.runCode !== false) {
     const note = flushCodeChecks();
     if (note) c.warn(contentDir, note);
   }
-
-  return { errors: c.errors, warnings: c.warnings, index, subjects };
+  return result();
 }
 
-function validateLesson(
+function validateMixedAndSpeed(
   c: Collector,
-  file: string,
-  lesson: Lesson,
+  sid: string,
   ctx: SubjectCtx,
-  opts: { runCode?: boolean },
+  content: SubjectContent,
+  meta: SubjectMeta,
+  allListedLessons: Map<string, string>,
 ): void {
-  const err = (msg: string, where?: string) => c.error(file, msg, where);
-  const warn = (msg: string, where?: string) => c.warn(file, msg, where);
-
-  for (const k of lesson.concepts) if (!ctx.conceptIds.has(k)) err(`unknown concept "${k}"`, 'concepts');
-
-  // ── Structure ──────────────────────────────────────────────────────────────
-  const stepIds = new Set<string>();
-  const questionIds = new Set<string>();
-  const core = lesson.chain.filter((s) => s.role === 'core');
-  const coreIndex = new Map(core.map((s, i) => [s.id, i]));
-  if (core.length !== 6) err(`expected exactly 6 core steps, found ${core.length}`);
-
-  let usesLinks = 0;
-  let clueLinks = 0;
-  let prevStandard = 0;
-  const standardDiffs: number[] = [];
-
-  for (const step of lesson.chain) {
-    const where = step.id;
-    if (stepIds.has(step.id)) err(`duplicate step id "${step.id}"`, where);
-    stepIds.add(step.id);
-    if (!ctx.conceptIds.has(step.concept)) err(`unknown concept "${step.concept}"`, where);
-    else if (!lesson.concepts.includes(step.concept))
-      warn(`concept "${step.concept}" is not in the lesson's concepts list`, where);
-
-    if (step.role === 'core') {
-      const { easier, standard, harder } = step.variants;
-      if (!easier || !harder) err('core steps need easier, standard and harder variants', where);
-      else if (!(easier.difficulty < standard.difficulty && standard.difficulty < harder.difficulty))
-        err(
-          `difficulty must strictly increase easier < standard < harder (got ${easier.difficulty}, ${standard.difficulty}, ${harder.difficulty})`,
-          where,
-        );
-      if (standard.difficulty < 2 || standard.difficulty > 4)
-        err(`standard difficulty must be 2–4 (got ${standard.difficulty})`, where);
-      if (standard.difficulty < prevStandard)
-        err(`standard difficulties must be non-decreasing through the chain`, where);
-      prevStandard = standard.difficulty;
-      standardDiffs.push(standard.difficulty);
-      if (!step.establishes) err('core steps need `establishes`', where);
-      const i = coreIndex.get(step.id)!;
-      for (const u of step.uses ?? []) {
-        const j = coreIndex.get(u);
-        if (j === undefined) err(`uses "${u}" is not a core step`, where);
-        else if (j >= i) err(`uses "${u}" must point to an earlier step`, where);
-        usesLinks++;
-      }
-      for (const u of step.clueFor ?? []) {
-        const j = coreIndex.get(u);
-        if (j === undefined) err(`clueFor "${u}" is not a core step`, where);
-        else if (j <= i) err(`clueFor "${u}" must point to a later step`, where);
-        clueLinks++;
-      }
-    } else {
-      if (step.variants.easier || step.variants.harder)
-        err(`${step.role} steps have a standard variant only`, where);
-      if (step.role === 'remediation') {
-        if (!step.remediates) err('remediation steps need `remediates`', where);
-        else if (!coreIndex.has(step.remediates))
-          err(`remediates "${step.remediates}" is not a core step`, where);
-      }
-      for (const u of step.uses ?? []) if (!coreIndex.has(u)) err(`uses "${u}" is not a core step`, where);
-      if (step.clueFor?.length) err(`${step.role} steps cannot have clueFor`, where);
-    }
-    if ((step.uses?.length ?? 0) > 0 && !step.standaloneContext)
-      err('steps with `uses` need `standaloneContext` (review mode)', where);
-
-    for (const [vk, q] of allQuestions(step)) {
-      const qw = `${step.id}.${vk}`;
-      if (questionIds.has(q.id)) err(`duplicate question id "${q.id}"`, qw);
-      questionIds.add(q.id);
-      validateQuestionStructure(c, file, q, qw, ctx);
-    }
-  }
-
-  if (usesLinks < 2) err(`a lesson needs ≥ 2 \`uses\` links (found ${usesLinks})`);
-  if (clueLinks < 1) err('a lesson needs ≥ 1 `clueFor` link');
-  const last = core[core.length - 1];
-  if (last && (last.uses?.length ?? 0) < 2) err('the last core step must use ≥ 2 earlier steps', last.id);
-
-  // Challenge structure.
-  const ch = lesson.challenge;
-  const logic = challengeLogic[ch.type];
-  if (!ctx.conceptIds.has(ch.concept)) err(`unknown concept "${ch.concept}"`, 'challenge');
-  for (const u of ch.uses ?? [])
-    if (!coreIndex.has(u)) err(`challenge uses "${u}" is not a core step`, 'challenge');
-  const cv = ch.variants;
-  if (!(cv.easier.difficulty < cv.standard.difficulty && cv.standard.difficulty < cv.harder.difficulty))
-    err('challenge variant difficulty must strictly increase', 'challenge');
-  if (!logic) err(`unknown challenge type "${ch.type}"`, 'challenge');
-  const parsedConfigs: Record<string, unknown> = {};
-  const parsedSolutions: Record<string, unknown> = {};
-  for (const vk of ['easier', 'standard', 'harder'] as const) {
-    const v = cv[vk];
-    const where = `challenge.${vk}`;
-    for (const f of v.feedback ?? []) {
-      if (f.misconception) {
-        if (!ctx.misconceptions.has(f.misconception))
-          err(`unknown misconception "${f.misconception}"`, where);
-        ctx.usedMisconceptions.add(f.misconception);
-      }
-    }
-    if (!logic) continue;
-    const pc = logic.configSchema.safeParse(v.config);
-    if (!pc.success) err(`config: ${formatZodError(pc.error)}`, where);
-    else parsedConfigs[vk] = pc.data;
-    const ps = logic.solutionSchema.safeParse(v.solution);
-    if (!ps.success) err(`solution: ${formatZodError(ps.error)}`, where);
-    else parsedSolutions[vk] = ps.data;
-  }
-
-  // ── Quality warnings ───────────────────────────────────────────────────────
-  if (wordCount(lesson.intro) > 300) warn(`intro is ${wordCount(lesson.intro)} words (limit 300)`, 'intro');
-  for (const step of lesson.chain)
-    for (const [vk, q] of allQuestions(step))
-      if (wordCount(q.prompt) > 80)
-        warn(`prompt is ${wordCount(q.prompt)} words (limit 80)`, `${step.id}.${vk}`);
-  const unitId = lesson.id.split('.').slice(0, 2).join('.');
-  const base = ctx.unitBase.get(unitId);
-  if (base !== undefined && standardDiffs.length > 0) {
-    const meanStd = standardDiffs.reduce((a, b) => a + b, 0) / standardDiffs.length;
-    if (Math.abs(meanStd - base) > 0.5)
-      warn(`mean standard difficulty ${meanStd.toFixed(2)} is more than 0.5 from the unit's base ${base}`);
-  }
-  if (lesson.params && 'sets' in lesson.params) {
-    const nums = numbersIn(lesson.workedExample);
-    for (const set of lesson.params.sets) {
-      const vals = Object.values(set);
-      if (vals.length > 0 && vals.every((v) => nums.has(v)))
-        warn(`worked example uses the same numbers as param set ${JSON.stringify(set)}`, 'workedExample');
-    }
-  }
-
-  // ── Numbers & rendering ───────────────────────────────────────────────────
-  const scopes: Scope[] = [];
-  for (const values of enumerateParamValues(lesson.params)) {
+  for (const file of yamlFilesIn(join(ctx.dir, 'mixed'))) {
+    let set: MixedSet;
     try {
-      scopes.push(applyDerived(values, lesson.derived));
+      const parsed = MixedSetSchema.safeParse(readYaml(file));
+      if (!parsed.success) {
+        c.error(file, formatZodError(parsed.error));
+        continue;
+      }
+      set = parsed.data;
     } catch (e) {
-      err(`derived: ${(e as Error).message} with ${JSON.stringify(values)}`);
+      c.error(file, (e as Error).message);
+      continue;
     }
-  }
-  const reported = new Set<string>();
-  const once = (key: string, msg: string, where?: string) => {
-    if (reported.has(key)) return;
-    reported.add(key);
-    err(msg, where);
-  };
-  const onceWarn = (key: string, msg: string, where?: string) => {
-    if (reported.has(key)) return;
-    reported.add(key);
-    warn(msg, where);
-  };
-  const renderCheck = (src: string | undefined, scope: Scope, where: string, label: string) => {
-    if (!src) return;
-    let out: string;
-    try {
-      out = renderTemplate(src, scope);
-    } catch (e) {
-      once(
-        `${where}:${label}:tpl`,
-        `${label}: ${(e as Error).message} (params ${JSON.stringify(scope)})`,
-        where,
-      );
-      return;
-    }
-    const k = checkKatex(out);
-    if (k) once(`${where}:${label}:katex`, `${label}: ${k}`, where);
-  };
-
-  for (const scope of scopes) {
-    renderCheck(lesson.intro, scope, 'intro', 'intro');
-    renderCheck(lesson.workedExample, scope, 'workedExample', 'workedExample');
-    lesson.summary.keyTakeaways.forEach((t, i) => renderCheck(t, scope, 'summary', `keyTakeaways[${i}]`));
-    for (const step of lesson.chain) {
-      renderCheck(step.establishes, scope, step.id, 'establishes');
-      renderCheck(step.standaloneContext, scope, step.id, 'standaloneContext');
-      for (const [vk, q] of allQuestions(step)) {
-        const where = `${step.id}.${vk}`;
-        renderCheck(q.prompt, scope, where, 'prompt');
-        renderCheck(q.hints.nudge, scope, where, 'hints.nudge');
-        renderCheck(q.hints.buildsOn, scope, where, 'hints.buildsOn');
-        renderCheck(q.hints.partial, scope, where, 'hints.partial');
-        renderCheck(q.explanation, scope, where, 'explanation');
-        (q.options ?? []).forEach((o, i) => renderCheck(o.text, scope, where, `options[${i}]`));
-        try {
-          const opts4 = buildOptions(q, scope, 1);
-          const texts = opts4.map((o) => o.text);
-          const dup = texts.find((t, i) => texts.indexOf(t) !== i);
-          if (dup !== undefined)
-            once(
-              `${where}:dup:${JSON.stringify(scope)}`,
-              `two options both display "${dup}" (params ${JSON.stringify(scope)})`,
-              where,
+    for (const l of set.lessons)
+      if (!ctx.listedLessonIds.has(l)) c.error(file, `lesson "${l}" is not listed in ${sid}`);
+    const perMethod = new Map(set.methods.map((m) => [m, 0]));
+    for (const l of set.lessons)
+      for (const item of content.lessons[l]?.practice ?? [])
+        if (item.method !== undefined) {
+          if (!perMethod.has(item.method))
+            c.error(
+              file,
+              `${l} practice item ${item.id} has method "${item.method}", not one of this set's methods`,
             );
-        } catch (e) {
-          once(`${where}:opts`, `options: ${(e as Error).message} (params ${JSON.stringify(scope)})`, where);
+          else perMethod.set(item.method, perMethod.get(item.method)! + 1);
         }
-      }
-    }
+    // Counts are only enforced once every listed lesson exists.
+    if (set.lessons.every((l) => content.lessons[l]))
+      for (const [m, n] of perMethod)
+        if (n < 2) c.error(file, `method "${m}" has ${n} tagged items (needs ≥ 2)`);
+    content.mixed[set.id] = set;
+    meta.mixed.push({ id: set.id, title: set.title, lessons: set.lessons });
   }
-
-  // verify pairs: numerically equal at 20 random points.
-  for (const step of lesson.chain)
-    for (const [vk, q] of allQuestions(step))
-      for (const [vi, pair] of (q.verify ?? []).entries()) {
-        const where = `${step.id}.${vk}`;
-        const rng = mulberry32(1234 + vi);
-        for (const scope of scopes.slice(0, 20)) {
-          let bad: string | null = null;
-          for (let t = 0; t < 20 && !bad; t++) {
-            const s: Scope = { ...scope };
-            for (const [name, [lo, hi]] of Object.entries(pair.vars ?? {})) s[name] = lo + (hi - lo) * rng();
-            try {
-              const l = evalNumber(pair.lhs, s);
-              const r = evalNumber(pair.rhs, s);
-              if (!Number.isFinite(l) || !Number.isFinite(r))
-                bad = `non-finite value at ${JSON.stringify(s)}`;
-              else if (Math.abs(l - r) > 1e-9 * Math.max(1, Math.abs(l), Math.abs(r)))
-                bad = `lhs ${l} ≠ rhs ${r} at ${JSON.stringify(s)}`;
-            } catch (e) {
-              bad = (e as Error).message;
-            }
-          }
-          if (bad) {
-            err(`verify[${vi}] "${pair.lhs}" vs "${pair.rhs}": ${bad}`, where);
-            break;
-          }
-        }
+  for (const file of yamlFilesIn(join(ctx.dir, 'speed'))) {
+    let round: SpeedRound;
+    try {
+      const parsed = SpeedRoundSchema.safeParse(readYaml(file));
+      if (!parsed.success) {
+        c.error(file, formatZodError(parsed.error));
+        continue;
       }
-
-  // Challenge numbers: solution passes check for every param set; feedback ifs are boolean.
-  const chScopes: Scope[] = [];
-  if (ch.params) {
-    for (const values of enumerateParamValues(ch.params, 50)) {
-      try {
-        chScopes.push(applyDerived(values, ch.derived));
-      } catch (e) {
-        err(`challenge derived: ${(e as Error).message}`, 'challenge');
-      }
+      round = parsed.data;
+    } catch (e) {
+      c.error(file, (e as Error).message);
+      continue;
     }
-  } else {
-    for (const s of scopes) {
-      try {
-        chScopes.push(applyDerived(s as Record<string, number>, ch.derived));
-      } catch (e) {
-        err(`challenge derived: ${(e as Error).message}`, 'challenge');
-      }
-    }
-  }
-  for (const vk of ['easier', 'standard', 'harder'] as const) {
-    const v = ch.variants[vk];
-    const where = `challenge.${vk}`;
-    for (const scope of chScopes) {
-      renderCheck(v.goal, scope, where, 'goal');
-      renderCheck(v.hints.nudge, scope, where, 'hints.nudge');
-      renderCheck(v.hints.buildsOn, scope, where, 'hints.buildsOn');
-      renderCheck(v.hints.partial, scope, where, 'hints.partial');
-      renderCheck(v.explanation, scope, where, 'explanation');
-      (v.feedback ?? []).forEach((f, i) => renderCheck(f.say, scope, where, `feedback[${i}].say`));
-      if (!logic || parsedConfigs[vk] === undefined || parsedSolutions[vk] === undefined) continue;
-      try {
-        const ctxR = makeResolveCtx(scope, evalNumber, renderTemplate);
-        const resolved = logic.resolveConfig(parsedConfigs[vk], ctxR);
-        const config = logic.withSolution ? logic.withSolution(resolved, parsedSolutions[vk]) : resolved;
-        const solScope = logic.solutionScope(parsedSolutions[vk], config);
-        const full = { ...scope, ...solScope };
-        const ok = evalBoolean(v.check.expr, full);
-        if (!ok)
-          once(
-            `${where}:check`,
-            `solution does not pass check "${v.check.expr}" (params ${JSON.stringify(scope)}; solution scope ${JSON.stringify(numericOnly(solScope))})`,
-            where,
-          );
-        (v.feedback ?? []).forEach((f, i) => {
-          const r = evaluate(f.if, full);
-          if (typeof r !== 'boolean')
-            once(`${where}:fb${i}`, `feedback[${i}].if "${f.if}" is not boolean`, where);
-        });
-        // A correct solution must not trigger a feedback rule ahead of success — harmless, but
-        // also check the empty/initial state does not crash checkScope.
-        const initialScope = logic.checkScope(logic.initialState(config), config);
-        // A challenge that is already solved before the student does anything teaches nothing.
-        if (ch.type !== 'code-runner' && evalBoolean(v.check.expr, { ...scope, ...initialScope }))
-          onceWarn(`${where}:initial`, 'the starting state already passes the check', where);
-      } catch (e) {
-        once(`${where}:eval`, `challenge: ${(e as Error).message} (params ${JSON.stringify(scope)})`, where);
-      }
-    }
-  }
-  if (opts.runCode !== false && logic && ch.type === 'code-runner') {
-    for (const vk of ['easier', 'standard', 'harder'] as const) {
-      const pc = parsedConfigs[vk];
-      const ps = parsedSolutions[vk];
-      if (pc === undefined || ps === undefined) continue;
-      runCodeChecks(pc, ps, (issue) => {
-        if (issue.level === 'error') err(issue.message, `challenge.${vk}`);
-        else warn(issue.message, `challenge.${vk}`);
+    if (!allListedLessons.has(round.unlockAfter))
+      c.error(file, `unlockAfter "${round.unlockAfter}" is not a listed lesson`);
+    if (!ctx.conceptIds.has(round.concept)) c.error(file, `unknown concept "${round.concept}"`);
+    const rep = reporterFor(c, file);
+    for (const item of round.items) {
+      const { params, derived, ...q } = item;
+      const scopes = scopesOf(params, derived, (m) => rep.error(m, item.id));
+      validateQuestion({ ...q, difficulty: 2 } as Question, {
+        rep,
+        where: item.id,
+        scopes,
+        misconceptions: new Set(ctx.misconceptions.keys()),
+        usedMisconceptions: ctx.usedMisconceptions,
+        speed: true,
       });
     }
+    content.speed[round.id] = round;
+    meta.speed.push({ id: round.id, title: round.title, unlockAfter: round.unlockAfter });
   }
 }
 
-/** Every misconception id a lesson tags (options, distractors, challenge feedback). */
+function validatePuzzles(
+  c: Collector,
+  contentDir: string,
+  out: PuzzleContent,
+  index: ContentIndex,
+  allListedLessons: Map<string, string>,
+  ctxs: Map<string, SubjectCtx>,
+): void {
+  const dir = join(contentDir, 'puzzles');
+  if (!existsSync(dir)) return;
+  for (const type of readdirSync(dir)) {
+    const td = join(dir, type);
+    if (!statSync(td).isDirectory()) continue;
+    for (const file of yamlFilesIn(td)) {
+      let pack: PuzzlePack;
+      try {
+        const parsed = PuzzlePackSchema.safeParse(readYaml(file));
+        if (!parsed.success) {
+          c.error(file, formatZodError(parsed.error));
+          continue;
+        }
+        pack = parsed.data;
+      } catch (e) {
+        c.error(file, (e as Error).message);
+        continue;
+      }
+      if (pack.interactive !== type)
+        c.error(file, `interactive "${pack.interactive}" does not match its folder "${type}"`);
+      if (out[pack.id]) c.error(file, `duplicate pack id "${pack.id}"`);
+      const sid = allListedLessons.get(pack.unlockAfter);
+      if (!sid) c.error(file, `unlockAfter "${pack.unlockAfter}" is not a listed lesson`);
+      const rep = reporterFor(c, file);
+      const misconceptions = sid ? new Set(ctxs.get(sid)!.misconceptions.keys()) : new Set<string>();
+      const ids = new Set<string>();
+      let prev = 0;
+      pack.levels.forEach((lv, i) => {
+        if (ids.has(lv.id)) rep.error(`duplicate level id "${lv.id}"`, lv.id);
+        ids.add(lv.id);
+        if (lv.difficulty < prev) rep.error('level difficulty must not decrease', lv.id);
+        prev = lv.difficulty;
+        if (i >= pack.levels.length - 3 && lv.difficulty < 4)
+          rep.error('the last 3 levels need band ≥ 4', lv.id);
+        for (const f of lv.feedback ?? []) {
+          if (!f.misconception) continue;
+          if (!misconceptions.has(f.misconception))
+            rep.error(`unknown misconception "${f.misconception}"`, lv.id);
+          else ctxs.get(sid!)!.usedMisconceptions.add(f.misconception);
+        }
+        const scopes = scopesOf(lv.params, lv.derived, (m) => rep.error(m, lv.id));
+        for (const scope of scopes) {
+          const texts = {
+            title: lv.title,
+            goal: lv.goal,
+            hints: lv.hints,
+            explanation: lv.explanation,
+            feedback: lv.feedback?.map((f) => f.say),
+          };
+          for (const leaf of textLeaves(texts)) {
+            const { error } = renderAndCheck(leaf.text, scope);
+            if (error) rep.errorOnce(`${lv.id}:${leaf.path}`, `${leaf.path}: ${error}`, lv.id);
+          }
+          validateInteractiveVariant(pack.interactive, lv, scope, rep, lv.id);
+        }
+      });
+      out[pack.id] = pack;
+      index.subjects
+        .find((s) => s.id === sid)
+        ?.puzzles.push({
+          id: pack.id,
+          title: pack.title,
+          interactive: pack.interactive,
+          unlockAfter: pack.unlockAfter,
+          levels: pack.levels.length,
+        });
+    }
+  }
+}
+
+/** Every misconception id a lesson tags (options, wrong answers, cards, targets, challenge feedback). */
 function lessonTags(lesson: Lesson): Set<string> {
   const out = new Set<string>();
   const walk = (v: unknown) => {
@@ -674,6 +502,10 @@ function lessonTags(lesson: Lesson): Set<string> {
     else if (v && typeof v === 'object')
       for (const [k, x] of Object.entries(v)) {
         if (k === 'misconception' && typeof x === 'string') out.add(x);
+        else if (k === 'wrongTargets' && x && typeof x === 'object')
+          for (const t of Object.values(x)) {
+            if (typeof t === 'string') out.add(t);
+          }
         else walk(x);
       }
   };
@@ -681,78 +513,32 @@ function lessonTags(lesson: Lesson): Set<string> {
   return out;
 }
 
-function numericOnly(s: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(s).filter(([, v]) => typeof v !== 'function'));
+export function summarize(r: ValidationResult): string {
+  const lessons = r.index.subjects.reduce((n, s) => n + s.units.reduce((m, u) => m + u.lessons.length, 0), 0);
+  const playable = r.index.subjects.reduce(
+    (n, s) => n + s.units.reduce((m, u) => m + u.lessons.filter((l) => l.available).length, 0),
+    0,
+  );
+  return `${r.index.subjects.length} subjects, ${lessons} lessons listed, ${playable} playable, ${Object.keys(r.puzzles).length} puzzle packs`;
 }
 
-function validateQuestionStructure(c: Collector, file: string, q: Question, where: string, ctx: SubjectCtx) {
-  const err = (msg: string) => c.error(file, msg, where);
-  const tags: string[] = [];
-  if (q.options && (q.answer || q.distractors))
-    err('use either static `options` or computed `answer`/`distractors`');
-  else if (q.options) {
-    if (q.options.length !== 4) err(`static questions need exactly 4 options (found ${q.options.length})`);
-    const correct = q.options.filter((o) => o.correct);
-    if (correct.length !== 1) err(`exactly 1 option must be correct (found ${correct.length})`);
-    for (const o of q.options) {
-      if (o.correct && o.misconception) err('the correct option must not have a misconception');
-      if (!o.correct) {
-        if (!o.misconception) err(`wrong option "${o.text}" needs a misconception tag`);
-        else tags.push(o.misconception);
-      }
-    }
-    if (q.fixedOrder === undefined) {
-      /* default: shuffled */
-    }
-  } else if (q.answer) {
-    if (q.fixedOrder) err('`fixedOrder` applies to static options only');
-    const d = q.distractors ?? [];
-    if (d.length !== 3) err(`computed questions need exactly 3 distractors (found ${d.length})`);
-    for (const x of d) tags.push(x.misconception);
-  } else err('question needs `options` or `answer` + `distractors`');
-
-  for (const t of tags) {
-    if (!ctx.misconceptions.has(t)) err(`unknown misconception "${t}"`);
-    ctx.usedMisconceptions.add(t);
-  }
-  const dupTag = tags.find((t, i) => tags.indexOf(t) !== i);
-  if (dupTag) c.warn(file, `misconception "${dupTag}" is used twice in one question`, where);
-
-  for (const label of EXPLANATION_LABELS)
-    if (!q.explanation.includes(label)) err(`explanation is missing ${label}`);
-}
-
-export function printIssues(result: { errors: Issue[]; warnings: Issue[] }): void {
+export function printIssues(r: { errors: Issue[]; warnings: Issue[] }): void {
   const fmt = (i: Issue) => `  ${i.file}${i.where ? ` [${i.where}]` : ''}: ${i.message}`;
-  if (result.warnings.length) {
-    console.log(`\n⚠ ${result.warnings.length} warning(s):`);
-    for (const w of result.warnings) console.log(fmt(w));
+  if (r.warnings.length) {
+    console.log(`\n⚠ ${r.warnings.length} warning(s):`);
+    for (const w of r.warnings) console.log(fmt(w));
   }
-  if (result.errors.length) {
-    console.log(`\n✖ ${result.errors.length} error(s):`);
-    for (const e of result.errors) console.log(fmt(e));
+  if (r.errors.length) {
+    console.log(`\n✖ ${r.errors.length} error(s):`);
+    for (const e of r.errors) console.log(fmt(e));
   }
-}
-
-export function summarize(result: ValidationResult): string {
-  let total = 0;
-  let available = 0;
-  for (const s of result.index.subjects)
-    for (const u of s.units)
-      for (const l of u.lessons) {
-        total++;
-        if (l.available) available++;
-      }
-  return `${result.index.subjects.length} subjects, ${total} lessons listed, ${available} playable`;
 }
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (isMain) {
-  const dir = resolve(process.argv[2] ?? join(import.meta.dirname, '..', 'content'));
-  const result = validateContent(dir);
-  printIssues(result);
-  console.log(
-    `\ncontent:check — ${summarize(result)}; ${result.errors.length} errors, ${result.warnings.length} warnings.`,
-  );
-  process.exit(result.errors.length ? 1 : 0);
+  const contentDir = resolve(process.argv[2] ?? join(import.meta.dirname, '..', 'content'));
+  const r = validateContent(contentDir);
+  printIssues(r);
+  console.log(`\ncontent:check — ${summarize(r)}; ${r.errors.length} errors, ${r.warnings.length} warnings.`);
+  process.exit(r.errors.length ? 1 : 0);
 }

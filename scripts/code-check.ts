@@ -6,10 +6,10 @@
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import vm from 'node:vm';
-import { compareOutput, preview } from '../src/challenges/code-runner/compare';
-import { generate } from '../src/challenges/code-runner/generators';
-import { PY_HARNESS, type RawRun } from '../src/challenges/code-runner/harness';
-import type { RawConfig, Solution } from '../src/challenges/code-runner/logic';
+import { compareOutput, preview } from '../src/interactives/code-runner/compare';
+import { generate } from '../src/interactives/code-runner/generators';
+import { PY_HARNESS, type RawRun } from '../src/interactives/code-runner/harness';
+import type { RawConfig, Solution } from '../src/interactives/code-runner/model';
 
 export interface CodeIssue {
   level: 'error' | 'warning';

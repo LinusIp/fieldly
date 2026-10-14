@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Route, Routes } from 'react-router';
 import { Layout } from './Layout';
-import { HomePage } from './pages/HomePage';
+import { SubjectsPage } from './pages/SubjectsPage';
+import { TodayPage } from './pages/TodayPage';
 import { SubjectPage } from './pages/SubjectPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { Loading } from '../components/ui';
@@ -9,7 +10,6 @@ import { useProgress } from '../storage/progress';
 
 // The lesson player pulls in mathjs, KaTeX and Markdown — keep them out of the initial bundle.
 const LessonPage = lazy(() => import('./pages/LessonPage'));
-const ReviewPage = lazy(() => import('./pages/ReviewPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
@@ -32,10 +32,10 @@ export function App() {
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<TodayPage />} />
+            <Route path="subjects" element={<SubjectsPage />} />
             <Route path="s/:subjectId" element={<SubjectPage />} />
             <Route path="l/:lessonId" element={<LessonPage />} />
-            <Route path="review" element={<ReviewPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />

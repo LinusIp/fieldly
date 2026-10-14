@@ -19,6 +19,7 @@ units:
       - id: dsa.u1.l3
         title: "Recursion"
         concepts: [recursion]
+        tryFirst: true
       - id: dsa.u1.l4
         title: "Recurrences"
         concepts: [recurrences-dsa]
@@ -73,6 +74,7 @@ units:
       - id: dsa.u4.l1
         title: "Binary search"
         concepts: [binary-search]
+        tryFirst: true
       - id: dsa.u4.l2
         title: "Elementary sorts"
         concepts: [elementary-sorts, sort-stability]
@@ -126,6 +128,7 @@ units:
       - id: dsa.u6.l4
         title: "Dijkstra's algorithm"
         concepts: [dijkstra]
+        tryFirst: true
       - id: dsa.u6.l5
         title: "Bellman–Ford"
         concepts: [bellman-ford]
@@ -145,6 +148,7 @@ units:
       - id: dsa.u7.l3
         title: "Dynamic programming I"
         concepts: [dp-1d]
+        tryFirst: true
       - id: dsa.u7.l4
         title: "Dynamic programming II"
         concepts: [dp-2d]

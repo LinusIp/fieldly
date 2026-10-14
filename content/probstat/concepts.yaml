@@ -1,27 +1,27 @@
 - { id: sample-spaces, title: "Sample spaces & events" }
-- { id: probability-axioms, title: "Probability axioms" }
-- { id: counting-probability, title: "Counting-based probability" }
-- { id: conditional-probability, title: "Conditional probability" }
-- { id: independence, title: "Independence" }
-- { id: total-probability, title: "Law of total probability" }
-- { id: bayes-theorem, title: "Bayes' theorem" }
-- { id: pmf-cdf, title: "PMF & CDF" }
-- { id: expectation, title: "Expectation" }
-- { id: variance, title: "Variance" }
-- { id: binomial-distribution, title: "Binomial distribution" }
-- { id: geometric-distribution, title: "Geometric distribution" }
-- { id: poisson-distribution, title: "Poisson distribution" }
-- { id: pdf-cdf, title: "PDF & CDF" }
-- { id: uniform-exponential, title: "Uniform & exponential" }
-- { id: normal-distribution, title: "Normal distribution" }
-- { id: joint-distributions, title: "Joint distributions" }
-- { id: covariance-correlation, title: "Covariance & correlation" }
-- { id: sums-of-rvs, title: "Sums of random variables" }
-- { id: law-of-large-numbers, title: "Law of large numbers" }
-- { id: central-limit-theorem, title: "Central limit theorem" }
-- { id: descriptive-statistics, title: "Descriptive statistics" }
-- { id: standard-error, title: "Standard error" }
-- { id: confidence-intervals, title: "Confidence intervals" }
-- { id: hypothesis-testing, title: "Hypothesis testing" }
-- { id: errors-power, title: "Type I/II errors & power" }
-- { id: linear-regression, title: "Simple linear regression" }
+- { id: probability-axioms, title: "Probability axioms", requires: [sample-spaces] }
+- { id: counting-probability, title: "Counting-based probability", requires: [sample-spaces] }
+- { id: conditional-probability, title: "Conditional probability", requires: [counting-probability] }
+- { id: independence, title: "Independence", requires: [conditional-probability] }
+- { id: total-probability, title: "Law of total probability", requires: [independence] }
+- { id: bayes-theorem, title: "Bayes' theorem", requires: [total-probability] }
+- { id: pmf-cdf, title: "PMF & CDF", requires: [total-probability] }
+- { id: expectation, title: "Expectation", requires: [pmf-cdf] }
+- { id: variance, title: "Variance", requires: [expectation] }
+- { id: binomial-distribution, title: "Binomial distribution", requires: [expectation] }
+- { id: geometric-distribution, title: "Geometric distribution", requires: [binomial-distribution] }
+- { id: poisson-distribution, title: "Poisson distribution", requires: [binomial-distribution] }
+- { id: pdf-cdf, title: "PDF & CDF", requires: [poisson-distribution] }
+- { id: uniform-exponential, title: "Uniform & exponential", requires: [pdf-cdf] }
+- { id: normal-distribution, title: "Normal distribution", requires: [uniform-exponential] }
+- { id: joint-distributions, title: "Joint distributions", requires: [normal-distribution] }
+- { id: covariance-correlation, title: "Covariance & correlation", requires: [joint-distributions] }
+- { id: sums-of-rvs, title: "Sums of random variables", requires: [covariance-correlation] }
+- { id: law-of-large-numbers, title: "Law of large numbers", requires: [sums-of-rvs] }
+- { id: central-limit-theorem, title: "Central limit theorem", requires: [law-of-large-numbers] }
+- { id: descriptive-statistics, title: "Descriptive statistics", requires: [central-limit-theorem] }
+- { id: standard-error, title: "Standard error", requires: [descriptive-statistics] }
+- { id: confidence-intervals, title: "Confidence intervals", requires: [standard-error] }
+- { id: hypothesis-testing, title: "Hypothesis testing", requires: [confidence-intervals] }
+- { id: errors-power, title: "Type I/II errors & power", requires: [hypothesis-testing] }
+- { id: linear-regression, title: "Simple linear regression", requires: [errors-power] }

@@ -1,4 +1,4 @@
-# Deliberately broken: every comment marks an error the validator must report.
+# Deliberately broken (spec v2): every comment marks an error the validator must report.
 id: demo.u1.l1
 title: 'Broken lesson'
 version: 1
@@ -6,111 +6,79 @@ concepts: [ohms-law]
 estimatedMinutes: 5
 params:
   sets:
-    - { V: 9, R: 3 }
-intro: "Intro with bad math $\\frac{1}{$ here." # KaTeX error
-workedExample: 'A 9 V battery across 3 Ω.' # same numbers as the param set (warning)
-chain:
+    - { V: 6, R: 3 }
+screens:
+  - id: c1 # first screen is not a hook
+    type: concept
+    body: 'Bad math $\frac{1}{$ here.' # KaTeX error
+  - id: e1
+    type: explore
+    intro: 'A battery and a resistor.'
+    interactive:
+      type: circuit-builder
+      config:
+        locked: true
+        preset: ['B1 n1 0 V', 'A1 n1 n2', 'R1 n2 0 R']
+        controls:
+          - { element: R1, param: resistance, min: 1, max: 12, step: 1 }
+    tasks:
+      - goal: 'Make the ammeter read 2 A.' # already met at the start
+        check: { expr: 'near(I_A1, 2)' }
+        solution: { R1: 3 }
+    takeaway: 'Fact {{Q}}' # unknown symbol Q
   - id: s1
+    type: question
     role: core
     concept: ohms-law
-    establishes: 'Fact {{Q}}' # unknown symbol Q
+    uses: [s2] # points forwards
     variants:
-      easier:
-        id: s1-e
-        difficulty: 2
-        prompt: 'Q'
-        options:
-          - { text: 'a', correct: true }
-          - { text: 'b', misconception: m1 }
-          - { text: 'c', misconception: m2 }
-          - { text: 'd', misconception: m3 }
-        hints: { nudge: 'n', partial: 'p' }
-        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
       standard:
         id: s1-s
-        difficulty: 2 # not strictly greater than easier
-        prompt: 'What is V·R or V²/R?'
-        answer: { expr: 'V * R', unit: 'W' }
-        distractors:
-          - { expr: 'V^2 / R', unit: 'W', misconception: m1 } # both show "27 W"
-          - { expr: 'V', unit: 'W', misconception: m2 }
-          - { expr: 'R', unit: 'W', misconception: no-such-misconception } # unknown misconception
-        hints: { nudge: 'n', partial: 'p' }
-        explanation: '**Answer:** a **Why:** w **Common mistakes:** c' # missing Connects to
-      harder:
-        id: s1-h
-        difficulty: 4
-        prompt: 'Q'
-        options:
-          - { text: 'a', correct: true }
-          - { text: 'b', misconception: m1 }
-          - { text: 'c', misconception: m2 }
-          - { text: 'c2', correct: true } # two correct options
-        hints: { nudge: 'n', partial: 'p' }
-        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
+        kind: numeric
+        difficulty: 2
+        prompt: 'Current?'
   - id: s2
+    type: question
     role: core
-    concept: ohms-law
-    uses: [s3] # points forward
-    establishes: 'f'
+    concept: missing-concept # unknown concept
     variants:
-      easier: &q
-        id: s2-e
-        difficulty: 1
-        prompt: 'Q'
-        options:
-          - { text: 'a', correct: true }
-          - { text: 'b', misconception: m1 }
-          - { text: 'c', misconception: m2 }
-          - { text: 'd', misconception: m3 }
+      standard:
+        id: s2-s
+        kind: numeric
+        difficulty: 2
+        prompt: 'Again?'
+  - id: ch1
+    type: challenge
+    title: 'Wrong solution'
+    concept: ohms-law
+    interactive: circuit-builder
+    variants:
+      easier:
+        difficulty: 2
+        goal: 'Make {{V/R}} A flow.'
+        config: { battery: { voltage: 'V' }, palette: [{ kind: resistor, resistance: 'R', count: 2 }] }
+        check: { expr: 'near(I, V / R)' }
         hints: { nudge: 'n', partial: 'p' }
-        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
-      standard: { <<: *q, id: s2-s, difficulty: 2 }
-      harder: { <<: *q, id: s2-h, difficulty: 3 }
-  - id: s3
-    role: core
-    concept: ohms-law
-    establishes: 'f'
-    variants:
-      easier: { <<: *q, id: s3-e, difficulty: 1 }
-      standard: { <<: *q, id: s3-s, difficulty: 2 }
-      harder: { <<: *q, id: s3-h, difficulty: 3 }
-challenge:
-  id: demo.ch
-  type: no-such-type # unknown challenge type
-  title: 't'
-  concept: ohms-law
-  variants:
-    easier:
-      {
-        difficulty: 3,
-        goal: 'g',
-        config: {},
-        check: { expr: 'true' },
-        hints: { nudge: 'n', partial: 'p' },
-        solution: {},
-        explanation: 'e',
-      }
-    standard:
-      {
-        difficulty: 4,
-        goal: 'g',
-        config: {},
-        check: { expr: 'true' },
-        hints: { nudge: 'n', partial: 'p' },
-        solution: {},
-        explanation: 'e',
-      }
-    harder:
-      {
-        difficulty: 5,
-        goal: 'g',
-        config: {},
-        check: { expr: 'true' },
-        hints: { nudge: 'n', partial: 'p' },
-        solution: {},
-        explanation: 'e',
-      }
-summary:
-  keyTakeaways: ['k']
-  next: demo.u9.l9 # not a listed lesson
+        solution: { netlist: ['B1 n1 0', 'R1 n1 n2', 'R2 n2 0'] } # gives V/(2R)
+        explanation: 'e'
+      standard:
+        difficulty: 2 # not strictly increasing
+        goal: 'g'
+        config: { battery: { voltage: 'V' }, palette: [{ kind: resistor, resistance: 'R', count: 1 }] }
+        check: { expr: 'near(I, V / R)' }
+        hints: { nudge: 'n', partial: 'p' }
+        solution: { netlist: ['B1 n1 0', 'R1 n1 0'] }
+        explanation: 'e'
+      harder:
+        difficulty: 4
+        goal: 'g'
+        config: { battery: { voltage: 'V' }, palette: [{ kind: resistor, resistance: 'R', count: 1 }] }
+        check: { expr: 'near(I, V / R)' }
+        hints: { nudge: 'n', partial: 'p' }
+        solution: { netlist: ['B1 n1 0', 'R1 n1 0'] }
+        explanation: 'e'
+  - id: wrap
+    type: recap
+    takeaways: ['t']
+    next: demo.u9.l9 # not a listed lesson
+practice: [] # pool too small

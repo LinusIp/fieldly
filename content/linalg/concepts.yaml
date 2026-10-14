@@ -1,45 +1,45 @@
 - { id: linear-systems, title: "Systems of linear equations" }
-- { id: row-operations, title: "Row operations" }
-- { id: echelon-forms, title: "REF & RREF" }
-- { id: linear-combinations, title: "Linear combinations" }
-- { id: span, title: "Span" }
-- { id: matrix-vector-product, title: "Matrix–vector product" }
-- { id: existence-of-solutions, title: "Existence of solutions" }
-- { id: homogeneous-systems, title: "Homogeneous systems" }
-- { id: parametric-vector-form, title: "Parametric vector form" }
-- { id: linear-independence, title: "Linear independence" }
-- { id: matrix-operations, title: "Matrix operations" }
-- { id: matrix-multiplication, title: "Matrix multiplication" }
-- { id: matrix-inverse, title: "Matrix inverse" }
-- { id: invertible-matrix-theorem, title: "Invertible matrix theorem" }
-- { id: lu-factorization, title: "LU factorization" }
-- { id: determinants, title: "Determinants" }
-- { id: determinant-properties, title: "Properties of determinants" }
-- { id: vector-spaces, title: "Vector spaces" }
-- { id: subspaces, title: "Subspaces" }
-- { id: null-space, title: "Null space" }
-- { id: column-space, title: "Column space" }
-- { id: bases, title: "Bases" }
-- { id: dimension, title: "Dimension" }
-- { id: rank-nullity, title: "Rank–nullity theorem" }
-- { id: coordinates, title: "Coordinate vectors" }
-- { id: change-of-basis, title: "Change of basis" }
-- { id: linear-transformations, title: "Linear transformations" }
-- { id: standard-matrix, title: "Standard matrix" }
-- { id: geometric-transformations, title: "Rotations, reflections, shears" }
-- { id: composition-of-transformations, title: "Composition" }
-- { id: kernel-range, title: "Kernel & range" }
-- { id: eigenvectors, title: "Eigenvalues & eigenvectors" }
-- { id: characteristic-equation, title: "Characteristic equation" }
-- { id: diagonalization, title: "Diagonalization" }
-- { id: complex-eigenvalues, title: "Complex eigenvalues" }
-- { id: markov-chains, title: "Markov chains" }
-- { id: dynamical-systems, title: "Discrete dynamical systems" }
-- { id: inner-product, title: "Inner product & length" }
-- { id: orthogonal-complements, title: "Orthogonal complements" }
-- { id: orthogonal-sets, title: "Orthogonal sets" }
-- { id: orthogonal-projection, title: "Orthogonal projection" }
-- { id: gram-schmidt, title: "Gram–Schmidt" }
-- { id: qr-factorization, title: "QR factorization" }
-- { id: least-squares, title: "Least squares" }
-- { id: symmetric-matrices, title: "Symmetric matrices" }
+- { id: row-operations, title: "Row operations", requires: [linear-systems] }
+- { id: echelon-forms, title: "REF & RREF", requires: [row-operations] }
+- { id: linear-combinations, title: "Linear combinations", requires: [row-operations] }
+- { id: span, title: "Span", requires: [linear-combinations] }
+- { id: matrix-vector-product, title: "Matrix–vector product", requires: [linear-combinations] }
+- { id: existence-of-solutions, title: "Existence of solutions", requires: [matrix-vector-product] }
+- { id: homogeneous-systems, title: "Homogeneous systems", requires: [matrix-vector-product] }
+- { id: parametric-vector-form, title: "Parametric vector form", requires: [homogeneous-systems] }
+- { id: linear-independence, title: "Linear independence", requires: [homogeneous-systems] }
+- { id: matrix-operations, title: "Matrix operations", requires: [linear-independence] }
+- { id: matrix-multiplication, title: "Matrix multiplication", requires: [matrix-operations] }
+- { id: matrix-inverse, title: "Matrix inverse", requires: [matrix-operations] }
+- { id: invertible-matrix-theorem, title: "Invertible matrix theorem", requires: [matrix-inverse] }
+- { id: lu-factorization, title: "LU factorization", requires: [invertible-matrix-theorem] }
+- { id: determinants, title: "Determinants", requires: [lu-factorization] }
+- { id: determinant-properties, title: "Properties of determinants", requires: [determinants] }
+- { id: vector-spaces, title: "Vector spaces", requires: [determinant-properties] }
+- { id: subspaces, title: "Subspaces", requires: [vector-spaces] }
+- { id: null-space, title: "Null space", requires: [vector-spaces] }
+- { id: column-space, title: "Column space", requires: [null-space] }
+- { id: bases, title: "Bases", requires: [null-space] }
+- { id: dimension, title: "Dimension", requires: [bases] }
+- { id: rank-nullity, title: "Rank–nullity theorem", requires: [dimension] }
+- { id: coordinates, title: "Coordinate vectors", requires: [dimension] }
+- { id: change-of-basis, title: "Change of basis", requires: [coordinates] }
+- { id: linear-transformations, title: "Linear transformations", requires: [coordinates] }
+- { id: standard-matrix, title: "Standard matrix", requires: [linear-transformations] }
+- { id: geometric-transformations, title: "Rotations, reflections, shears", requires: [linear-transformations] }
+- { id: composition-of-transformations, title: "Composition", requires: [geometric-transformations] }
+- { id: kernel-range, title: "Kernel & range", requires: [composition-of-transformations] }
+- { id: eigenvectors, title: "Eigenvalues & eigenvectors", requires: [kernel-range] }
+- { id: characteristic-equation, title: "Characteristic equation", requires: [eigenvectors] }
+- { id: diagonalization, title: "Diagonalization", requires: [characteristic-equation] }
+- { id: complex-eigenvalues, title: "Complex eigenvalues", requires: [diagonalization] }
+- { id: markov-chains, title: "Markov chains", requires: [complex-eigenvalues] }
+- { id: dynamical-systems, title: "Discrete dynamical systems", requires: [markov-chains] }
+- { id: inner-product, title: "Inner product & length", requires: [markov-chains] }
+- { id: orthogonal-complements, title: "Orthogonal complements", requires: [inner-product] }
+- { id: orthogonal-sets, title: "Orthogonal sets", requires: [inner-product] }
+- { id: orthogonal-projection, title: "Orthogonal projection", requires: [orthogonal-sets] }
+- { id: gram-schmidt, title: "Gram–Schmidt", requires: [orthogonal-sets] }
+- { id: qr-factorization, title: "QR factorization", requires: [gram-schmidt] }
+- { id: least-squares, title: "Least squares", requires: [gram-schmidt] }
+- { id: symmetric-matrices, title: "Symmetric matrices", requires: [least-squares] }

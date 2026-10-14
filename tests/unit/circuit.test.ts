@@ -8,8 +8,8 @@ import {
   solutionState,
   toNetlist,
   type Config,
-} from '../../src/challenges/circuit-builder/logic';
-import { solveCircuit, type Netlist, type NetElement } from '../../src/challenges/circuit-builder/solver';
+} from '../../src/interactives/circuit-builder/model';
+import { solveCircuit, type Netlist, type NetElement } from '../../src/interactives/circuit-builder/solver';
 
 const R = (label: string, a: string, b: string, r: number): NetElement => ({
   label,

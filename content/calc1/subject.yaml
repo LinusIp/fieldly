@@ -16,6 +16,7 @@ units:
       - id: calc1.u1.l2
         title: "The idea of a limit"
         concepts: [limit-graphs-tables, one-sided-limits, limit-nonexistence]
+        tryFirst: true
       - id: calc1.u1.l3
         title: "Computing limits"
         concepts: [limit-laws, direct-substitution, limit-algebraic-techniques, indeterminate-0-0]
@@ -38,6 +39,7 @@ units:
       - id: calc1.u2.l1
         title: "The derivative as a limit"
         concepts: [secant-tangent, difference-quotient, derivative-at-point, differentiability]
+        tryFirst: true
       - id: calc1.u2.l2
         title: "Basic differentiation rules"
         concepts: [power-rule, constant-multiple-sum-rules, polynomial-derivatives]
@@ -94,12 +96,14 @@ units:
       - id: calc1.u4.l2
         title: "Area and Riemann sums"
         concepts: [sigma-notation, riemann-sums]
+        tryFirst: true
       - id: calc1.u4.l3
         title: "The definite integral"
         concepts: [definite-integral, signed-area]
       - id: calc1.u4.l4
         title: "The Fundamental Theorem of Calculus"
         concepts: [ftc-part-1, ftc-part-2]
+        tryFirst: true
       - id: calc1.u4.l5
         title: "The substitution rule"
         concepts: [u-substitution]

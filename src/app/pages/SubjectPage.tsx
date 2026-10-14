@@ -1,48 +1,298 @@
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
+import { FEATURES } from '../../config';
 import { allLessons, findLesson, useContentIndex } from '../../content/loader';
-import type { LessonMeta, UnitMeta } from '../../content/types';
+import type { ContentIndex, LessonMeta, PuzzlePackMeta, SubjectMeta, UnitMeta } from '../../content/types';
 import { useProgress } from '../../storage/progress';
 import type { Progress } from '../../storage/schema';
 import { Badge, ErrorState, Loading, Stars } from '../../components/ui';
 import { NotFoundPage } from './NotFoundPage';
 
-function unitDone(unit: UnitMeta, progress: Progress): number {
-  return unit.lessons.filter((l) => progress.lessons[l.id]?.status === 'completed').length;
+/** Node states on the path map (§3.7), coloured consistently. */
+type NodeState = 'soon' | 'locked' | 'available' | 'in-progress' | 'completed' | 'mastered';
+
+const STATE_LABEL: Record<NodeState, string> = {
+  soon: 'coming soon',
+  locked: 'locked',
+  available: 'available',
+  'in-progress': 'in progress',
+  completed: 'completed',
+  mastered: 'mastered',
+};
+
+function lessonState(l: LessonMeta, progress: Progress): NodeState {
+  if (!l.available) return 'soon';
+  const s = progress.lessons[l.id]?.status;
+  if (s === 'completed') return 'completed';
+  if (s === 'in-progress') return 'in-progress';
+  return 'available';
 }
 
+function NodeDot({
+  state,
+  kind,
+  label,
+}: {
+  state: NodeState;
+  kind: 'lesson' | 'side' | 'gate';
+  label: ReactNode;
+}) {
+  const size = kind === 'lesson' ? 'h-10 w-10 text-sm' : 'h-7 w-7 text-xs';
+  const shape = kind === 'gate' ? 'rounded-lg' : 'rounded-full';
+  const look: Record<NodeState, string> = {
+    soon: 'border-2 border-dashed border-border bg-bg text-muted',
+    locked: 'border-2 border-border bg-surface-2 text-muted',
+    available: 'border-2 border-accent bg-surface text-accent',
+    'in-progress': 'border-2 border-accent bg-accent-soft text-accent',
+    completed: 'border-2 border-accent bg-accent text-on-accent',
+    mastered: 'border-2 border-ok bg-ok text-on-accent',
+  };
+  return (
+    <span
+      aria-hidden="true"
+      className={`relative z-10 flex shrink-0 items-center justify-center font-semibold ${size} ${shape} ${look[state]}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+/** One row on the path: a dot, then text. Becomes a link only when it leads somewhere playable. */
+function PathNode({
+  to,
+  state,
+  kind,
+  dot,
+  title,
+  meta,
+  children,
+  testId,
+}: {
+  to?: string;
+  state: NodeState;
+  kind: 'lesson' | 'side' | 'gate';
+  dot: ReactNode;
+  title: string;
+  meta?: ReactNode;
+  children?: ReactNode;
+  testId?: string;
+}) {
+  const indent = kind === 'side' ? 'pl-[3px] sm:pl-1.5' : '';
+  const body = (
+    <div className={`flex items-start gap-4 ${indent}`}>
+      <NodeDot state={state} kind={kind} label={dot} />
+      <div className="min-w-0 flex-1 pt-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`${kind === 'lesson' ? 'font-medium' : 'text-sm'} ${state === 'soon' ? 'text-muted' : 'text-text'}`}
+          >
+            {title}
+          </span>
+          {meta}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+  return (
+    <li className="relative py-2" data-lesson-id={testId} data-state={state}>
+      {to ? (
+        <Link
+          to={to}
+          className="block rounded-lg px-2 py-1 no-underline hover:bg-surface-2"
+          aria-label={`${title}, ${STATE_LABEL[state]}`}
+        >
+          {body}
+        </Link>
+      ) : (
+        <div className="px-2 py-1" aria-label={`${title}, ${STATE_LABEL[state]}`}>
+          {body}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function RecommendedFirst({
+  lesson,
+  progress,
+  index,
+}: {
+  lesson: LessonMeta;
+  progress: Progress;
+  index: ContentIndex;
+}) {
+  const missing = lesson.prerequisites.filter((p) => progress.lessons[p]?.status !== 'completed');
+  if (!lesson.available || missing.length === 0 || progress.lessons[lesson.id]?.status === 'completed')
+    return null;
+  return (
+    <p className="mt-1 text-xs text-warn">
+      Recommended first:{' '}
+      {missing.map((p, i) => (
+        <span key={p}>
+          {i > 0 && ', '}
+          {findLesson(index, p)?.lesson.title ?? p}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+function UnitPath({
+  unit,
+  number,
+  subject,
+  progress,
+  index,
+}: {
+  unit: UnitMeta;
+  number: number;
+  subject: SubjectMeta;
+  progress: Progress;
+  index: ContentIndex;
+}) {
+  const packsAfter = (lessonId: string): PuzzlePackMeta[] =>
+    subject.puzzles.filter((p) => p.unlockAfter === lessonId);
+  const done = unit.lessons.filter((l) => progress.lessons[l.id]?.status === 'completed').length;
+  const anyAvailable = unit.lessons.some((l) => l.available);
+  const allDone = done === unit.lessons.length;
+
+  return (
+    <section
+      className="rounded-xl border border-border bg-surface p-4 sm:p-5"
+      aria-labelledby={`unit-${unit.id}`}
+    >
+      <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-sm font-semibold text-muted">Unit {number}</span>
+        <h2 id={`unit-${unit.id}`} className="flex-1 text-lg font-semibold">
+          {unit.title}
+        </h2>
+        <span className="text-xs text-muted">
+          Level {unit.baseDifficulty} · {done}/{unit.lessons.length} lessons
+        </span>
+      </header>
+      <ol className="relative mt-3 before:absolute before:bottom-6 before:left-[27px] before:top-6 before:w-0.5 before:bg-border">
+        {unit.lessons.map((l, li) => {
+          const state = lessonState(l, progress);
+          const lp = progress.lessons[l.id];
+          const completed = state === 'completed';
+          const practiceState: NodeState =
+            !l.available || !FEATURES.practice ? 'soon' : completed ? 'available' : 'locked';
+          return [
+            <PathNode
+              key={l.id}
+              testId={l.id}
+              to={`/l/${l.id}`}
+              state={state}
+              kind="lesson"
+              dot={li + 1}
+              title={l.title}
+              meta={
+                <>
+                  {state === 'soon' && <Badge>Coming soon</Badge>}
+                  {state === 'in-progress' && <Badge tone="accent">In progress</Badge>}
+                  {l.tryFirst && <Badge tone="warn">Try first</Badge>}
+                  {l.available && <Stars count={lp?.stars ?? 0} />}
+                  {l.estimatedMinutes && <span className="text-xs text-muted">{l.estimatedMinutes} min</span>}
+                </>
+              }
+            >
+              <RecommendedFirst lesson={l} progress={progress} index={index} />
+            </PathNode>,
+            l.available && (
+              <PathNode
+                key={`${l.id}#practice`}
+                to={practiceState === 'available' ? `/practice/lesson/${l.id}` : undefined}
+                state={practiceState}
+                kind="side"
+                dot="↻"
+                title="Practice set"
+                meta={
+                  practiceState === 'locked' ? (
+                    <span className="text-xs text-muted">Complete the lesson to unlock</span>
+                  ) : practiceState === 'soon' ? (
+                    <Badge>Coming soon</Badge>
+                  ) : null
+                }
+              />
+            ),
+            ...packsAfter(l.id).map((p) => {
+              const ps: NodeState = !FEATURES.puzzles ? 'soon' : completed ? 'available' : 'locked';
+              return (
+                <PathNode
+                  key={p.id}
+                  to={ps === 'available' ? `/puzzles/${p.id}` : undefined}
+                  state={ps}
+                  kind="side"
+                  dot="★"
+                  title={`${p.title} — puzzle pack`}
+                  meta={
+                    ps === 'locked' ? (
+                      <span className="text-xs text-muted">Unlocks after “{l.title}”</span>
+                    ) : ps === 'soon' ? (
+                      <Badge>Coming soon</Badge>
+                    ) : (
+                      <span className="text-xs text-muted">{p.levels} levels</span>
+                    )
+                  }
+                />
+              );
+            }),
+          ];
+        })}
+        <PathNode
+          key="checkpoint"
+          to={anyAvailable && FEATURES.practice ? `/checkpoint/${unit.id}` : undefined}
+          state={anyAvailable && FEATURES.practice ? 'available' : 'soon'}
+          kind="gate"
+          dot="✓"
+          title="Unit checkpoint"
+          meta={
+            anyAvailable && FEATURES.practice ? (
+              <span className="text-xs text-muted">
+                {unit.checkpointItems} mixed questions · pass to test out
+              </span>
+            ) : (
+              <Badge>Coming soon</Badge>
+            )
+          }
+        />
+        <PathNode
+          key="hard"
+          to={allDone && FEATURES.practice ? `/practice/hard/${unit.id}` : undefined}
+          state={!anyAvailable || !FEATURES.practice ? 'soon' : allDone ? 'available' : 'locked'}
+          kind="gate"
+          dot="⚡"
+          title="Hard mode"
+          meta={
+            !anyAvailable || !FEATURES.practice ? (
+              <Badge>Coming soon</Badge>
+            ) : allDone ? null : (
+              <span className="text-xs text-muted">Complete every lesson in the unit to unlock</span>
+            )
+          }
+        />
+      </ol>
+    </section>
+  );
+}
+
+/** `#/s/:subjectId`: the subject's path map (§3.7, §10.1). */
 export function SubjectPage() {
   const { subjectId } = useParams();
   const { data: index, error } = useContentIndex();
   const progress = useProgress((s) => s.progress);
-  const [open, setOpen] = useState<Record<string, boolean>>({});
   if (error) return <ErrorState error={error} />;
   if (!index) return <Loading />;
   const subject = index.subjects.find((s) => s.id === subjectId);
   if (!subject) return <NotFoundPage />;
-
-  // Open by default: the first unit that still has something playable to do, else the first unit.
-  // Open by default: the unit with the next playable lesson to do; otherwise the unit of the
-  // most recently opened lesson; otherwise the first unit.
-  const recent = subject.units
-    .flatMap((u) => u.lessons.map((l) => ({ unit: u.id, at: progress.lessons[l.id]?.lastOpenedAt ?? '' })))
-    .filter((x) => x.at)
-    .sort((a, b) => b.at.localeCompare(a.at))[0]?.unit;
-  const defaultOpen =
-    subject.units.find((u) =>
-      u.lessons.some((l) => l.available && progress.lessons[l.id]?.status !== 'completed'),
-    )?.id ??
-    recent ??
-    subject.units[0].id;
-  const isOpen = (id: string) => open[id] ?? id === defaultOpen;
-
   const lessons = allLessons(subject);
   const completed = lessons.filter((l) => progress.lessons[l.id]?.status === 'completed').length;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <nav aria-label="Breadcrumb" className="text-sm text-muted">
-        <Link to="/" className="hover:text-accent">
+        <Link to="/subjects" className="hover:text-accent">
           Subjects
         </Link>{' '}
         / <span aria-current="page">{subject.short}</span>
@@ -54,17 +304,14 @@ export function SubjectPage() {
           <dt className="inline text-muted">Prerequisites: </dt>
           <dd className="inline">
             {subject.prerequisites.length === 0 && !subject.background && 'none'}
-            {subject.prerequisites.map((p, i) => {
-              const ps = index.subjects.find((s) => s.id === p);
-              return (
-                <span key={p}>
-                  {i > 0 && ', '}
-                  <Link to={`/s/${p}`} className="text-accent underline">
-                    {ps?.title ?? p}
-                  </Link>
-                </span>
-              );
-            })}
+            {subject.prerequisites.map((p, i) => (
+              <span key={p}>
+                {i > 0 && ', '}
+                <Link to={`/s/${p}`} className="text-accent underline">
+                  {index.subjects.find((s) => s.id === p)?.title ?? p}
+                </Link>
+              </span>
+            ))}
             {subject.background && (
               <span>
                 {subject.prerequisites.length > 0 && ' · '}
@@ -80,121 +327,18 @@ export function SubjectPage() {
           </dd>
         </div>
       </dl>
-
-      <div className="mt-8 space-y-3">
-        {subject.units.map((unit, ui) => {
-          const expanded = isOpen(unit.id);
-          const panelId = `unit-panel-${unit.id}`;
-          return (
-            <section key={unit.id} className="rounded-xl border border-border bg-surface">
-              <h2>
-                <button
-                  type="button"
-                  aria-expanded={expanded}
-                  aria-controls={panelId}
-                  onClick={() => setOpen((o) => ({ ...o, [unit.id]: !expanded }))}
-                  className="flex w-full items-center gap-4 rounded-xl px-5 py-4 text-left hover:bg-surface-2"
-                >
-                  <span className="text-sm font-semibold text-muted">Unit {ui + 1}</span>
-                  <span className="flex-1 font-semibold">{unit.title}</span>
-                  <span className="hidden text-xs text-muted sm:inline">Level {unit.baseDifficulty}</span>
-                  <span className="text-xs text-muted">
-                    {unitDone(unit, progress)}/{unit.lessons.length}
-                  </span>
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 20 20"
-                    className={`h-4 w-4 text-muted transition-transform ${expanded ? 'rotate-180' : ''}`}
-                  >
-                    <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                </button>
-              </h2>
-              {expanded && (
-                <ol id={panelId} className="border-t border-border">
-                  {unit.lessons.map((l, li) => (
-                    <LessonRow key={l.id} lesson={l} number={li + 1} progress={progress} index={index} />
-                  ))}
-                </ol>
-              )}
-            </section>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function LessonRow({
-  lesson,
-  number,
-  progress,
-  index,
-}: {
-  lesson: LessonMeta;
-  number: number;
-  progress: Progress;
-  index: NonNullable<ReturnType<typeof useContentIndex>['data']>;
-}) {
-  const lp = progress.lessons[lesson.id];
-  const missing = lesson.prerequisites.filter((p) => progress.lessons[p]?.status !== 'completed');
-  const status = lp?.status ?? 'not-started';
-
-  const body = (
-    <div className="flex items-start gap-4">
-      <span className="mt-0.5 w-6 shrink-0 text-right text-sm text-muted">{number}</span>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`font-medium ${lesson.available ? 'text-text' : 'text-muted'}`}>
-            {lesson.title}
-          </span>
-          {!lesson.available && <Badge>Coming soon</Badge>}
-          {lesson.available && status === 'in-progress' && <Badge tone="accent">In progress</Badge>}
-        </div>
-        {lesson.available && missing.length > 0 && status !== 'completed' && (
-          <p className="mt-1 text-xs text-warn">
-            Recommended first:{' '}
-            {missing.map((p, i) => {
-              const loc = findLesson(index, p);
-              return (
-                <span key={p}>
-                  {i > 0 && ', '}
-                  <Link to={`/l/${p}`} className="underline" onClick={(e) => e.stopPropagation()}>
-                    {loc?.lesson.title ?? p}
-                  </Link>
-                </span>
-              );
-            })}
-          </p>
-        )}
-      </div>
-      {lesson.available && (
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <Stars count={lp?.stars ?? 0} />
-          {lesson.estimatedMinutes && (
-            <span className="text-xs text-muted">{lesson.estimatedMinutes} min</span>
-          )}
-        </div>
-      )}
-    </div>
-  );
-
-  return (
-    <li className="border-b border-border last:border-b-0" data-lesson-id={lesson.id}>
-      {lesson.available ? (
-        <div className="relative px-5 py-3 hover:bg-surface-2">
-          <Link
-            to={`/l/${lesson.id}`}
-            className="absolute inset-0"
-            aria-label={`${lesson.title}${status === 'completed' ? ', completed' : ''}`}
+      <div className="mt-8 space-y-4" data-testid="path-map">
+        {subject.units.map((unit, ui) => (
+          <UnitPath
+            key={unit.id}
+            unit={unit}
+            number={ui + 1}
+            subject={subject}
+            progress={progress}
+            index={index}
           />
-          <div className="pointer-events-none relative [&_a]:pointer-events-auto">{body}</div>
-        </div>
-      ) : (
-        <div className="px-5 py-3" aria-disabled="true">
-          {body}
-        </div>
-      )}
-    </li>
+        ))}
+      </div>
+    </div>
   );
 }

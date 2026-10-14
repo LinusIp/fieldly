@@ -19,6 +19,7 @@ units:
       - id: linalg.u1.l3
         title: "Vector equations & span"
         concepts: [linear-combinations, span]
+        tryFirst: true
       - id: linalg.u1.l4
         title: "The matrix equation Ax = b"
         concepts: [matrix-vector-product, existence-of-solutions]
@@ -76,6 +77,7 @@ units:
       - id: linalg.u4.l1
         title: "Linear transformations & matrices"
         concepts: [linear-transformations, standard-matrix]
+        tryFirst: true
       - id: linalg.u4.l2
         title: "Geometric transformations in 2D"
         concepts: [geometric-transformations]
@@ -92,6 +94,7 @@ units:
       - id: linalg.u5.l1
         title: "Eigenvalues & eigenvectors"
         concepts: [eigenvectors]
+        tryFirst: true
       - id: linalg.u5.l2
         title: "The characteristic equation"
         concepts: [characteristic-equation]
@@ -120,6 +123,7 @@ units:
       - id: linalg.u6.l4
         title: "Least squares"
         concepts: [least-squares]
+        tryFirst: true
       - id: linalg.u6.l5
         title: "Symmetric matrices"
         concepts: [symmetric-matrices]
