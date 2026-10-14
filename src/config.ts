@@ -20,7 +20,7 @@ export const DEFAULTS = {
  * navigation for a feature that isn't built yet show "Coming soon" instead of a dead link.
  */
 export const FEATURES = {
-  lessonPlayer: false,
+  lessonPlayer: true,
   practice: false,
   puzzles: false,
   sandbox: false,

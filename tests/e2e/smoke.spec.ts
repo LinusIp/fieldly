@@ -25,13 +25,16 @@ test('the path map shows every unit and lesson, with placeholders', async ({ pag
   await page.goto('./#/s/phys2');
   const map = page.getByTestId('path-map');
   await expect(map.getByRole('heading', { name: 'Current & DC Circuits' })).toBeVisible();
-  const lesson = map.locator('[data-lesson-id="phys2.u3.l2"]');
-  await expect(lesson).toContainText("Ohm's Law and Electrical Power");
-  await expect(lesson).toContainText('Coming soon');
+  const ref = map.locator('[data-lesson-id="phys2.u3.l2"]');
+  await expect(ref).toContainText("Ohm's Law and Electrical Power");
+  await expect(ref).not.toContainText('Coming soon');
   await expect(map.locator('[data-lesson-id="phys2.u3.l5"]')).toContainText('Try first');
-  await lesson.getByRole('link').click();
-  await expect(page).toHaveURL(/#\/l\/phys2\.u3\.l2/);
-  await expect(page.getByText('Coming soon')).toBeVisible();
+  const soon = map.locator('[data-lesson-id="phys2.u3.l3"]');
+  await expect(soon).toContainText('Coming soon');
+  await soon.getByRole('link').click();
+  await expect(page).toHaveURL(/#\/l\/phys2\.u3\.l3/);
+  await expect(page.getByTestId('path-map')).toHaveCount(0);
+  await expect(page.getByText('hasn’t been written yet')).toBeVisible();
 });
 
 test('a refresh on a hash route works', async ({ page }) => {

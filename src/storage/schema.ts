@@ -18,6 +18,8 @@ export const AnswerRecordSchema = z.object({
   misconception: z.string().optional(),
   /** Variant served, for core steps. */
   variant: variantKey.optional(),
+  /** Confidence prompt (§2.5), when turned on in Settings. */
+  confidence: z.enum(['sure', 'unsure']).optional(),
 });
 
 export const AttemptStateSchema = z.object({
