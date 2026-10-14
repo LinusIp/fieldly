@@ -335,6 +335,16 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
     for (const m of ctx.misconceptions.keys())
       if (!ctx.usedMisconceptions.has(m))
         c.warn(join(dir, 'misconceptions.yaml'), `misconception "${m}" is defined but never used`);
+    // The profile's "Revisit" links come from `lessons`: add every lesson that actually tags the
+    // misconception, in syllabus order, after the ones listed by hand.
+    const order = [...ctx.listedLessonIds];
+    for (const m of ctx.misconceptions.values()) {
+      const used = order.filter((id) => {
+        const l = subjects[sid].lessons[id];
+        return l !== undefined && lessonTags(l).has(m.id);
+      });
+      m.lessons = [...new Set([...m.lessons, ...used])];
+    }
   }
 
   // Python reference solutions run in one batch at the end.
@@ -654,6 +664,21 @@ function validateLesson(
       });
     }
   }
+}
+
+/** Every misconception id a lesson tags (options, distractors, challenge feedback). */
+function lessonTags(lesson: Lesson): Set<string> {
+  const out = new Set<string>();
+  const walk = (v: unknown) => {
+    if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === 'object')
+      for (const [k, x] of Object.entries(v)) {
+        if (k === 'misconception' && typeof x === 'string') out.add(x);
+        else walk(x);
+      }
+  };
+  walk(lesson);
+  return out;
 }
 
 function numericOnly(s: Record<string, unknown>): Record<string, unknown> {

@@ -126,7 +126,8 @@ export interface Config {
   area?: { a: number | string; b: number | string };
   derivative: boolean;
   accumulation?: { from: number; at?: string };
-  band?: { y: number; eps: number; x?: number };
+  /** May name controls (e.g. a guessed limit L), so it is resolved per state. */
+  band?: { y: number | string; eps: number | string; x?: number | string };
   target?: { f?: string; x?: string; y?: string; r?: string };
   data: [number, number][];
   vars: Scope;
@@ -164,13 +165,7 @@ export function resolveConfig(raw: RawConfig, ctx: ResolveCtx): Config {
     area: o.area,
     derivative: o.derivative ?? false,
     accumulation: o.accumulation ? { from: ctx.num(o.accumulation.from), at: o.accumulation.at } : undefined,
-    band: o.band
-      ? {
-          y: ctx.num(o.band.y),
-          eps: ctx.num(o.band.eps),
-          x: o.band.x !== undefined ? ctx.num(o.band.x) : undefined,
-        }
-      : undefined,
+    band: o.band,
     target: o.target,
     data: o.data ?? [],
     vars: ctx.scope,
@@ -227,7 +222,14 @@ export function model(config: Config, values: Record<string, number>) {
     x: [num(config.view.x[0]), num(config.view.x[1])] as [number, number],
     y: [num(config.view.y[0]), num(config.view.y[1])] as [number, number],
   };
-  return { scope, f, fp, A, area, main, target, view };
+  const band = config.band
+    ? {
+        y: num(config.band.y),
+        eps: num(config.band.eps),
+        x: config.band.x !== undefined ? num(config.band.x) : undefined,
+      }
+    : undefined;
+  return { scope, f, fp, A, area, main, target, view, band };
 }
 
 /** Parameter range sampled for the plot and for matchError. */

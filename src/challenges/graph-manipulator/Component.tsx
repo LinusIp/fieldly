@@ -171,32 +171,29 @@ export function GraphManipulator({
           {x0v <= 0 && x1v >= 0 && (
             <line x1={sx(0)} y1={M.t} x2={sx(0)} y2={H - M.b} stroke="var(--c-muted)" />
           )}
-          {config.band && (
+          {m.band && (
             <g data-testid="graph-band">
               <rect
                 x={M.l}
-                y={sy(config.band.y + config.band.eps)}
+                y={sy(m.band.y + m.band.eps)}
                 width={W - M.l - M.r}
-                height={Math.max(
-                  0,
-                  sy(config.band.y - config.band.eps) - sy(config.band.y + config.band.eps),
-                )}
+                height={Math.max(0, sy(m.band.y - m.band.eps) - sy(m.band.y + m.band.eps))}
                 fill="var(--c-accent)"
                 opacity={0.12}
               />
               <line
                 x1={M.l}
-                y1={sy(config.band.y)}
+                y1={sy(m.band.y)}
                 x2={W - M.r}
-                y2={sy(config.band.y)}
+                y2={sy(m.band.y)}
                 stroke="var(--c-accent)"
                 strokeDasharray="4 4"
               />
-              {config.band.x !== undefined && (
+              {m.band.x !== undefined && (
                 <line
-                  x1={sx(config.band.x)}
+                  x1={sx(m.band.x)}
                   y1={M.t}
-                  x2={sx(config.band.x)}
+                  x2={sx(m.band.x)}
                   y2={H - M.b}
                   stroke="var(--c-accent)"
                   strokeDasharray="4 4"

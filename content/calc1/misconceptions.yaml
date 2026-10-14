@@ -331,3 +331,143 @@
   explain: |
     It hits 1 and −1 infinitely often near 0.
   lessons: [calc1.u1.l2]
+
+# ── calc1.u1.l3: computing limits ──
+- id: coefficient-dropped
+  short: "3x means 3 times x — substitute into every x, including the ones with coefficients."
+  explain: |
+    At x = 2, 3x = 6.
+  lessons: [calc1.u1.l3]
+
+- id: substitute-one-term
+  short: "Substitute into every term of the expression, top and bottom."
+  explain: |
+    Missing a term changes the value.
+  lessons: [calc1.u1.l3]
+
+- id: quotient-law-drops-denominator
+  short: "The quotient law keeps the denominator: lim f/g = (lim f)/(lim g) when lim g ≠ 0."
+  explain: |
+    Divide by the denominator's limit.
+  lessons: [calc1.u1.l3]
+
+- id: quotient-law-inverted
+  short: "Keep the fraction the right way up: numerator over denominator."
+  explain: |
+    Check which limit is on top.
+  lessons: [calc1.u1.l3]
+
+- id: limit-law-sign
+  short: "Track signs through each limit law: (−2)² = +4, and 3 + (−2) = 1."
+  explain: |
+    Substitute with brackets around negative values.
+  lessons: [calc1.u1.l3]
+
+- id: cancel-terms
+  short: "You can only cancel common factors, never individual terms of a sum."
+  explain: |
+    (x² + 1)/(x + 1) doesn't simplify: x + 1 is not a factor of x² + 1.
+  lessons: [calc1.u1.l3]
+
+- id: zero-over-zero-one
+  short: "0/0 isn't 1 — \"anything over itself\" only holds for equal non-zero values."
+  explain: |
+    Simplify, then take the limit.
+  lessons: [calc1.u1.l3]
+
+- id: zero-over-zero-recognition
+  short: "Substitute into the numerator and the denominator separately to recognise 0/0."
+  explain: |
+    Both must be 0 for the form to be 0/0.
+  lessons: [calc1.u1.l3]
+
+- id: nonzero-over-zero-indeterminate
+  short: "Only 0/0 (and a few others) are indeterminate; nonzero/0 means a blow-up."
+  explain: |
+    No algebra will turn 5/0 into a finite limit.
+  lessons: [calc1.u1.l3]
+
+- id: cancel-wrong-factor
+  short: "Cancel exactly the common factor, then substitute into what is left."
+  explain: |
+    (x − 3)(x + 3)/(x − 3) = x + 3, not x.
+  lessons: [calc1.u1.l3]
+
+- id: cancel-half
+  short: "After cancelling, every remaining factor still counts — top and bottom."
+  explain: |
+    Substitute into all of it.
+  lessons: [calc1.u1.l3]
+
+- id: cancel-all-factors
+  short: "Cancel only as many factors as appear on both sides."
+  explain: |
+    One (x − a) on top cancels one of the two below.
+  lessons: [calc1.u1.l3]
+
+- id: cancel-then-forget-substitute
+  short: "After cancelling, you still have to substitute x = a."
+  explain: |
+    The limit is the value of the simplified expression at a.
+  lessons: [calc1.u1.l3]
+
+- id: factor-sign
+  short: "Check factor signs by expanding: (x − 2)(x + 1) = x² − x − 2."
+  explain: |
+    The roots of the quadratic are where each factor is 0.
+  lessons: [calc1.u1.l3]
+
+- id: factor-sign-product
+  short: "The constant term is the product of the factors' constants — mind the signs."
+  explain: |
+    (x − 2)(x − 1) gives +2, not −2.
+  lessons: [calc1.u1.l3]
+
+- id: factor-incomplete
+  short: "A factorisation must be a product; a leftover \"− 2\" means nothing can cancel."
+  explain: |
+    Write the whole expression as (x − r₁)(x − r₂).
+  lessons: [calc1.u1.l3]
+
+- id: conjugate-same-sign
+  short: "Multiply by the conjugate — the same terms with the opposite sign between them."
+  explain: |
+    (√x − 2)(√x + 2) = x − 4 removes the root.
+  lessons: [calc1.u1.l3]
+
+- id: conjugate-denominator
+  short: "Multiplying by the denominator doesn't remove the root; the conjugate does."
+  explain: |
+    Aim for a difference of squares.
+  lessons: [calc1.u1.l3]
+
+- id: conjugate-partial
+  short: "Multiplying by √x alone leaves a root; use the full conjugate √x + 2."
+  explain: |
+    Only the conjugate gives a difference of squares.
+  lessons: [calc1.u1.l3]
+
+- id: conjugate-half
+  short: "After rationalising, the conjugate √x + √a tends to 2√a — both terms count."
+  explain: |
+    Don't drop one of the two equal terms.
+  lessons: [calc1.u1.l3]
+
+- id: limit-exists-any-k
+  short: "A finite limit with a denominator → 0 needs the numerator → 0 too."
+  explain: |
+    Otherwise the quotient blows up.
+  lessons: [calc1.u1.l3]
+
+# ── calc1.u1.l3: computing limits ──
+- id: root-zero-missed
+  short: "A root term can vanish too: √4 − 2 = 0, so that numerator is 0 at x = 0."
+  explain: |
+    Substitute into the root before deciding.
+  lessons: [calc1.u1.l3]
+
+- id: cube-zero-missed
+  short: "x³ − 8 is 0 at x = 2 (2³ = 8), and x² − 4 is 0 there too — that's 0/0."
+  explain: |
+    Evaluate powers carefully before judging the form.
+  lessons: [calc1.u1.l3]

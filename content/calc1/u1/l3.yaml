@@ -1,0 +1,643 @@
+id: calc1.u1.l3
+title: "Computing limits"
+version: 1
+concepts: [limit-laws, direct-substitution, limit-algebraic-techniques, indeterminate-0-0]
+estimatedMinutes: 25
+
+# Scenario: f(x) = (x − a)(x − b)/(x − a) written out as a quadratic over (x − a); a > 0 > b, so the
+# numerator x² − (a + b)x + ab prints with clean signs.
+params:
+  sets:
+    - { a: 4, b: -2 }
+    - { a: 5, b: -1 }
+    - { a: 6, b: -2 }
+derived:
+  s: "a + b"
+  p: "-a * b"
+
+intro: |
+  **Limit laws.** If $\lim f = A$ and $\lim g = B$, then limits pass through sums, differences, products,
+  constant multiples and quotients (when $B \ne 0$): e.g. $\lim (f \cdot g) = AB$.
+
+  So for polynomials and other "nice" functions, **direct substitution** works: $\lim_{x \to a} f(x) = f(a)$.
+
+  When substitution gives $\frac{0}{0}$, that's an **indeterminate form** — not 0, not "undefined", just
+  "more work needed". The usual moves:
+
+  - **Factor** and cancel the common factor $(x - a)$;
+  - **Rationalize**: multiply by the conjugate, e.g. $\sqrt{x} + \sqrt{a}$;
+  - **Combine fractions** into one, then simplify.
+
+  Cancelling is legal because the limit never uses $x = a$ itself. If substitution gives
+  $\frac{\text{nonzero}}{0}$ instead, the function blows up: no finite limit.
+
+workedExample: |
+  $\lim_{x \to 3} \dfrac{x^2 + x - 12}{x - 3}$:
+
+  - Substitution: $\frac{9 + 3 - 12}{0} = \frac{0}{0}$ — indeterminate.
+  - Factor: $x^2 + x - 12 = (x - 3)(x + 4)$; cancel $(x - 3)$ for $x \ne 3$.
+  - $\lim_{x \to 3} (x + 4) = 7$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: direct-substitution
+    clueFor: [s2]
+    establishes: "Where f is a polynomial or a quotient with non-zero denominator, substitute: lim = f(a)."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: 'Find $\lim_{x \to 2} (x^2 + 3x)$.'
+        answer: { expr: "10" }
+        distractors:
+          - { expr: "4", misconception: substitute-one-term }
+          - { expr: "7", misconception: coefficient-dropped }
+          - { expr: "2", misconception: limit-is-input }
+        hints:
+          nudge: "Polynomials are continuous — just substitute."
+          partial: "2² + 3 · 2"
+        explanation: |
+          **Answer:** 10
+
+          **Why:** $2^2 + 3 \cdot 2 = 4 + 6 = 10$.
+
+          **Common mistakes:**
+          - 4 — the $3x$ term counts too.
+          - 7 — that reads $3x$ as 3; it means $3 \cdot 2 = 6$.
+          - 2 — that's where $x$ goes.
+
+          **Connects to:** Q2 — when substitution breaks.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to {{a}}} \dfrac{x^2 + 1}{x + 1}$.'
+        answer: { expr: "(a^2 + 1)/(a + 1)" }
+        distractors:
+          - { expr: "a - 1", misconception: cancel-terms }
+          - { expr: "(a^2 + 1)/a", misconception: substitute-one-term }
+          - { expr: "a^2 + 1", misconception: quotient-law-drops-denominator }
+        hints:
+          nudge: "Is the denominator zero at x = {{a}}?"
+          partial: "({{a}}² + 1)/({{a}} + 1)"
+        explanation: |
+          **Answer:** $\frac{ {{a^2+1}} }{ {{a+1}} } \approx {{(a^2+1)/(a+1)}}$
+
+          **Why:** The denominator is ${{a+1}} \ne 0$, so the quotient law lets you substitute.
+
+          **Common mistakes:**
+          - ${{a-1}}$ — $x^2 + 1$ doesn't factor with $x + 1$; you can't cancel terms.
+          - Dropping the $+1$ in the denominator — substitute everywhere.
+          - ${{a^2+1}}$ — the denominator still divides.
+
+          **Connects to:** Q2 — when substitution gives 0/0.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          $\lim_{x \to c} f(x) = 3$ and $\lim_{x \to c} g(x) = -2$. Find $\lim_{x \to c} \dfrac{2f(x) - g(x)^2}{f(x) + g(x)}$.
+        answer: { expr: "2" }
+        distractors:
+          - { expr: "10", misconception: square-sign }
+          - { expr: "-2", misconception: limit-law-sign }
+          - { expr: "0.5", misconception: quotient-law-inverted }
+        hints:
+          nudge: "Apply the limit laws piece by piece."
+          partial: "(2·3 − (−2)²)/(3 + (−2))"
+        explanation: |
+          **Answer:** 2
+
+          **Why:** $\frac{2 \cdot 3 - (-2)^2}{3 + (-2)} = \frac{6 - 4}{1} = 2$ — allowed because the denominator's limit is $1 \ne 0$.
+
+          **Common mistakes:**
+          - 10 — $(-2)^2 = +4$, so subtract 4.
+          - −2 — recheck the signs: the denominator is $+1$.
+          - 0.5 — that's the fraction upside down.
+
+          **Connects to:** Q2 — when the denominator's limit is 0.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: indeterminate-0-0
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "Substituting x = {{a}} into (x² − {{s}}x − {{p}})/(x − {{a}}) gives 0/0: indeterminate, so simplify first."
+    standaloneContext: "Direct substitution works when the function is defined and well-behaved at the point."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'Substituting $x = 2$ into $\dfrac{x^2 - 4}{x - 2}$ gives $\frac{0}{0}$. What does that tell you?'
+        options:
+          - { text: 'Nothing yet: simplify first, then take the limit', correct: true }
+          - { text: 'The limit is 0', misconception: zero-over-zero-zero }
+          - { text: 'The limit does not exist', misconception: undefined-no-limit }
+          - { text: 'The limit is 1', misconception: zero-over-zero-one }
+        hints:
+          nudge: "Can 0/0 have a single value?"
+          partial: "It's an indeterminate form."
+        explanation: |
+          **Answer:** simplify first.
+
+          **Why:** $\frac{0}{0}$ can come from limits equal to anything; here $\frac{x^2 - 4}{x - 2} = x + 2 \to 4$.
+
+          **Common mistakes:**
+          - 0 — a zero numerator doesn't win over a zero denominator.
+          - "Doesn't exist" — it exists here (it's 4).
+          - 1 — "anything over itself" only works for equal non-zero values.
+
+          **Connects to:** Q3 — factoring.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'What does direct substitution give for $\lim_{x \to {{a}}} \dfrac{x^2 - {{s}}x - {{p}}}{x - {{a}}}$?'
+        options:
+          - { text: '$\frac{0}{0}$ — indeterminate', correct: true }
+          - { text: '$0$ — so the limit is 0', misconception: zero-over-zero-zero }
+          - { text: '$\frac{ {{a^2}} }{0}$ — so it blows up', misconception: substitute-one-term }
+          - { text: 'Undefined — so there is no limit', misconception: undefined-no-limit }
+        hints:
+          nudge: "Compute the numerator at x = {{a}} carefully."
+          buildsOn: "Q1: substitution works only when nothing breaks."
+          partial: "{{a^2}} − {{s*a}} − {{p}} = ?"
+        explanation: |
+          **Answer:** $\frac{0}{0}$.
+
+          **Why:** Numerator: ${{a^2}} - {{s*a}} - {{p}} = 0$. Denominator: $0$. So $x = {{a}}$ is a root of the numerator — a factor
+          $(x - {{a}})$ is hiding there.
+
+          **Common mistakes:**
+          - "0" — $\frac{0}{0}$ isn't 0.
+          - $\frac{ {{a^2}} }{0}$ — every numerator term must be included.
+          - "No limit" — indeterminate means "work more", not "no limit".
+
+          **Connects to:** Q3 — factor it out.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'Which limit is **not** an indeterminate $\frac{0}{0}$ form?'
+        options:
+          - { text: '$\lim_{x \to 1} \dfrac{x^2 + 1}{x - 1}$', correct: true }
+          - { text: '$\lim_{x \to 1} \dfrac{x^2 - 1}{x - 1}$', misconception: zero-over-zero-recognition }
+          - { text: '$\lim_{x \to 0} \dfrac{\sqrt{x + 4} - 2}{x}$', misconception: root-zero-missed }
+          - { text: '$\lim_{x \to 2} \dfrac{x^3 - 8}{x^2 - 4}$', misconception: cube-zero-missed }
+        hints:
+          nudge: "Substitute into each numerator."
+          buildsOn: "Q1: substitute first, always."
+          partial: "Which numerator is not 0 at its point?"
+        explanation: |
+          **Answer:** $\frac{x^2 + 1}{x - 1}$ at 1.
+
+          **Why:** It gives $\frac{2}{0}$ — a blow-up, not an indeterminate form. The others all give $\frac{0}{0}$.
+
+          **Common mistakes:**
+          - $\frac{x^2 - 1}{x - 1}$ — $1 - 1 = 0$ on top.
+          - $\frac{\sqrt{x+4} - 2}{x}$ — $\sqrt{4} - 2 = 0$.
+          - $\frac{x^3 - 8}{x^2 - 4}$ — $8 - 8 = 0$ and $4 - 4 = 0$.
+
+          **Connects to:** Q3 — resolving 0/0.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: limit-algebraic-techniques
+    uses: [s2]
+    clueFor: [s6]
+    establishes: "x² − {{s}}x − {{p}} = (x − {{a}})(x + {{-b}}); cancel, then lim = {{a - b}}."
+    standaloneContext: "0/0 means the numerator and denominator share a factor (x − a) that can be cancelled for x ≠ a."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'Find $\lim_{x \to 3} \dfrac{x^2 - 9}{x - 3}$.'
+        answer: { expr: "6" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "3", misconception: cancel-wrong-factor }
+          - { expr: "9", misconception: substitute-one-term }
+        hints:
+          nudge: "Difference of squares."
+          partial: "x² − 9 = (x − 3)(x + 3)."
+        explanation: |
+          **Answer:** 6
+
+          **Why:** $\frac{(x-3)(x+3)}{x-3} = x + 3 \to 6$.
+
+          **Common mistakes:**
+          - 0 — that's reading $\frac{0}{0}$ as 0.
+          - 3 — after cancelling, $x + 3$ is left, not $x$.
+          - 9 — only the $x^2$ term was substituted.
+
+          **Connects to:** Q6 — choosing the method.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to {{a}}} \dfrac{x^2 - {{s}}x - {{p}}}{x - {{a}}}$.'
+        answer: { expr: "a - b" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "a + b", misconception: factor-sign }
+          - { expr: "a", misconception: limit-is-input }
+        hints:
+          nudge: "x = {{a}} is a root of the numerator. Find the other root."
+          buildsOn: "Q2: substitution gives 0/0, so (x − {{a}}) divides the numerator."
+          partial: "x² − {{s}}x − {{p}} = (x − {{a}})(x + {{-b}})."
+        explanation: |
+          **Answer:** ${{a-b}}$
+
+          **Why:** $\frac{(x - {{a}})(x + {{-b}})}{x - {{a}}} = x + {{-b}}$ for $x \ne {{a}}$, so the limit is ${{a}} + {{-b}} = {{a-b}}$.
+
+          **Common mistakes:**
+          - 0 — the $\frac{0}{0}$ trap.
+          - ${{a+b}}$ — check the factor signs by expanding.
+          - ${{a}}$ — that's where $x$ goes; substitute it into $x + {{-b}}$.
+
+          **Connects to:** Q6 — choosing the method.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to 2} \dfrac{x^3 - 8}{x^2 - 4}$.'
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "2", misconception: cancel-wrong-factor }
+          - { expr: "12", misconception: cancel-half }
+          - { expr: "1", misconception: zero-over-zero-one }
+        hints:
+          nudge: "Factor both: difference of cubes and difference of squares."
+          buildsOn: "Q2: both vanish at 2, so both contain (x − 2)."
+          partial: "(x − 2)(x² + 2x + 4) / ((x − 2)(x + 2))"
+        explanation: |
+          **Answer:** 3
+
+          **Why:** After cancelling $(x - 2)$: $\frac{x^2 + 2x + 4}{x + 2} \to \frac{12}{4} = 3$.
+
+          **Common mistakes:**
+          - 2 — that cancels too much.
+          - 12 — the denominator's other factor $x + 2 \to 4$ still divides.
+          - 1 — $\frac{0}{0}$ isn't 1.
+
+          **Connects to:** Q6 — choosing the method.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: limit-algebraic-techniques
+    clueFor: [s6]
+    establishes: "Multiply by the conjugate: (√x − √{{a}})/(x − {{a}}) → 1/(2√{{a}})."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: 'To find $\lim_{x \to 4} \dfrac{\sqrt{x} - 2}{x - 4}$, what do you multiply top and bottom by?'
+        options:
+          - { text: '$\sqrt{x} + 2$', correct: true }
+          - { text: '$\sqrt{x} - 2$', misconception: conjugate-same-sign }
+          - { text: '$x - 4$', misconception: conjugate-denominator }
+          - { text: '$\sqrt{x}$', misconception: conjugate-partial }
+        hints:
+          nudge: "(√x − 2)(√x + 2) = ?"
+          partial: "It removes the root: x − 4."
+        explanation: |
+          **Answer:** $\sqrt{x} + 2$, the conjugate.
+
+          **Why:** $(\sqrt{x} - 2)(\sqrt{x} + 2) = x - 4$, which cancels the denominator, leaving $\frac{1}{\sqrt{x} + 2} \to \frac{1}{4}$.
+
+          **Common mistakes:**
+          - $\sqrt{x} - 2$ — squaring keeps a root term.
+          - $x - 4$ — that doesn't help cancel anything.
+          - $\sqrt{x}$ — the root survives.
+
+          **Connects to:** Q6 — choosing the method.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to {{a}}} \dfrac{\sqrt{x} - \sqrt{ {{a}} }}{x - {{a}}}$.'
+        answer: { expr: "1/(2*sqrt(a))" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "1/sqrt(a)", misconception: conjugate-half }
+          - { expr: "2*sqrt(a)", misconception: quotient-law-inverted }
+        hints:
+          nudge: "Multiply by √x + √{{a}}."
+          partial: "x − {{a}} cancels, leaving 1/(√x + √{{a}})."
+        explanation: |
+          **Answer:** $\frac{1}{2\sqrt{ {{a}} }} \approx {{1/(2*sqrt(a))}}$
+
+          **Why:** $\frac{(\sqrt{x} - \sqrt{ {{a}} })(\sqrt{x} + \sqrt{ {{a}} })}{(x - {{a}})(\sqrt{x} + \sqrt{ {{a}} })} = \frac{1}{\sqrt{x} + \sqrt{ {{a}} }} \to \frac{1}{2\sqrt{ {{a}} }}$.
+
+          **Common mistakes:**
+          - 0 — the $\frac{0}{0}$ trap.
+          - $\frac{1}{\sqrt{ {{a}} }}$ — both roots add: $\sqrt{ {{a}} } + \sqrt{ {{a}} }$.
+          - $2\sqrt{ {{a}} }$ — that's upside down.
+
+          **Connects to:** Q6 — choosing the method.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to 0} \dfrac{\sqrt{x + 9} - 3}{x}$.'
+        answer: { expr: "1/6" }
+        distractors:
+          - { expr: "1/3", misconception: conjugate-half }
+          - { expr: "6", misconception: quotient-law-inverted }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        hints:
+          nudge: "Conjugate: √(x + 9) + 3."
+          partial: "(x + 9 − 9) / (x(√(x + 9) + 3))"
+        explanation: |
+          **Answer:** $\frac{1}{6}$
+
+          **Why:** The numerator becomes $x$, which cancels: $\frac{1}{\sqrt{x + 9} + 3} \to \frac{1}{3 + 3}$.
+
+          **Common mistakes:**
+          - $\frac{1}{3}$ — the conjugate adds two 3s.
+          - 6 — upside down.
+          - 0 — the $\frac{0}{0}$ trap.
+
+          **Connects to:** Q6 — choosing the method.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: limit-laws
+    clueFor: [s6]
+    establishes: "Nonzero/0 on substitution means a blow-up: no finite limit (unlike 0/0)."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: 'Substitution in $\lim_{x \to 2} \dfrac{x + 1}{x - 2}$ gives $\frac{3}{0}$. What does that mean?'
+        options:
+          - { text: 'The function blows up near 2: no finite limit', correct: true }
+          - { text: 'Indeterminate — factor and try again', misconception: nonzero-over-zero-indeterminate }
+          - { text: 'The limit is 0', misconception: blowup-is-zero }
+          - { text: 'The limit is 3', misconception: substitute-one-term }
+        hints:
+          nudge: "What is 3 divided by a tiny number?"
+          partial: "Huge, with a sign depending on the side."
+        explanation: |
+          **Answer:** it blows up.
+
+          **Why:** A numerator near 3 over a denominator near 0 is huge; it's $-\infty$ from the left, $+\infty$ from the right.
+
+          **Common mistakes:**
+          - "Indeterminate" — only $\frac{0}{0}$ (and a few others) are indeterminate.
+          - 0 — dividing by tiny numbers gives huge ones.
+          - 3 — the denominator matters.
+
+          **Connects to:** Q6 — choosing the method.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'What is $\lim_{x \to {{a}}} \dfrac{x^2 - {{s}}x - {{p}}}{(x - {{a}})^2}$?'
+        options:
+          - { text: 'It does not exist: after cancelling, $\frac{x + {{-b}}}{x - {{a}}}$ gives $\frac{ {{a-b}} }{0}$', correct: true }
+          - { text: '${{a-b}}$', misconception: cancel-all-factors }
+          - { text: '$0$', misconception: zero-over-zero-zero }
+          - { text: '$1$', misconception: zero-over-zero-one }
+        hints:
+          nudge: "Factor the numerator; how many (x − {{a}}) cancel?"
+          partial: "Only one."
+        explanation: |
+          **Answer:** it does not exist.
+
+          **Why:** $\frac{(x - {{a}})(x + {{-b}})}{(x - {{a}})^2} = \frac{x + {{-b}}}{x - {{a}}}$, which gives $\frac{ {{a-b}} }{0}$: a blow-up, with opposite signs on
+          the two sides.
+
+          **Common mistakes:**
+          - ${{a-b}}$ — only one factor cancels.
+          - 0 or 1 — $\frac{0}{0}$ needs simplifying, not guessing.
+
+          **Connects to:** Q6 — choosing the method.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: '$\lim_{x \to c} g(x) = 0$ and $\lim_{x \to c} f(x) = 5$. Which is true?'
+        options:
+          - { text: '$\lim f/g$ cannot be a finite number', correct: true }
+          - { text: '$\lim f/g$ is indeterminate, so it could be anything', misconception: nonzero-over-zero-indeterminate }
+          - { text: '$\lim f/g = 0$', misconception: blowup-is-zero }
+          - { text: '$\lim f/g = 5$', misconception: substitute-one-term }
+        hints:
+          nudge: "If f/g → L were finite, then f = (f/g)·g → L · 0."
+          partial: "But f → 5, not 0."
+        explanation: |
+          **Answer:** no finite limit.
+
+          **Why:** If $f/g \to L$, the product law gives $f = \frac{f}{g} \cdot g \to L \cdot 0 = 0$, contradicting $f \to 5$.
+
+          **Common mistakes:**
+          - "Indeterminate" — that's $\frac{0}{0}$, not $\frac{5}{0}$.
+          - 0 — dividing by tiny numbers makes things large.
+          - 5 — the denominator matters.
+
+          **Connects to:** Q6 — choosing the method.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: limit-algebraic-techniques
+    uses: [s3, s4, s5]
+    establishes: "Strategy: substitute; on 0/0 factor, rationalize or combine fractions; on nonzero/0 expect a blow-up."
+    standaloneContext: |
+      0/0 is resolved by factoring, multiplying by a conjugate, or combining fractions; nonzero/0 means no finite limit.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to {{a}}} \dfrac{x - {{a}}}{\sqrt{x} - \sqrt{ {{a}} }}$.'
+        answer: { expr: "2*sqrt(a)" }
+        distractors:
+          - { expr: "1/(2*sqrt(a))", misconception: quotient-law-inverted }
+          - { expr: "sqrt(a)", misconception: conjugate-half }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        hints:
+          nudge: "x − {{a}} = (√x − √{{a}})(√x + √{{a}})."
+          partial: "Cancel, then substitute."
+        explanation: |
+          **Answer:** $2\sqrt{ {{a}} } \approx {{2*sqrt(a)}}$
+
+          **Why:** Factor $x - {{a}}$ as a difference of squares; $\sqrt{x} + \sqrt{ {{a}} } \to 2\sqrt{ {{a}} }$.
+
+          **Common mistakes:**
+          - $\frac{1}{2\sqrt{ {{a}} }}$ — that's Q4's limit, upside down here.
+          - $\sqrt{ {{a}} }$ — both roots add.
+          - 0 — the $\frac{0}{0}$ trap.
+
+          **Connects to:** the challenge.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to {{a}}} \dfrac{\frac{1}{x} - \frac{1}{ {{a}} }}{x - {{a}}}$.'
+        answer: { expr: "-1/a^2" }
+        distractors:
+          - { expr: "1/a^2", misconception: factor-sign }
+          - { expr: "-1/a", misconception: cancel-half }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        verify:
+          - { lhs: "(1/x - 1/a) / (x - a)", rhs: "-1 / (a * x)", vars: { x: [0.5, 3.5] } }
+        hints:
+          nudge: "Combine the top into one fraction."
+          buildsOn: "Q3: find the hidden (x − {{a}}). Q5: check it's 0/0, not a blow-up."
+          partial: "1/x − 1/{{a}} = ({{a}} − x)/({{a}}x)."
+        explanation: |
+          **Answer:** $-\frac{1}{ {{a^2}} } \approx {{-1/a^2}}$
+
+          **Why:** $\frac{1}{x} - \frac{1}{ {{a}} } = \frac{ {{a}} - x}{ {{a}}x} = -\frac{x - {{a}}}{ {{a}}x}$. Cancel $(x - {{a}})$ (Q3) to get
+          $-\frac{1}{ {{a}}x} \to -\frac{1}{ {{a^2}} }$. Substitution gave $\frac{0}{0}$, not a blow-up (Q5).
+
+          **Common mistakes:**
+          - $+\frac{1}{ {{a^2}} }$ — ${{a}} - x = -(x - {{a}})$.
+          - $-\frac{1}{ {{a}} }$ — the $x$ in ${{a}}x$ also goes to ${{a}}$.
+          - 0 — the $\frac{0}{0}$ trap.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: 'For which $k$ does $\lim_{x \to {{a}}} \dfrac{x^2 + kx - {{a^2 + a}}}{x - {{a}}}$ exist?'
+        answer: { expr: "1" }
+        distractors:
+          - { expr: "a", misconception: limit-exists-any-k }
+          - { expr: "-1", misconception: factor-sign }
+          - { expr: "a + 1", misconception: substitute-one-term }
+        verify:
+          - { lhs: "a^2 + 1 * a - (a^2 + a)", rhs: "0" }
+        hints:
+          nudge: "For a finite limit with a 0 denominator, the numerator must vanish at {{a}} too."
+          buildsOn: "Q3: 0/0 can be factored. Q5: nonzero/0 blows up."
+          partial: "{{a^2}} + {{a}}k − {{a^2+a}} = 0."
+        explanation: |
+          **Answer:** $k = 1$
+
+          **Why:** Otherwise substitution gives $\frac{\text{nonzero}}{0}$ — a blow-up (Q5). Setting the numerator to 0 at ${{a}}$:
+          ${{a}}k = {{a}}$, so $k = 1$, and then $\frac{(x - {{a}})(x + {{a+1}})}{x - {{a}}} \to {{2*a+1}}$ (Q3).
+
+          **Common mistakes:**
+          - ${{a}}$ — then the numerator is ${{a^2}} \ne 0$ at ${{a}}$.
+          - −1 — recheck the arithmetic: ${{a^2}} + {{a}}k = {{a^2+a}}$.
+          - ${{a+1}}$ — that's the other root, not $k$.
+
+          **Connects to:** the challenge — removing a blow-up.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: limit-algebraic-techniques
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'Factor $x^2 - x - 2$.'
+        options:
+          - { text: '$(x - 2)(x + 1)$', correct: true }
+          - { text: '$(x + 2)(x - 1)$', misconception: factor-sign }
+          - { text: '$(x - 2)(x - 1)$', misconception: factor-sign-product }
+          - { text: '$x(x - 1) - 2$', misconception: factor-incomplete }
+        verify:
+          - { lhs: "(x - 2) * (x + 1)", rhs: "x^2 - x - 2", vars: { x: [-5, 5] } }
+        hints:
+          nudge: "Two numbers that multiply to −2 and add to −1."
+          partial: "−2 and +1."
+        explanation: |
+          **Answer:** $(x - 2)(x + 1)$
+
+          **Why:** Expanding gives $x^2 + x - 2x - 2 = x^2 - x - 2$. So $x = 2$ is a root: that's the factor a 0/0 limit at 2 cancels.
+
+          **Common mistakes:**
+          - $(x + 2)(x - 1)$ — that's $x^2 + x - 2$.
+          - $(x - 2)(x - 1)$ — that's $x^2 - 3x + 2$.
+          - $x(x - 1) - 2$ — not a product, so nothing can cancel.
+
+          **Connects to:** Q3 — factor and cancel.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l3.ch
+  type: graph-manipulator
+  title: "Remove the blow-up"
+  concept: limit-algebraic-techniques
+  uses: [s3, s6]
+  params:
+    sets:
+      - { c: 2, d: 10, m: 2 }
+      - { c: 3, d: 6, m: 3 }
+      - { c: 1, d: 4, m: 2 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $f(x) = \dfrac{x^2 + kx - {{d}}}{x - {{c}}}$ blows up at $x = {{c}}$ for most $k$. Find the $k$ that turns the blow-up into a hole, so
+        $\lim_{x \to {{c}}} f(x)$ exists.
+      config:
+        f: "(x^2 + k*x - d) / (x - c)"
+        view: { x: ["c - 4", "c + 4"], y: [-15, 20] }
+        controls:
+          - { name: k, min: -6, max: 6, step: 0.5, initial: -6 }
+      check: { expr: "abs(c^2 + k*c - d) < 1e-9" }
+      feedback:
+        - { if: "true", say: "The graph still shoots off at x = c. The numerator must be 0 at x = c too.", misconception: limit-exists-any-k }
+      hints:
+        nudge: "Watch the graph near x = {{c}} as you change k."
+        buildsOn: "From Q6: a finite limit needs 0/0, not nonzero/0."
+        partial: "Solve {{c^2}} + {{c}}k − {{d}} = 0."
+      solution: { k: "(d - c^2)/c" }
+      explanation: |
+        With the numerator 0 at ${{c}}$, the factor $(x - {{c}})$ cancels and the blow-up becomes a single missing point.
+    standard:
+      difficulty: 3
+      goal: |
+        Same $f(x) = \dfrac{x^2 + kx - {{d}}}{x - {{c}}}$. Find the $k$ that makes the limit at ${{c}}$ exist, then move the dashed line $y = L$
+        to the limit's value.
+      config:
+        f: "(x^2 + k*x - d) / (x - c)"
+        view: { x: ["c - 4", "c + 4"], y: [-15, 20] }
+        controls:
+          - { name: k, min: -6, max: 6, step: 0.5, initial: -6 }
+          - { name: L, min: -10, max: 15, step: 0.5, initial: 0 }
+        overlays: { band: { y: "L", eps: 0, x: "c" } }
+      check: { expr: "abs(c^2 + k*c - d) < 1e-9 and abs(L - (2*c + k)) < 1e-9" }
+      feedback:
+        - { if: "abs(c^2 + k*c - d) > 1e-9", say: "First remove the blow-up: the numerator must vanish at x = c.", misconception: limit-exists-any-k }
+        - { if: "true", say: "The hole is in the right place; now line up L with the height of the hole.", misconception: cancel-then-forget-substitute }
+      hints:
+        nudge: "After k is right, factor and cancel."
+        buildsOn: "From Q3: cancel (x − {{c}}), then substitute."
+        partial: "x² + kx − {{d}} = (x − {{c}})(x + k + {{c}}), so the limit is {{2*c}} + k."
+      solution: { k: "(d - c^2)/c", L: "2*c + (d - c^2)/c" }
+      explanation: |
+        Cancelling $(x - {{c}})$ leaves $x + k + {{c}}$, so the hole sits at height ${{c}} + k + {{c}}$ — the limit.
+    harder:
+      difficulty: 4
+      goal: |
+        $f(x) = \dfrac{\sqrt{x + k} - {{m}}}{x - {{c}}}$. Find $k$ so the limit at ${{c}}$ exists, and move $y = L$ to the limit — within 0.01.
+      config:
+        f: "(sqrt(x + k) - m) / (x - c)"
+        view: { x: ["c - 1.5", "c + 3"], y: [-1, 1.5] }
+        controls:
+          - { name: k, min: 0, max: 10, step: 0.5, initial: 0 }
+          - { name: L, min: -1, max: 1, step: 0.005, initial: 0.5 }
+        overlays: { band: { y: "L", eps: 0, x: "c" } }
+      check: { expr: "abs(sqrt(c + k) - m) < 1e-9 and abs(L - 1/(2*m)) < 0.01" }
+      feedback:
+        - { if: "abs(sqrt(c + k) - m) > 1e-9", say: "The numerator must be 0 at x = c: √(c + k) = m.", misconception: limit-exists-any-k }
+        - { if: "abs(L - 1/m) < 0.01", say: "Close — but the conjugate gives √(x + k) + m, which is 2m at the limit.", misconception: conjugate-half }
+        - { if: "true", say: "Now find the limit: multiply by the conjugate.", misconception: conjugate-same-sign }
+      hints:
+        nudge: "First make √({{c}} + k) = {{m}}."
+        buildsOn: "From Q4: multiply by the conjugate."
+        partial: "With k = {{m^2 - c}}, f(x) = 1/(√(x + k) + {{m}}) for x ≠ {{c}}."
+      solution: { k: "m^2 - c", L: "1/(2*m)" }
+      explanation: |
+        $k = {{m^2 - c}}$ makes the numerator vanish at ${{c}}$. The conjugate turns $f$ into $\frac{1}{\sqrt{x + k} + {{m}}}$, whose limit is
+        $\frac{1}{ {{2*m}} }$.
+
+summary:
+  keyTakeaways:
+    - "Limit laws let you substitute for polynomials and quotients with non-zero denominators."
+    - "0/0 is indeterminate — factor, rationalize or combine fractions, then substitute."
+    - "Nonzero/0 means a blow-up: no finite limit."
+    - "Cancelling (x − a) is legal because the limit never uses x = a."
+  next: calc1.u1.l4
