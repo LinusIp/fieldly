@@ -1,7 +1,10 @@
 import { stepperLogic } from './algorithm-stepper/logic';
 import { circuitLogic } from './circuit-builder/logic';
 import { codeRunnerLogic } from './code-runner/logic';
+import { graphLogic } from './graph-manipulator/logic';
 import { parsonsLogic } from './parsons/logic';
+import { riemannLogic } from './riemann-sum/logic';
+import { seriesLogic } from './series-explorer/logic';
 import { transientLogic } from './transient-plotter/logic';
 import type { ChallengeLogic } from './types';
 
@@ -16,4 +19,7 @@ export const challengeLogic: Record<string, ChallengeLogic<any, any, any, any>> 
   [codeRunnerLogic.type]: codeRunnerLogic,
   [parsonsLogic.type]: parsonsLogic,
   [stepperLogic.type]: stepperLogic,
+  [graphLogic.type]: graphLogic,
+  [riemannLogic.type]: riemannLogic,
+  [seriesLogic.type]: seriesLogic,
 };

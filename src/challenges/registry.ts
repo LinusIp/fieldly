@@ -10,6 +10,9 @@ export const challengeRegistry: Record<string, () => Promise<AnyModule>> = {
   'code-runner': () => import('./code-runner').then((m) => m.default),
   parsons: () => import('./parsons').then((m) => m.default),
   'algorithm-stepper': () => import('./algorithm-stepper').then((m) => m.default),
+  'graph-manipulator': () => import('./graph-manipulator').then((m) => m.default),
+  'riemann-sum': () => import('./riemann-sum').then((m) => m.default),
+  'series-explorer': () => import('./series-explorer').then((m) => m.default),
 };
 
 const cache = new Map<string, Promise<AnyModule>>();
