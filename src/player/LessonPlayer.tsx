@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { track } from '../analytics';
-import { Loading } from '../components/ui';
+import { BackIcon, CrossIcon, IconButton, Loading, ProgressBattery, XpPill } from '../components/ui';
 import type { Lesson } from '../content/schema';
 import type { ContentIndex, SubjectContent } from '../content/types';
+import { addXp, countActiveDay, earnCharge, LESSON_XP } from '../engine/motivation';
 import { randomSeed } from '../engine/params';
 import { useProgress } from '../storage/progress';
 import type { AttemptState, Progress } from '../storage/schema';
@@ -11,6 +12,7 @@ import {
   advanceAttempt,
   ensureVariant,
   entryMap,
+  factEntries,
   finishLesson,
   isStep,
   lessonCtx,
@@ -28,7 +30,7 @@ import { ConceptScreen, ExploreScreen } from './ExploreScreen';
 import { HookScreen } from './HookScreen';
 import { QuestionScreen } from './QuestionScreen';
 import { RecapScreen } from './RecapScreen';
-import { FactsDrawer, FactsPanel, ProgressDots, type Dot } from './Sidebar';
+import { FactsButton, FactsPanel } from './Sidebar';
 import { WorkedScreen } from './WorkedScreen';
 
 const TYPE_LABEL: Record<string, string> = {
@@ -40,6 +42,9 @@ const TYPE_LABEL: Record<string, string> = {
   challenge: 'Challenge',
   recap: 'Recap',
 };
+
+/** Screens that lay out their own side column (missions) instead of the Facts panel. */
+const OWN_SIDE = new Set(['explore', 'hook']);
 
 function ScreenView({ entry }: { entry: Entry }) {
   switch (entry.type) {
@@ -60,7 +65,7 @@ function ScreenView({ entry }: { entry: Entry }) {
   }
 }
 
-/** The lesson player (§8.1). Progress (attempt included) lives in the store, so a reload resumes. */
+/** The lesson player (§8.1, §10.2). Progress (attempt included) lives in the store, so a reload resumes. */
 export function LessonPlayer({
   lesson,
   subject,
@@ -74,12 +79,14 @@ export function LessonPlayer({
 }) {
   const progress = useProgress((s) => s.progress);
   const update = useProgress((s) => s.update);
+  const navigate = useNavigate();
   const attempt = progress.lessons[lesson.id]?.attempt;
   const lctx = useMemo(() => lessonCtx(lesson, subject, base), [lesson, subject, base]);
   const [tab, setTab] = useState<'lesson' | 'explanations'>('lesson');
   /** Index into the sequence being re-read, or null for the current screen. */
   const [viewing, setViewing] = useState<number | null>(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  /** The completion burst plays once, when the recap is reached with the lesson complete (§10.6). */
+  const [burst, setBurst] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
   // Open or resume the attempt.
@@ -132,8 +139,12 @@ export function LessonPlayer({
         const wasCompleted = p.lessons[lesson.id]?.status === 'completed';
         out = finishLesson(out, lesson, next);
         const r = lessonResult(lesson, next);
-        if (r.completed && !wasCompleted)
+        if (r.completed && !wasCompleted) {
+          // A completed lesson: +20 XP, a streak day and a streak charge (§3.7).
+          out = earnCharge(countActiveDay(addXp(out, LESSON_XP)));
           track({ type: 'lesson-completed', lessonId: lesson.id, meanCore: r.meanCore, stars: r.stars });
+          setBurst(true);
+        }
       }
       return out;
     });
@@ -166,6 +177,7 @@ export function LessonPlayer({
 
   const shownIndex = viewing ?? attempt.screenIndex;
   const shownEntry = map.get(attempt.sequence[shownIndex])!;
+  const stepLabel = (id: string) => labels.get(id) ?? id;
   const ctx: PlayerCtx = {
     lesson,
     lctx,
@@ -180,152 +192,175 @@ export function LessonPlayer({
     advance,
     misconceptionShort: (id) => misMap.get(id)?.short,
     conceptTitle: (slug) => conceptMap.get(slug) ?? slug,
-    stepLabel: (id) => labels.get(id) ?? id,
+    stepLabel,
   };
-  const subjectMeta = index.subjects.find((s) => s.id === subject.id);
-  const dots: Dot[] = attempt.sequence.map((id, i) => {
-    const e = map.get(id);
-    const c = attempt.challenges[id];
-    return {
-      id,
-      label: labels.get(id) ?? TYPE_LABEL[e?.type ?? ''] ?? id,
-      score: isStep(e)
-        ? attempt.answers[id]?.score
-        : e?.type === 'challenge' && c?.score !== undefined
-          ? c.score
-          : undefined,
-      visited: i <= attempt.screenIndex,
-      current: i === shownIndex,
-      skipped: attempt.skipped.includes(id),
-    };
-  });
+  const facts = factEntries(lesson, attempt, scope, stepLabel);
+  const used = isStep(shownEntry)
+    ? (shownEntry.uses ?? [])
+    : shownEntry.type === 'challenge'
+      ? (shownEntry.uses ?? [])
+      : [];
+  const nextSlot =
+    isStep(shownEntry) && shownEntry.establishes && attempt.answers[shownEntry.id]?.correct === undefined
+      ? `Answer ${stepLabel(shownEntry.id)} to add the next fact.`
+      : undefined;
+  const total = attempt.sequence.length;
   const earlier = attempt.sequence.slice(0, attempt.screenIndex);
+  const ownSide = OWN_SIDE.has(shownEntry.type);
 
   return (
     <PlayerContext.Provider value={ctx}>
       <div
-        className="mx-auto max-w-6xl px-4 py-6 pb-24 lg:pb-6"
+        className="pb-10"
         data-testid="lesson-player"
         data-screen={shownEntry.id}
         data-screen-type={shownEntry.type}
       >
-        <nav aria-label="Breadcrumb" className="text-sm text-muted">
-          <Link to="/subjects" className="hover:text-accent">
-            Subjects
-          </Link>{' '}
-          /{' '}
-          <Link to={`/s/${subject.id}`} className="hover:text-accent">
-            {subjectMeta?.short ?? subject.id}
-          </Link>
-        </nav>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{lesson.title}</h1>
+        <header className="mx-auto flex max-w-[1220px] flex-wrap items-center gap-x-5 gap-y-3 px-[18px] pt-[18px] pb-2 md:px-6">
+          <IconButton label="Leave lesson" onClick={() => navigate(`/s/${subject.id}`)} data-testid="leave">
+            <CrossIcon className="h-5 w-5" />
+          </IconButton>
+          <div className="flex min-w-[240px] flex-[1_1_320px]">
+            <ProgressBattery
+              total={total}
+              done={attempt.screenIndex}
+              current={attempt.screenIndex}
+              burst={burst}
+              label={`Screen ${attempt.screenIndex + 1} of ${total}`}
+            />
+          </div>
+          <XpPill xp={progress.xp.total} />
+        </header>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-lg hover:bg-surface-2 disabled:opacity-40"
-            aria-label="Previous screen"
+        <div className="mx-auto flex max-w-[1220px] flex-wrap items-center gap-3 px-[18px] pt-2 md:px-6">
+          <h1 className="sr-only">{lesson.title}</h1>
+          <IconButton
+            label="Previous screen"
             disabled={shownIndex === 0}
             onClick={() => setViewing(shownIndex - 1)}
+            className="h-11 w-11 disabled:opacity-40"
             data-testid="back"
           >
-            ←
-          </button>
-          <ProgressDots dots={dots} onPick={(i) => setViewing(i === attempt.screenIndex ? null : i)} />
+            <BackIcon />
+          </IconButton>
+          <div
+            role="tablist"
+            aria-label="Lesson views"
+            className="flex gap-1 rounded-full border-2 border-outline bg-surface p-1"
+          >
+            {(
+              [
+                ['lesson', 'Lesson'],
+                ['explanations', 'Explanations'],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                role="tab"
+                type="button"
+                id={`tab-${k}`}
+                aria-selected={tab === k}
+                aria-controls={`panel-${k}`}
+                tabIndex={tab === k ? 0 : -1}
+                onClick={() => setTab(k)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft')
+                    setTab(tab === 'lesson' ? 'explanations' : 'lesson');
+                }}
+                className={`min-h-[44px] rounded-full px-4 text-small font-extrabold ${
+                  tab === k ? 'bg-primary text-on-primary' : 'text-ink-2 hover:text-ink'
+                }`}
+                data-testid={`tab-${k}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <span className="text-small font-semibold text-ink-2">{lesson.title}</span>
         </div>
 
-        <div role="tablist" aria-label="Lesson views" className="mt-4 flex gap-1 border-b border-border">
-          {(
-            [
-              ['lesson', 'Lesson'],
-              ['explanations', 'Explanations'],
-            ] as const
-          ).map(([k, label]) => (
-            <button
-              key={k}
-              role="tab"
-              type="button"
-              id={`tab-${k}`}
-              aria-selected={tab === k}
-              aria-controls={`panel-${k}`}
-              tabIndex={tab === k ? 0 : -1}
-              onClick={() => setTab(k)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft')
-                  setTab(tab === 'lesson' ? 'explanations' : 'lesson');
-              }}
-              className={`-mb-px border-b-2 px-4 py-2 text-sm font-semibold ${tab === k ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-text'}`}
-              data-testid={`tab-${k}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,960px)_280px]">
-          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="min-w-0">
-            {tab === 'explanations' ? (
-              <ExplanationsTab />
-            ) : (
-              <>
-                {viewing !== null && (
-                  <div
-                    className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface-2 px-4 py-2 text-sm"
-                    role="status"
+        <div
+          role="tabpanel"
+          id={`panel-${tab}`}
+          aria-labelledby={`tab-${tab}`}
+          className="mx-auto max-w-[1220px] px-[18px] pt-4 md:px-6"
+        >
+          {tab === 'explanations' ? (
+            <ExplanationsTab />
+          ) : (
+            <>
+              {viewing !== null && (
+                <div
+                  className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border-2 border-outline bg-volt-tint px-4 py-2.5 font-semibold"
+                  role="status"
+                >
+                  <span>You’re re-reading an earlier screen.</span>
+                  <button
+                    type="button"
+                    className="font-extrabold text-primary-ink underline"
+                    onClick={() => setViewing(null)}
+                    data-testid="back-to-current"
                   >
-                    <span>You’re re-reading an earlier screen.</span>
-                    <button
-                      type="button"
-                      className="font-semibold text-accent underline"
-                      onClick={() => setViewing(null)}
-                      data-testid="back-to-current"
-                    >
-                      Back to where you were
-                    </button>
-                    <button type="button" className="text-accent underline" onClick={advance}>
-                      Next screen
-                    </button>
-                  </div>
-                )}
-                <div ref={mainRef} tabIndex={-1} className="outline-none">
+                    Back to where you were
+                  </button>
+                  <button
+                    type="button"
+                    className="font-extrabold text-primary-ink underline"
+                    onClick={advance}
+                  >
+                    Next screen
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-wrap items-start gap-7">
+                <div
+                  ref={mainRef}
+                  tabIndex={-1}
+                  className={`min-w-0 outline-none ${ownSide ? 'flex-[1_1_100%]' : 'flex-[999_1_560px]'}`}
+                >
                   <ScreenView key={`${shownEntry.id}:${viewing ?? 'now'}`} entry={shownEntry} />
                 </div>
-                {earlier.length > 0 && (
-                  <details
-                    className="mt-8 rounded-xl border border-border bg-surface p-3 text-sm"
-                    open={historyOpen}
-                    onToggle={(e) => setHistoryOpen((e.target as HTMLDetailsElement).open)}
+                {!ownSide && (
+                  <aside
+                    className="flex min-w-0 max-w-[400px] flex-[1_1_300px] flex-col gap-3"
+                    aria-label="Your facts"
                   >
-                    <summary className="cursor-pointer font-semibold">
-                      Earlier in this lesson ({earlier.length})
-                    </summary>
-                    <ol className="mt-2 grid gap-1 sm:grid-cols-2">
-                      {earlier.map((id, i) => {
-                        const e = map.get(id);
-                        return (
-                          <li key={id}>
-                            <button
-                              type="button"
-                              className="w-full rounded px-2 py-1 text-left hover:bg-surface-2"
-                              onClick={() => setViewing(i)}
-                            >
-                              {i + 1}. {labels.get(id) ? `${labels.get(id)} · ` : ''}
-                              {TYPE_LABEL[e?.type ?? ''] ?? id}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                  </details>
+                    <div className="hidden md:block">
+                      <FactsPanel facts={facts} used={used} nextSlot={nextSlot} />
+                    </div>
+                    <div className="md:hidden">
+                      <FactsButton facts={facts} used={used} nextSlot={nextSlot} />
+                    </div>
+                  </aside>
                 )}
-              </>
-            )}
-          </div>
-          <aside className="hidden space-y-4 lg:block">
-            <FactsPanel facts={attempt.facts} />
-          </aside>
+              </div>
+              {earlier.length > 0 && (
+                <details className="mt-10 rounded-lg border-2 border-outline bg-surface p-4">
+                  <summary className="flex min-h-[44px] cursor-pointer items-center font-extrabold">
+                    Earlier in this lesson ({earlier.length})
+                  </summary>
+                  <ol className="mt-3 grid gap-1 sm:grid-cols-2">
+                    {earlier.map((id, i) => {
+                      const e = map.get(id);
+                      return (
+                        <li key={id}>
+                          <button
+                            type="button"
+                            className="min-h-[44px] w-full rounded-md px-3 text-left font-semibold hover:bg-surface-tint"
+                            onClick={() => setViewing(i)}
+                          >
+                            {i + 1}. {labels.get(id) ? `${labels.get(id)}: ` : ''}
+                            {TYPE_LABEL[e?.type ?? ''] ?? id}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </details>
+              )}
+            </>
+          )}
         </div>
-        <FactsDrawer facts={attempt.facts} />
       </div>
     </PlayerContext.Provider>
   );

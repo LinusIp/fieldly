@@ -69,7 +69,7 @@ test('the reference lesson plays end to end with placeholder interactives (§13.
   page,
 }) => {
   await page.goto('./#/s/phys2');
-  await page.locator('[data-lesson-id="phys2.u3.l2"]').getByRole('link').click();
+  await page.locator('[data-lesson-id="phys2.u3.l2"]').getByRole('link').first().click();
   await expect(player(page)).toHaveAttribute('data-screen', 'h1');
   await page.goto(LESSON);
   await expect(player(page)).toHaveAttribute('data-screen-type', 'hook');
@@ -110,11 +110,11 @@ test('leaving mid-lesson resumes at the same screen with the same numbers and in
   await expect(page.locator('[data-task="0"]')).toHaveAttribute('data-done', 'false');
   await debug(page, 'loadSolution');
   await expect(page.locator('[data-task="0"]')).toHaveAttribute('data-done', 'true');
-  const interactive = await page.getByTestId('interactive-placeholder').innerText();
+  const interactive = await page.getByTestId('interactive-description').textContent();
   await page.reload();
   await expect(player(page)).toHaveAttribute('data-screen', 'e1');
   await expect(page.locator('[data-task="0"]')).toHaveAttribute('data-done', 'true');
-  expect(await page.getByTestId('interactive-placeholder').innerText()).toBe(interactive);
+  expect(await page.getByTestId('interactive-description').textContent()).toBe(interactive);
 
   // On to the first question, then reload: same numbers.
   await playTo(page, (id) => id === 's1');

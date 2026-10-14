@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { Markdown } from '../components/Markdown';
+import { BulbIcon, LinkIcon, PlusIcon } from '../components/ui';
 
 export interface RenderedHints {
   nudge: string;
@@ -6,11 +8,17 @@ export interface RenderedHints {
   partial: string;
 }
 
+const TITLES: Record<number, { title: string; icon: ReactNode }> = {
+  1: { title: 'Nudge', icon: <BulbIcon /> },
+  2: { title: 'Look back', icon: <LinkIcon /> },
+  3: { title: 'Half the work', icon: <PlusIcon /> },
+};
+
 /** Tiers on offer: `buildsOn` is skipped when there is nothing to build on (§2.5). */
 export function hintTiers(h: RenderedHints): { tier: number; title: string; text: string }[] {
-  const tiers = [{ tier: 1, title: 'Nudge', text: h.nudge }];
-  if (h.buildsOn) tiers.push({ tier: 2, title: 'Builds on', text: h.buildsOn });
-  tiers.push({ tier: 3, title: 'Partial solution', text: h.partial });
+  const tiers = [{ tier: 1, title: TITLES[1].title, text: h.nudge }];
+  if (h.buildsOn) tiers.push({ tier: 2, title: TITLES[2].title, text: h.buildsOn });
+  tiers.push({ tier: 3, title: TITLES[3].title, text: h.partial });
   return tiers;
 }
 
@@ -19,7 +27,11 @@ export function nextHintTier(h: RenderedHints, used: number): number | null {
   return hintTiers(h).find((x) => x.tier > used)?.tier ?? null;
 }
 
-/** On demand, never automatic; each tier lowers the step's score a little (§2.5–2.6). */
+/**
+ * The hint ladder (§2.5, §10.5): "Nudge", "Look back" and "Half the work" buttons inside the
+ * question card. Opening a tier opens the ones before it; an opened tier becomes a flat tint tile
+ * and its text appears in a tint bubble underneath. On demand only.
+ */
 export function HintLadder({
   hints,
   used,
@@ -35,41 +47,48 @@ export function HintLadder({
 }) {
   const tiers = hintTiers(hints);
   const open = tiers.filter((t) => t.tier <= used);
-  const next = tiers.find((t) => t.tier > used);
   if (disabled && open.length === 0) return null;
   return (
-    <section
-      aria-label="Hints"
-      className="rounded-xl border border-border bg-surface p-3"
-      data-testid="hints"
-    >
-      {open.length === 0 && (
-        <p className="text-xs text-muted">
-          Stuck? Hints get more specific each time.
-          {scored ? ' Each one lowers this step’s score a little.' : ''}
+    <section aria-label="Hints" className="flex flex-col gap-3" data-testid="hints">
+      <div className="flex flex-wrap gap-2.5">
+        {tiers.map((t) => {
+          const isOpen = t.tier <= used;
+          return (
+            <button
+              key={t.tier}
+              type="button"
+              aria-expanded={isOpen}
+              disabled={disabled && !isOpen}
+              onClick={() => !isOpen && onOpen(t.tier)}
+              className={`inline-flex min-h-[46px] items-center gap-2 rounded-md px-4 font-extrabold text-ink ${
+                isOpen ? 'border-2 border-outline bg-surface-tint' : 'press press-s1 bg-surface'
+              }`}
+              data-testid={`hint-${t.tier}`}
+            >
+              {TITLES[t.tier].icon}
+              {t.title}
+            </button>
+          );
+        })}
+      </div>
+      {open.length === 0 && !disabled && (
+        <p className="text-small font-semibold text-ink-2">
+          Stuck? Each hint goes a little further{scored ? ' and lowers this step’s score a little' : ''}.
+          Press H for the next one.
         </p>
       )}
-      <ol className="space-y-2" aria-live="polite">
+      <div className="flex flex-col gap-2" aria-live="polite">
         {open.map((t) => (
-          <li key={t.tier} className="rounded-lg bg-accent-soft/60 px-3 py-2 text-sm">
-            <div className="text-xs font-semibold text-accent">
-              Hint {tiers.indexOf(t) + 1} · {t.title}
-            </div>
+          <div
+            key={t.tier}
+            className="self-start rounded-lg bg-surface-tint px-4 py-3 font-semibold"
+            data-testid="hint-text"
+          >
+            <span className="sr-only">{t.title}: </span>
             <Markdown>{t.text}</Markdown>
-          </li>
+          </div>
         ))}
-      </ol>
-      {next && !disabled && (
-        <button
-          type="button"
-          onClick={() => onOpen(next.tier)}
-          className="mt-2 w-full rounded-lg border border-border px-3 py-2 text-sm font-medium text-accent hover:bg-accent-soft"
-          data-testid="hint-button"
-        >
-          Show hint {tiers.indexOf(next) + 1} of {tiers.length}{' '}
-          <span className="text-xs text-muted">(H)</span>
-        </button>
-      )}
+      </div>
     </section>
   );
 }

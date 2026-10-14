@@ -94,8 +94,8 @@ export function WorkedScreen({ screen }: { screen: Worked }) {
 
   return (
     <article className="space-y-4" data-testid="screen-worked">
-      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Worked example</h2>
+      <div className="rounded-2xl border-2 border-outline bg-surface p-5 sm:p-6">
+        <h2 className="mb-2 text-h3 text-ink">Worked example</h2>
         <Markdown>{renderTemplate(screen.problem, scope)}</Markdown>
       </div>
       <ol className="space-y-3">
@@ -106,8 +106,8 @@ export function WorkedScreen({ screen }: { screen: Worked }) {
             (ws.checks?.[si] ?? 0) > 0 ? gradeBlank(b, ws.values[si]?.[i] ?? '', scope) : undefined,
           );
           return (
-            <li key={si} className="rounded-xl border border-border bg-surface p-4" data-step={si}>
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted">Step {si + 1}</span>
+            <li key={si} className="rounded-xl border-2 border-outline bg-surface p-4" data-step={si}>
+              <span className="text-h3 text-ink">Step {si + 1}</span>
               <div className="mt-1">
                 <BlankText
                   segments={segs}

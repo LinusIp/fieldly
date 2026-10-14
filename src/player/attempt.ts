@@ -280,9 +280,10 @@ export function challengeOutcomes(lesson: Lesson, attempt: AttemptState): Challe
     .map((s) => {
       const c = attempt.challenges[s.id];
       return {
-        attempted: !!c && (c.checks > 0 || c.solved || !!c.usedSolution),
+        attempted: !!c && (c.checks > 0 || c.solved || !!c.usedSolution || !!c.skipped),
         solved: !!c?.solved && !c.usedSolution,
         usedTier3: (c?.hintsUsed ?? 0) >= 3,
+        skipped: !!c?.skipped,
       };
     });
 }
@@ -300,7 +301,9 @@ export function lessonResult(lesson: Lesson, attempt: AttemptState): LessonResul
   const challenges = challengeOutcomes(lesson, attempt);
   const completed = isCompleted(coreAnswered, challenges);
   const meanCore = mean(scores.filter((x): x is number => x !== undefined));
-  return { completed, meanCore, stars: computeStars({ completed, meanCore, challenges }) };
+  // A challenge skipped because its interactive isn't built yet doesn't count for or against stars.
+  const rated = challenges.filter((c) => !c.skipped);
+  return { completed, meanCore, stars: computeStars({ completed, meanCore, challenges: rated }) };
 }
 
 /** Store the lesson's result when the recap is reached; keeps the best stars and score. */
@@ -330,6 +333,16 @@ export function finishLesson(
   };
 }
 
+/** A stored attempt the player can show: every id in its sequence exists and the index is in range. */
+export function attemptFits(lesson: Lesson, attempt: AttemptState): boolean {
+  const map = entryMap(lesson);
+  return (
+    attempt.sequence.length > 0 &&
+    attempt.screenIndex < attempt.sequence.length &&
+    attempt.sequence.every((id) => map.has(id))
+  );
+}
+
 /**
  * Open (or resume) the lesson: a new attempt when there is none or the lesson version changed
  * (§12), the ratings at the start for the recap, and status / lastOpenedAt.
@@ -339,7 +352,7 @@ export function openLesson(progress: Progress, ctx: LessonCtx, seed: number, now
   const lp = progress.lessons[lesson.id];
   let attempt = lp?.attempt;
   let concept = progress.ratings.concept;
-  if (!attempt || attempt.lessonVersion !== lesson.version) {
+  if (!attempt || attempt.lessonVersion !== lesson.version || !attemptFits(lesson, attempt)) {
     const prefix = `${ctx.subjectId}.`;
     const firstInSubject = !Object.entries(progress.lessons).some(
       ([id, l]) => id !== lesson.id && id.startsWith(prefix) && l.status !== 'not-started',
@@ -375,4 +388,44 @@ export function openLesson(progress: Progress, ctx: LessonCtx, seed: number, now
 export function advanceAttempt(ctx: LessonCtx, attempt: AttemptState, progress: Progress): AttemptState {
   const i = Math.min(attempt.screenIndex + 1, attempt.sequence.length - 1);
   return ensureVariant(ctx, { ...attempt, screenIndex: i }, progress, attempt.sequence[i]);
+}
+
+export interface FactEntry {
+  /** The step or explore screen that established it. */
+  id: string;
+  /** "Q1", or "From exploring" for explore takeaways. */
+  label: string;
+  text: string;
+}
+
+/**
+ * The Facts panel in play order (§2.4): `establishes` of answered steps and takeaways of finished
+ * explore screens, each labelled with where it came from.
+ */
+export function factEntries(
+  lesson: Lesson,
+  attempt: AttemptState,
+  scope: Scope,
+  label: (id: string) => string,
+): FactEntry[] {
+  const map = entryMap(lesson);
+  const out: FactEntry[] = [];
+  const seen = new Set<string>();
+  for (const id of attempt.sequence.slice(0, attempt.screenIndex + 1)) {
+    const e = map.get(id);
+    let text: string | undefined;
+    let lab = '';
+    if (isStep(e) && e.establishes && attempt.answers[id]?.correct !== undefined) {
+      text = renderTemplate(e.establishes, scope);
+      lab = label(id);
+    } else if (e?.type === 'explore' && (attempt.explore[id]?.taskIndex ?? 0) >= e.tasks.length) {
+      text = renderTemplate(e.takeaway, scope);
+      lab = 'From exploring';
+    }
+    if (text && !seen.has(text)) {
+      seen.add(text);
+      out.push({ id, label: lab, text });
+    }
+  }
+  return out;
 }

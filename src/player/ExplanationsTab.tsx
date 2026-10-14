@@ -33,9 +33,9 @@ function Item({
 }) {
   if (!rec || !isDone(rec))
     return (
-      <section className="rounded-xl border border-dashed border-border p-4 text-sm">
-        <h3 className="font-semibold text-muted">{title}</h3>
-        <p className="text-muted">Answer this question to unlock its explanation.</p>
+      <section className="rounded-xl border-2 border-dashed border-outline p-4 text-sm">
+        <h3 className="font-semibold text-ink-2">{title}</h3>
+        <p className="text-ink-2">Answer this question to unlock its explanation.</p>
       </section>
     );
   const w = widgetFor(q.kind);
@@ -46,25 +46,25 @@ function Item({
     /* keep — */
   }
   return (
-    <section className="rounded-xl border border-border bg-surface p-5" data-testid="explanation-item">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{title}</h3>
+    <section className="rounded-xl border-2 border-outline bg-surface p-5" data-testid="explanation-item">
+      <h3 className="text-h3 text-ink">{title}</h3>
       <div className="mt-2">
         <Markdown>{renderTemplate(q.prompt, scope)}</Markdown>
       </div>
       <dl className="mt-3 grid gap-1 text-sm sm:grid-cols-[auto_1fr] sm:gap-x-3">
-        <dt className="text-muted">Your answer</dt>
+        <dt className="text-ink-2">Your answer</dt>
         <dd>
           {describe(q, rec.answer, scope, seed)} {rec.score !== undefined && `(score ${rec.score})`}
         </dd>
         {q.kind !== 'explain' && (
           <>
-            <dt className="text-muted">Correct answer</dt>
+            <dt className="text-ink-2">Correct answer</dt>
             <dd>{correct}</dd>
           </>
         )}
       </dl>
       {q.explanation && (
-        <div className="mt-3 rounded-lg bg-bg p-4">
+        <div className="mt-3 rounded-lg bg-surface-sunk p-4">
           <Markdown>{renderTemplate(q.explanation, scope)}</Markdown>
         </div>
       )}
@@ -114,15 +114,15 @@ export function ExplanationsTab() {
       return [
         <section
           key={id}
-          className={`rounded-xl border p-5 ${done ? 'border-border bg-surface' : 'border-dashed border-border text-sm'}`}
+          className={`rounded-xl border-2 p-5 ${done ? 'border-outline bg-surface' : 'border-dashed border-outline text-sm'}`}
         >
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Challenge — {e.title}</h3>
+          <h3 className="text-h3 text-ink">Challenge — {e.title}</h3>
           {done && v ? (
-            <div className="mt-3 rounded-lg bg-bg p-4">
+            <div className="mt-3 rounded-lg bg-surface-sunk p-4">
               <Markdown>{renderTemplate(v.explanation, challengeScope(lesson, e, attempt.seed))}</Markdown>
             </div>
           ) : (
-            <p className="text-muted">
+            <p className="text-ink-2">
               Solve the challenge (or show its solution) to unlock its explanation.
             </p>
           )}
@@ -133,7 +133,7 @@ export function ExplanationsTab() {
   });
   return (
     <div className="max-w-[760px] space-y-4" data-testid="explanations-tab">
-      <p className="text-sm text-muted">Explanations for every question in this attempt.</p>
+      <p className="text-sm text-ink-2">Explanations for every question in this attempt.</p>
       {items}
     </div>
   );

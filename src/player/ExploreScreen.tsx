@@ -1,15 +1,43 @@
 import { useMemo, useState } from 'react';
 import { Markdown } from '../components/Markdown';
 import { Button } from '../components/ui';
-import type { ConceptScreen as Concept, ExploreScreen as Explore } from '../content/schema';
+import type { ConceptScreen as Concept, ExploreScreen as Explore, InteractiveRef } from '../content/schema';
 import { renderTemplate } from '../engine/template';
 import { resolveConfig } from '../interactives/check';
 import { InteractiveFrame, WithInteractive } from '../interactives/InteractiveHost';
 import type { AnyModule } from '../interactives/registry';
-import type { InteractiveRef } from '../content/schema';
 import { pushFact } from './attempt';
 import { usePlayer } from './context';
 import { ExploreTasks } from './ExploreTasks';
+
+/** A screen title in prompt type (§10.4). */
+export function ScreenTitle({ children }: { children: string }) {
+  return (
+    <div className="prompt max-w-[720px] text-[24px] leading-[1.25] font-extrabold tracking-[-0.015em] md:text-[28px]">
+      <Markdown>{children}</Markdown>
+    </div>
+  );
+}
+
+/** Takeaways and captions: a tint card with a violet outline. */
+export function TakeawayCard({
+  label,
+  children,
+  testId,
+}: {
+  label: string;
+  children: string;
+  testId?: string;
+}) {
+  return (
+    <div className="rounded-lg border-2 border-primary bg-surface-tint p-4" data-testid={testId}>
+      <span className="text-small font-extrabold text-primary-ink">{label}</span>
+      <div className="mt-1">
+        <Markdown>{children}</Markdown>
+      </div>
+    </div>
+  );
+}
 
 /** Explore (§8.1): the interactive and its gated goals; the takeaway joins the Facts panel at the end. */
 export function ExploreScreen({ screen }: { screen: Explore }) {
@@ -25,29 +53,32 @@ export function ExploreScreen({ screen }: { screen: Explore }) {
         : withFact;
     });
   return (
-    <article className="space-y-4" data-testid="screen-explore">
-      <div className="text-[1.05rem] leading-relaxed">
-        <Markdown>{renderTemplate(screen.intro, scope)}</Markdown>
-      </div>
+    <article data-testid="screen-explore">
       <ExploreTasks
         screenId={screen.id}
         interactive={screen.interactive}
         tasks={screen.tasks}
         onAllDone={onAllDone}
+        title={<ScreenTitle>{renderTemplate(screen.intro, scope)}</ScreenTitle>}
+        after={
+          done && (
+            <>
+              <TakeawayCard label="Takeaway" testId="takeaway">
+                {renderTemplate(screen.takeaway, scope)}
+              </TakeawayCard>
+              {!readOnly && (
+                <Button
+                  onClick={pl.advance}
+                  className="min-h-[56px] self-start px-8 text-[20px]"
+                  data-testid="continue"
+                >
+                  Continue
+                </Button>
+              )}
+            </>
+          )
+        }
       />
-      {done && (
-        <div className="rounded-2xl border border-accent/40 bg-accent-soft/50 p-4" data-testid="takeaway">
-          <span className="text-xs font-semibold uppercase tracking-wide text-accent">Takeaway</span>
-          <p className="mt-1">
-            <Markdown inline>{renderTemplate(screen.takeaway, scope)}</Markdown>
-          </p>
-        </div>
-      )}
-      {done && !readOnly && (
-        <Button onClick={pl.advance} data-testid="continue">
-          Continue
-        </Button>
-      )}
     </article>
   );
 }
@@ -71,9 +102,14 @@ function FreeInteractive({ mod, iref: r }: { mod: AnyModule; iref: InteractiveRe
 export function ConceptScreen({ screen }: { screen: Concept }) {
   const pl = usePlayer();
   return (
-    <article className="space-y-4" data-testid="screen-concept">
-      <div className="rounded-2xl border border-border bg-surface p-5 text-[1.05rem] leading-relaxed sm:p-6">
-        <Markdown>{renderTemplate(screen.body, pl.scope)}</Markdown>
+    <article className="flex flex-col gap-5" data-testid="screen-concept">
+      <div className="rounded-xl border-2 border-outline bg-surface p-5 text-body shadow-s3 md:p-7">
+        <span className="mb-3 inline-block rounded-sm bg-ink px-3 py-1 text-small font-extrabold text-ground">
+          Name it
+        </span>
+        <div className="max-w-[720px] text-[18px]">
+          <Markdown>{renderTemplate(screen.body, pl.scope)}</Markdown>
+        </div>
       </div>
       {screen.visual && (
         <WithInteractive type={screen.visual.type}>
@@ -81,7 +117,11 @@ export function ConceptScreen({ screen }: { screen: Concept }) {
         </WithInteractive>
       )}
       {!pl.readOnly && (
-        <Button onClick={pl.advance} data-testid="continue">
+        <Button
+          onClick={pl.advance}
+          className="min-h-[56px] self-start px-8 text-[20px]"
+          data-testid="continue"
+        >
           Continue
         </Button>
       )}

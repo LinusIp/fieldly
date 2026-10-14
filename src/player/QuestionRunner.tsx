@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { track } from '../analytics';
 import { Markdown } from '../components/Markdown';
-import { Button, CheckIcon, CrossIcon } from '../components/ui';
+import { pop, shake } from '../components/motion';
+import { ArrowDownIcon, ArrowUpIcon, Button, CheckIcon, CrossIcon } from '../components/ui';
 import type { Question } from '../content/schema';
 import type { Scope } from '../engine/expr';
 import { stepScore } from '../engine/scoring';
@@ -51,34 +52,71 @@ export function explanationSteps(text: string): string[] {
 export function StagedExplanation({ text, highlight = false }: { text: string; highlight?: boolean }) {
   const steps = useMemo(() => explanationSteps(text), [text]);
   const [shown, setShown] = useState(1);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    ref.current?.focus({ preventScroll: true });
-  }, []);
   return (
-    <div
-      ref={ref}
-      tabIndex={-1}
-      className={`mt-4 rounded-xl border p-4 outline-none ${highlight ? 'border-2 border-warn bg-warn-soft/40' : 'border-border bg-bg'}`}
+    <section
+      className={`rounded-lg p-5 ${highlight ? 'border-[3px] border-wrong bg-surface' : 'border-2 border-outline bg-surface-sunk'}`}
       data-testid="explanation"
     >
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">
-        {highlight ? 'You were sure — read this closely' : 'Explanation'}
-      </h3>
-      {steps.slice(0, shown).map((s, i) => (
-        <Markdown key={i}>{s}</Markdown>
-      ))}
+      <h3 className="mb-2 text-h3">{highlight ? 'You were sure — this one is worth a close read' : 'Why'}</h3>
+      <div className="flex flex-col gap-3">
+        {steps.slice(0, shown).map((s, i) => (
+          <Markdown key={i}>{s}</Markdown>
+        ))}
+      </div>
       {shown < steps.length && (
-        <button
-          type="button"
-          className="mt-2 text-sm font-semibold text-accent underline"
-          onClick={() => setShown((n) => n + 1)}
-        >
+        <Button variant="secondary" className="mt-3" onClick={() => setShown((n) => n + 1)}>
           Show next step
-        </button>
+        </Button>
       )}
+    </section>
+  );
+}
+
+type BannerTone = 'wrong' | 'correct' | 'info';
+type BannerIcon = 'up' | 'down' | 'cross' | 'check';
+
+/** Feedback banner (§10.5): an icon tile, a short verdict in 800 and one line underneath. */
+export function FeedbackBanner({
+  tone,
+  icon,
+  title,
+  line,
+  testId = 'feedback',
+}: {
+  tone: BannerTone;
+  icon: BannerIcon;
+  title: ReactNode;
+  line?: ReactNode;
+  testId?: string;
+}) {
+  const fill = { wrong: 'bg-wrong-tint', correct: 'bg-correct-tint', info: 'bg-surface-tint' }[tone];
+  const tile = { wrong: 'bg-wrong', correct: 'bg-correct', info: 'bg-volt' }[tone];
+  const Icon = { up: ArrowUpIcon, down: ArrowDownIcon, cross: CrossIcon, check: CheckIcon }[icon];
+  return (
+    <div
+      role="status"
+      className={`anim-slide-up flex items-center gap-3.5 rounded-lg border-2 border-outline px-4 py-3.5 ${fill}`}
+      data-testid={testId}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border-2 border-outline text-on-fill ${tile}`}
+      >
+        <Icon className="h-[22px] w-[22px]" />
+      </span>
+      <div className="flex min-w-0 flex-col">
+        <strong className="font-extrabold">{title}</strong>
+        {line && <span>{line}</span>}
+      </div>
     </div>
   );
+}
+
+/** "Too high." → up arrow; "Too low." → down arrow (§10.5). */
+function directionOf(interpretation?: string): BannerIcon {
+  if (!interpretation) return 'cross';
+  if (/^too high/i.test(interpretation)) return 'up';
+  if (/^too low/i.test(interpretation)) return 'down';
+  return 'cross';
 }
 
 export interface QuestionRunnerProps {
@@ -91,7 +129,10 @@ export interface QuestionRunnerProps {
   onRecord(r: AnswerRecord, final: boolean, grade: Grade): void;
   /** Auto-generated tier-2 hint (from `uses` + Facts) when the question has no authored one. */
   buildsOnAuto?: string | null;
+  /** Step tag and chain chip row. */
   header?: ReactNode;
+  /** Smaller prompt type, for questions inside explore missions. */
+  compact?: boolean;
   readOnly?: boolean;
   /** Keyboard shortcuts and the debug hook follow the active runner. */
   active?: boolean;
@@ -99,17 +140,18 @@ export interface QuestionRunnerProps {
   continueLabel?: string;
   analytics?: { lessonId: string; questionId: string };
   misconceptionShort?(id: string): string | undefined;
+  /** The card to pop on a correct answer (§10.6). */
+  popRef?: RefObject<HTMLElement | null>;
 }
 
-const NEUTRAL = 'Not quite — try again, or open a hint.';
-
 export function QuestionRunner(p: QuestionRunnerProps) {
-  const { question: q, scope, seed, mode, record, readOnly = false, active = true } = p;
+  const { question: q, scope, seed, mode, record, readOnly = false, active = true, compact = false } = p;
   const widget = widgetFor(q.kind);
   const ctx: WidgetCtx = useMemo(() => ({ scope, seed }), [scope, seed]);
   const done = isDone(record);
   const [draft, setDraft] = useState<unknown>(record && !done ? record.answer : null);
   const [asking, setAsking] = useState(false);
+  const answerRef = useRef<HTMLDivElement>(null);
   const confidencePrompts = useProgress((s) => s.progress.settings.confidencePrompts);
   const hintsUsed = record?.hintsUsed ?? 0;
   const isExplain = q.kind === 'explain';
@@ -153,6 +195,7 @@ export function QuestionRunner(p: QuestionRunnerProps) {
       hintsUsed,
       attempts,
       misconception: grade.misconception,
+      seen: grade.misconception ? [...new Set([...(record?.seen ?? []), grade.misconception])] : record?.seen,
       confidence: record?.confidence ?? confidence,
     };
     let final = true;
@@ -174,6 +217,10 @@ export function QuestionRunner(p: QuestionRunnerProps) {
       if (scored) base.score = 0;
     }
     p.onRecord(base, final, grade);
+    if (mode !== 'prediction' && !isExplain) {
+      if (base.correct) pop(p.popRef?.current ?? answerRef.current);
+      else if (!isEstimate) shake(answerRef.current);
+    }
     if (final && scored && p.analytics)
       track({
         type: 'question-answered',
@@ -235,7 +282,7 @@ export function QuestionRunner(p: QuestionRunnerProps) {
 
   if (!widget)
     return (
-      <p className="text-bad" role="alert">
+      <p className="font-semibold" role="alert">
         This question uses a “{q.kind}” widget that isn’t available yet.
       </p>
     );
@@ -243,16 +290,94 @@ export function QuestionRunner(p: QuestionRunnerProps) {
   const correctAnswer = done ? safe(() => widget.correctAnswer(q, ctx)) : undefined;
   const finalGrade = done && record ? safe(() => widget.grade(q, record.answer, ctx)) : undefined;
   const showResult = done && record && mode !== 'prediction';
-  const confidentError =
-    !!record?.confidence && record.confidence === 'sure' && (record.attempts > 1 || record.correct === false);
+  const confidentError = record?.confidence === 'sure' && (record.attempts > 1 || record.correct === false);
+  const short = (id?: string) => (id ? p.misconceptionShort?.(id) : undefined);
+
+  let banner: ReactNode = null;
+  if (firstGrade && !done) {
+    const icon = directionOf(firstGrade.interpretation);
+    const verdict =
+      icon === 'up'
+        ? 'Too high. One more go.'
+        : icon === 'down'
+          ? 'Too low. One more go.'
+          : firstGrade.interpretation && !short(firstGrade.misconception)
+            ? firstGrade.interpretation
+            : 'Not quite. One more go.';
+    banner = (
+      <FeedbackBanner
+        tone="wrong"
+        icon={icon}
+        title={verdict}
+        line={short(firstGrade.misconception) ?? 'Try again, or open a hint.'}
+      />
+    );
+  } else if (done && mode === 'prediction') {
+    banner = (
+      <FeedbackBanner
+        tone="info"
+        icon="check"
+        title="Prediction locked in."
+        line="Now let’s see what really happens."
+        testId="prediction-locked"
+      />
+    );
+  } else if (showResult && record && !isExplain) {
+    if (mode === 'graded' && isEstimate)
+      banner = (
+        <FeedbackBanner
+          tone={(record.score ?? 0) >= 0.6 ? 'correct' : 'info'}
+          icon="check"
+          title={`Score ${record.score ?? 0}.`}
+          line={finalGrade?.interpretation}
+          testId="result"
+        />
+      );
+    else if (record.correct)
+      banner = (
+        <FeedbackBanner
+          tone="correct"
+          icon="check"
+          title={
+            mode === 'graded'
+              ? (record.score ?? 0) === 1
+                ? 'Nice! Score 1.0.'
+                : resultText(record)
+              : 'Correct.'
+          }
+          line={finalGrade?.note ?? (mode === 'ask' ? 'Explore questions aren’t scored.' : undefined)}
+          testId="result"
+        />
+      );
+    else
+      banner = (
+        <FeedbackBanner
+          tone="wrong"
+          icon="cross"
+          title="Not this time — the answer is shown."
+          line={
+            short(finalGrade?.misconception) ??
+            (mode === 'ask' ? 'Explore questions aren’t scored.' : undefined)
+          }
+          testId="result"
+        />
+      );
+  }
 
   return (
-    <div data-testid="question" data-kind={q.kind} data-done={done ? 'true' : 'false'}>
+    <div
+      className="flex flex-col gap-5"
+      data-testid="question"
+      data-kind={q.kind}
+      data-done={done ? 'true' : 'false'}
+    >
       {p.header}
-      <div className="text-[1.05rem] leading-relaxed">
+      <div
+        className={`prompt max-w-[720px] ${compact ? 'text-h3' : 'text-[24px] leading-[1.3] font-bold tracking-[-0.015em] md:text-prompt'}`}
+      >
         <Markdown>{renderTemplate(q.prompt, scope)}</Markdown>
       </div>
-      <div className="mt-4">
+      <div ref={answerRef}>
         <View
           question={q}
           ctx={ctx}
@@ -264,67 +389,12 @@ export function QuestionRunner(p: QuestionRunnerProps) {
         />
       </div>
 
-      <div aria-live="polite" className="mt-3 min-h-[1.5rem] text-sm">
-        {firstGrade && !done && (
-          <div
-            className="flex items-start gap-2 rounded-lg bg-bad-soft px-3 py-2 text-bad"
-            data-testid="feedback"
-          >
-            <CrossIcon className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              {firstGrade.misconception && p.misconceptionShort ? (
-                <>
-                  <strong>Not quite.</strong> {p.misconceptionShort(firstGrade.misconception) ?? ''}{' '}
-                  {firstGrade.interpretation ?? ''} Try again, or open a hint.
-                </>
-              ) : firstGrade.interpretation ? (
-                <>
-                  <strong>Not quite.</strong> {firstGrade.interpretation} Try again, or open a hint.
-                </>
-              ) : (
-                NEUTRAL
-              )}
-            </span>
-          </div>
-        )}
-        {done && mode === 'prediction' && (
-          <p className="font-semibold text-accent" data-testid="prediction-locked">
-            Prediction locked in.
-          </p>
-        )}
-        {showResult && record && !isExplain && (
-          <div data-testid="result">
-            {mode === 'graded' && isEstimate ? (
-              <p className="font-semibold">
-                {finalGrade?.interpretation} Score {record.score ?? 0}.
-              </p>
-            ) : (
-              <p
-                className={`flex items-center gap-2 font-semibold ${record.correct ? 'text-ok' : 'text-bad'}`}
-              >
-                {record.correct ? <CheckIcon /> : <CrossIcon />}
-                {mode === 'graded'
-                  ? resultText(record)
-                  : record.correct
-                    ? 'Correct.'
-                    : 'Not this time — the answer is shown.'}
-              </p>
-            )}
-            {finalGrade?.note && <p className="mt-1 text-muted">{finalGrade.note}</p>}
-            {!record.correct && finalGrade?.misconception && p.misconceptionShort && (
-              <p className="mt-1 text-bad">{p.misconceptionShort(finalGrade.misconception)}</p>
-            )}
-            {mode === 'ask' && <p className="mt-1 text-xs text-muted">Explore questions aren’t scored.</p>}
-          </div>
-        )}
-      </div>
-
       {asking && (
         <div
-          className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-surface-2 px-3 py-2"
+          className="flex flex-wrap items-center gap-3 rounded-lg border-2 border-outline bg-surface-tint px-4 py-3"
           data-testid="confidence"
         >
-          <span className="text-sm font-semibold">How sure are you?</span>
+          <span className="font-extrabold">How sure are you?</span>
           <Button variant="secondary" onClick={() => submit('sure')}>
             Sure
           </Button>
@@ -334,36 +404,53 @@ export function QuestionRunner(p: QuestionRunnerProps) {
         </div>
       )}
 
-      {showResult && q.explanation && (
-        <StagedExplanation text={renderTemplate(q.explanation, scope)} highlight={confidentError} />
-      )}
-
-      {hints && !readOnly && !isExplain && (
-        <div className="mt-4">
-          <HintLadder hints={hints} used={hintsUsed} disabled={done} onOpen={openHint} scored={scored} />
-        </div>
-      )}
-
-      {!readOnly && (
-        <div className="mt-5 flex flex-wrap items-center gap-3">
+      {!readOnly && !asking && (
+        <div className="flex flex-wrap items-center gap-3">
           {!done ? (
-            <Button onClick={tryCheck} disabled={draft === null || asking} data-testid="submit">
-              {mode === 'prediction' ? 'Commit prediction' : isExplain ? 'Done' : 'Check'}{' '}
-              <span className="text-xs opacity-80">(Enter)</span>
+            <Button
+              variant={firstGrade ? 'accent' : 'primary'}
+              onClick={tryCheck}
+              disabled={draft === null}
+              className="min-h-[56px] min-w-[180px] text-[20px]"
+              data-testid="submit"
+            >
+              {mode === 'prediction'
+                ? 'Lock in my prediction'
+                : isExplain
+                  ? 'Done'
+                  : firstGrade
+                    ? 'Try again'
+                    : 'Check'}
             </Button>
           ) : (
             p.onContinue && (
-              <Button onClick={p.onContinue} data-testid="continue">
-                {p.continueLabel ?? 'Continue'} <span className="text-xs opacity-80">(Enter)</span>
+              <Button
+                onClick={p.onContinue}
+                className="min-h-[56px] min-w-[180px] text-[20px]"
+                data-testid="continue"
+              >
+                {p.continueLabel ?? 'Continue'}
               </Button>
             )
           )}
           {!done && twoAttempts && (
-            <span className="text-xs text-muted">
-              Attempt {(record?.attempts ?? 0) + 1} of 2{hints ? ' · H for a hint' : ''}
+            <span className="text-small font-semibold text-ink-2">
+              Try {(record?.attempts ?? 0) + 1} of 2. Press Enter to check.
             </span>
           )}
         </div>
+      )}
+
+      <div aria-live="polite" className="empty:hidden">
+        {banner}
+      </div>
+
+      {showResult && q.explanation && (
+        <StagedExplanation text={renderTemplate(q.explanation, scope)} highlight={confidentError} />
+      )}
+
+      {hints && !readOnly && !isExplain && !done && (
+        <HintLadder hints={hints} used={hintsUsed} disabled={done} onOpen={openHint} scored={scored} />
       )}
     </div>
   );

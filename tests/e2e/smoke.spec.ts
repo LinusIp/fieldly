@@ -14,7 +14,7 @@ const SUBJECTS = [
 test('Today page loads and all 8 subjects are listed under Subjects (§13.3 step 1)', async ({ page }) => {
   await page.goto('./');
   await expect(page.getByTestId('today')).toBeVisible();
-  await page.getByRole('link', { name: 'Subjects', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main' }).first().getByRole('link', { name: 'Learn' }).click();
   await expect(page).toHaveURL(/#\/subjects/);
   await expect(page.getByTestId('subject-list').locator('li')).toHaveCount(8);
   for (const title of SUBJECTS)
@@ -28,10 +28,10 @@ test('the path map shows every unit and lesson, with placeholders', async ({ pag
   const ref = map.locator('[data-lesson-id="phys2.u3.l2"]');
   await expect(ref).toContainText("Ohm's Law and Electrical Power");
   await expect(ref).not.toContainText('Coming soon');
-  await expect(map.locator('[data-lesson-id="phys2.u3.l5"]')).toContainText('Try first');
+  await expect(map.locator('[data-lesson-id="phys2.u3.l5"]')).toContainText('Try it first');
   const soon = map.locator('[data-lesson-id="phys2.u3.l3"]');
   await expect(soon).toContainText('Coming soon');
-  await soon.getByRole('link').click();
+  await soon.getByRole('link').first().click();
   await expect(page).toHaveURL(/#\/l\/phys2\.u3\.l3/);
   await expect(page.getByTestId('path-map')).toHaveCount(0);
   await expect(page.getByText('hasn’t been written yet')).toBeVisible();
