@@ -1,0 +1,189 @@
+# Misconceptions for Physics II. `short` is shown after a wrong first attempt;
+# `explain` is shown in the summary and on the profile page.
+
+- id: ohm-multiply
+  short: "This is what you get by multiplying V and R."
+  explain: |
+    More resistance means *less* current, so $R$ must be in the denominator: $I = V/R$.
+  lessons: [phys2.u3.l2]
+
+- id: ohm-inverted
+  short: "The fraction is upside down — that's R ÷ V."
+  explain: |
+    Rearranging $V = IR$ for $I$ gives $I = V/R$, not $R/V$. A quick check: doubling the
+    voltage should double the current, so $V$ belongs on top.
+  lessons: [phys2.u3.l2]
+
+- id: current-equals-voltage
+  short: "That copies the voltage — volts and amperes measure different things."
+  explain: |
+    Voltage is energy per unit charge (V = J/C); current is charge per second (A = C/s).
+    They are linked by the resistance, $I = V/R$, and are only numerically equal when $R = 1\ \Omega$.
+  lessons: [phys2.u3.l1, phys2.u3.l2]
+
+- id: current-used-up
+  short: "Current isn't used up by a resistor — energy is."
+  explain: |
+    Charge is conserved: every coulomb entering a resistor leaves it. What the resistor
+    takes is *energy*, which is why the voltage drops across it while the current stays the same.
+  lessons: [phys2.u3.l1, phys2.u3.l2]
+
+- id: battery-constant-current
+  short: "A battery fixes the voltage, not the current."
+  explain: |
+    An ideal battery keeps the voltage across its terminals constant. How much current flows
+    depends on what is connected: $I = V/R_{tot}$. Change the circuit and the current changes.
+  lessons: [phys2.u3.l2, phys2.u3.l4]
+
+- id: square-law
+  short: "That treats the relationship as a square law — it is only first power here."
+  explain: |
+    With $V$ fixed, $I = V/R$ and $P = V^2/R$ both depend on $R$ to the *first* power, so
+    doubling $R$ halves them; it doesn't quarter them. Squares appear only when the squared
+    quantity itself changes (e.g. $P = I^2R$ when $I$ changes).
+  lessons: [phys2.u3.l2]
+
+- id: series-no-change
+  short: "Adding a resistor in series always changes the total resistance."
+  explain: |
+    Every resistor in a series chain adds its resistance: $R_{tot} = R_1 + R_2 + \dots$
+    So adding one raises the total and lowers the current.
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: series-parallel-confusion
+  short: "That's the rule for the other arrangement — series and parallel are swapped."
+  explain: |
+    **Series** (one path): resistances add, $R_{tot} = R_1 + R_2$, and the same current flows
+    through each. **Parallel** (side by side): each branch gets the full voltage and
+    $1/R_{tot} = 1/R_1 + 1/R_2$, so the total is *smaller* than either resistor.
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: multiply-resistances
+  short: "Resistances in series add; they don't multiply."
+  explain: |
+    The charge pushes through one resistor and then the next, so the oppositions add:
+    $R_{tot} = R_1 + R_2$. Multiplying would even give the wrong unit (Ω²).
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: double-halving
+  short: "The current halves once, not once per resistor."
+  explain: |
+    Two equal resistors in series double the total resistance, which halves the current —
+    once. Halving it again for the second resistor counts the same change twice.
+  lessons: [phys2.u3.l2]
+
+- id: each-gets-full-voltage
+  short: "In series the battery's voltage is shared between the resistors."
+  explain: |
+    The voltage drops across series resistors add up to the battery voltage (the loop rule).
+    Only components connected *in parallel* across the battery each get its full voltage.
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: current-voltage-confusion
+  short: "That number is the current, in amperes — not a voltage."
+  explain: |
+    Keep track of units: $V/R$ is a current (A); $IR$ is a voltage (V). Writing the unit
+    next to each step catches this mix-up.
+  lessons: [phys2.u3.l2]
+
+- id: power-divide
+  short: "V ÷ I is the resistance (in Ω), not the power."
+  explain: |
+    Power is the rate of energy transfer, $P = VI$: volts (joules per coulomb) times amperes
+    (coulombs per second) gives joules per second, i.e. watts.
+  lessons: [phys2.u3.l2]
+
+- id: power-add
+  short: "Volts and amperes can't be added — power is their product."
+  explain: |
+    Quantities with different units can't be added. Power is $P = VI$, a product.
+  lessons: [phys2.u3.l2]
+
+- id: power-is-current
+  short: "That's the current (in A), not the power."
+  explain: |
+    $V/R$ is the current. Power needs one more factor: $P = VI = V^2/R$.
+  lessons: [phys2.u3.l2]
+
+- id: power-formula-mixup
+  short: "Power is V²/R, not V × R — more resistance gives less power at fixed V."
+  explain: |
+    The three equivalent forms are $P = VI = I^2R = V^2/R$. With the voltage fixed, a bigger
+    resistance lets less current through, so the power goes *down*.
+  lessons: [phys2.u3.l2]
+
+- id: power-equals-voltage
+  short: "That's the voltage, not the power."
+  explain: |
+    Power depends on both voltage and current: $P = VI$. The voltage alone is not a power.
+  lessons: [phys2.u3.l2]
+
+- id: power-proportional-R
+  short: "With the voltage fixed, power goes *down* as resistance goes up."
+  explain: |
+    At fixed $V$, $P = V^2/R$, so power is inversely proportional to $R$. (It's only at fixed
+    *current* that $P = I^2R$ grows with $R$.)
+  lessons: [phys2.u3.l2]
+
+- id: power-fixed-by-battery
+  short: "A battery fixes the voltage; the power depends on what's connected."
+  explain: |
+    The power drawn from an ideal battery is $P = V^2/R_{tot}$. Change the circuit and the
+    power changes, even though the battery's voltage stays the same.
+  lessons: [phys2.u3.l2]
+
+- id: more-resistors-more-power
+  short: "Extra series resistance lowers the total power, it doesn't raise it."
+  explain: |
+    In series, extra resistors raise $R_{tot}$, which lowers the current and the total power
+    $P = V^2/R_{tot}$. (In parallel, extra branches *lower* $R_{tot}$ and raise the power.)
+  lessons: [phys2.u3.l2]
+
+- id: forgot-total-R
+  short: "You squared the smaller current but kept the old resistance."
+  explain: |
+    If you use $P = I^2R$, use the *new* current and the *new* total resistance together.
+    Halving $I$ quarters $I^2$, but doubling $R_{tot}$ doubles it back: the net factor is ½.
+  lessons: [phys2.u3.l2]
+
+- id: short-means-no-current
+  short: "A short across one resistor doesn't stop the whole circuit."
+  explain: |
+    A wire across a component gives the current a zero-resistance path around it. That
+    component goes dark, but the rest of the loop still carries current — usually *more* of it.
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: parallel-partial
+  short: "That compares with the single resistor, not with the series pair."
+  explain: |
+    Check the baseline. Parallel pair: $2P$. Single resistor: $P$. Series pair: $P/2$.
+    Parallel vs series is $2P \div \tfrac{P}{2} = 4$.
+  lessons: [phys2.u3.l2]
+
+- id: parallel-one-branch
+  short: "That's the current in one branch only — the battery supplies both."
+  explain: |
+    In parallel, the current from the battery splits between the branches and recombines.
+    The battery's current is the *sum* of the branch currents (the junction rule).
+  lessons: [phys2.u3.l2, phys2.u3.l3]
+
+- id: resistance-means-more-work
+  short: "More resistance in the path means less current and less power, not more."
+  explain: |
+    It is tempting to think a resistor "uses" more energy when it resists more. But with a
+    fixed voltage, more resistance chokes the current, and $P = V^2/R$ falls.
+  lessons: [phys2.u3.l2]
+
+- id: wrong-baseline
+  short: "That uses the parallel-vs-series factor, but the baseline here is the single resistor."
+  explain: |
+    Always check what you are comparing against. A ratio between two circuits only applies
+    when the question compares those same two circuits.
+  lessons: [phys2.u3.l2]
+
+- id: current-takes-easiest-path
+  short: "With only one path, the current can't choose — it goes through everything."
+  explain: |
+    "Current takes the easiest path" is only meaningful at a junction, and even there current
+    splits between all paths in inverse proportion to their resistance; it does not all go one way.
+  lessons: [phys2.u3.l2, phys2.u3.l3]

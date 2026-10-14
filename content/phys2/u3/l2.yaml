@@ -1,0 +1,690 @@
+id: phys2.u3.l2
+title: "Ohm's Law and Electrical Power"
+version: 1
+concepts: [ohms-law, series-resistance, electric-power, parallel-resistance]
+estimatedMinutes: 20
+
+params:
+  sets:
+    - { V: 6, R: 3 }
+    - { V: 12, R: 4 }
+    - { V: 12, R: 6 }
+derived:
+  I: "V / R"
+  P: "V^2 / R"
+
+intro: |
+  A battery pushes charge around a circuit; a resistor resists that flow.
+  **Ohm's law** connects the three quantities:
+
+  $$V = IR$$
+
+  where $V$ is the voltage across the resistor (volts, V), $I$ is the current through it
+  (amperes, A) and $R$ is its resistance (ohms, Ω). With the voltage fixed,
+  **more resistance means less current**.
+
+  A resistor turns electrical energy into heat. The rate at which it does so is its **power**:
+
+  $$P = VI = I^2 R = \frac{V^2}{R}$$
+
+  measured in watts (W). All three forms are equivalent — use the one that matches what you already know.
+
+workedExample: |
+  A 9 V battery is connected across a 4.5 Ω resistor.
+
+  - Current: $I = V/R = 9 / 4.5 = 2$ A
+  - Power: $P = VI = 9 \times 2 = 18$ W
+  - Check with another form: $P = V^2/R = 81 / 4.5 = 18$ W ✓
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: ohms-law
+    clueFor: [s2]
+    establishes: "Single resistor: {{I}} A flows through {{R}} Ω at {{V}} V."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A {{V}} V battery is connected across a {{R}} Ω resistor.
+          Which calculation gives the current through the resistor?
+        options:
+          - { text: "I = {{V}} ÷ {{R}}", correct: true }
+          - { text: "I = {{V}} × {{R}}", misconception: ohm-multiply }
+          - { text: "I = {{R}} ÷ {{V}}", misconception: ohm-inverted }
+          - { text: "I = {{V}} (the current equals the voltage)", misconception: current-equals-voltage }
+        hints:
+          nudge: "If you swapped in a bigger resistor, should the current go up or down?"
+          partial: "Bigger $R$ means smaller $I$, so $R$ belongs in the denominator."
+        explanation: |
+          **Answer:** $I = {{V}} \div {{R}}$
+
+          **Why:** Ohm's law is $V = IR$. Dividing both sides by $R$ gives $I = V/R$.
+          Resistance *opposes* current, so it must be in the denominator.
+
+          **Common mistakes:**
+          - ${{V}} \times {{R}}$ — multiplying would make current *grow* with resistance.
+          - ${{R}} \div {{V}}$ — the fraction is upside down.
+          - "$I = V$" — volts and amperes measure different things; you need $R$ too.
+
+          **Connects to:** the next question changes the resistance — keep this relationship in mind.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A {{V}} V battery is connected across a single {{R}} Ω resistor with ideal wires.
+          What current flows through the resistor?
+        answer: { expr: "V / R", unit: "A" }
+        distractors:
+          - { expr: "V * R", unit: "A", misconception: ohm-multiply }
+          - { expr: "R / V", unit: "A", misconception: ohm-inverted }
+          - { expr: "V", unit: "A", misconception: current-equals-voltage }
+        hints:
+          nudge: "Which quantity *limits* the current — and should it multiply or divide?"
+          partial: "Rearrange $V = IR$ to get $I$ on its own."
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** From $V = IR$, $I = V/R = {{V}} / {{R}} = {{I}}$ A.
+          More resistance means less current, so $R$ divides.
+
+          **Common mistakes:**
+          - {{V*R}} A — multiplied $V$ by $R$; that would make current grow with resistance.
+          - {{R/V}} A — flipped the fraction.
+          - {{V}} A — copied the voltage; volts and amperes are different quantities.
+
+          **Connects to:** the next question asks what happens when $R$ doubles.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A {{V}} V battery is connected across a {{R}} Ω resistor. One ammeter is placed in the wire
+          *before* the resistor and another in the wire *after* it. What do they read?
+        options:
+          - { text: "Both read {{I}} A", correct: true }
+          - { text: "Before: {{I}} A, after: 0 A", misconception: current-used-up }
+          - { text: "Both read {{V}} A", misconception: current-equals-voltage }
+          - { text: "Both read {{V*R}} A", misconception: ohm-multiply }
+        hints:
+          nudge: "Can charge pile up inside a resistor?"
+          partial: "Whatever current enters the resistor must leave it. Now find that current with Ohm's law."
+        explanation: |
+          **Answer:** both read {{I}} A.
+
+          **Why:** In a single loop the same current flows everywhere — charge is conserved,
+          so none is "used up" in the resistor. Its value is $I = V/R = {{V}}/{{R}} = {{I}}$ A.
+          What the resistor takes is *energy*, not charge.
+
+          **Common mistakes:**
+          - "0 A after" — current isn't consumed; energy is.
+          - {{V}} A — that's the voltage value, not the current.
+          - {{V*R}} A — multiplied instead of dividing.
+
+          **Connects to:** the next question changes the resistance in this same circuit.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: ohms-law
+    clueFor: [s3]
+    establishes: "With the same battery, doubling $R$ halves $I$."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          In the circuit above, {{I}} A flowed through the {{R}} Ω resistor.
+          The resistor is swapped for a {{2*R}} Ω one; the battery stays the same. What current flows now?
+        answer: { expr: "V / (2*R)", unit: "A" }
+        distractors:
+          - { expr: "2*V / R", unit: "A", misconception: ohm-multiply }
+          - { expr: "V / R", unit: "A", misconception: battery-constant-current }
+          - { expr: "V / (4*R)", unit: "A", misconception: square-law }
+        hints:
+          nudge: "Use Ohm's law again with the new resistance."
+          partial: "$I = {{V}} / {{2*R}}$"
+        explanation: |
+          **Answer:** {{V/(2*R)}} A
+
+          **Why:** $I = V/R = {{V}}/{{2*R}} = {{V/(2*R)}}$ A — exactly half of the {{I}} A from before.
+          Same voltage, twice the opposition, half the flow.
+
+          **Common mistakes:**
+          - {{2*V/R}} A — current *rose*; that only happens if $R$ multiplies.
+          - {{V/R}} A — a battery fixes the *voltage*, not the current.
+          - {{V/(4*R)}} A — current is proportional to $1/R$, not $1/R^2$.
+
+          **Connects to:** "doubling $R$ halves $I$" is exactly what you need next.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          The {{R}} Ω resistor is replaced by one with **twice** the resistance. The battery is unchanged.
+          What happens to the current?
+        options:
+          - { text: "It halves", correct: true }
+          - { text: "It doubles", misconception: ohm-multiply }
+          - { text: "It stays at {{I}} A — the battery sets the current", misconception: battery-constant-current }
+          - { text: "It drops to a quarter", misconception: square-law }
+        hints:
+          nudge: "In $I = V/R$, what happens to a fraction when its denominator doubles?"
+          partial: '$V$ is fixed by the battery; $R \to 2R$.'
+        explanation: |
+          **Answer:** it halves.
+
+          **Why:** $I = V/R$. With $V$ fixed and $R \to 2R$, $I \to V/(2R) = I/2$.
+          Here that is {{I}} A → {{I/2}} A.
+
+          **Common mistakes:**
+          - "Doubles" — that would require $I \propto R$.
+          - "Stays the same" — a battery provides a fixed *voltage*; the current depends on the circuit.
+          - "Quarter" — current depends on $1/R$, not $1/R^2$.
+
+          **Connects to:** adding a resistor in series doubles the total resistance — use this result next.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Resistors A and B are each connected, one at a time, to the same {{V}} V battery.
+          A draws twice the current that B draws. Which is true?
+        options:
+          - { text: "$R_B = 2R_A$", correct: true }
+          - { text: "$R_A = 2R_B$", misconception: ohm-multiply }
+          - { text: "$R_A = R_B$, because the battery is the same", misconception: battery-constant-current }
+          - { text: "$R_B = 4R_A$", misconception: square-law }
+        hints:
+          nudge: "Same $V$ for both. Which one lets more current through?"
+          partial: "$I_A = V/R_A$ and $I_B = V/R_B$, with $I_A = 2I_B$."
+        explanation: |
+          **Answer:** $R_B = 2R_A$.
+
+          **Why:** With the same $V$, $I \propto 1/R$. A draws twice the current, so A has half
+          the resistance: $R_B = 2R_A$.
+
+          **Common mistakes:**
+          - $R_A = 2R_B$ — more resistance gives *less* current, not more.
+          - $R_A = R_B$ — the battery fixes the voltage, not the current.
+          - $R_B = 4R_A$ — the relationship is inverse, not inverse-square.
+
+          **Connects to:** next, two resistors in series — think about the total resistance.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: series-resistance
+    uses: [s1, s2]
+    clueFor: [s5]
+    establishes: "Two {{R}} Ω in series: total {{2*R}} Ω, current {{V/(2*R)}} A."
+    standaloneContext: "A {{V}} V battery drives a single {{R}} Ω resistor, giving {{I}} A."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: "Two {{R}} Ω resistors are connected in series. What is their total resistance?"
+        answer: { expr: "2*R", unit: "Ω" }
+        distractors:
+          - { expr: "R / 2", unit: "Ω", misconception: series-parallel-confusion }
+          - { expr: "R", unit: "Ω", misconception: series-no-change }
+          - { expr: "R^2", unit: "Ω", misconception: multiply-resistances }
+        hints:
+          nudge: "In series, current must pass through *both* resistors, one after the other."
+          partial: "Series resistances add: $R_{tot} = R_1 + R_2$."
+        explanation: |
+          **Answer:** {{2*R}} Ω
+
+          **Why:** In series, the charge has to push through both, so the oppositions add:
+          $R_{tot} = {{R}} + {{R}} = {{2*R}}$ Ω.
+
+          **Common mistakes:**
+          - {{R/2}} Ω — that's the *parallel* result.
+          - {{R}} Ω — adding a resistor always changes the total.
+          - {{R^2}} Ω — resistances add; they don't multiply.
+
+          **Connects to:** doubling the resistance halves the current (Q2) — you'll use that later.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          A second, identical {{R}} Ω resistor is added **in series** with the first, using the same
+          battery. What current now flows from the battery?
+        answer: { expr: "V / (2*R)", unit: "A" }
+        distractors:
+          - { expr: "V / R", unit: "A", misconception: series-no-change }
+          - { expr: "2*V / R", unit: "A", misconception: series-parallel-confusion }
+          - { expr: "V / (4*R)", unit: "A", misconception: double-halving }
+        hints:
+          nudge: "What is the total resistance now?"
+          buildsOn: "From before: one {{R}} Ω resistor gave {{I}} A, and doubling $R$ halves $I$."
+          partial: 'Series: $R_{tot} = 2 \times {{R}}$ Ω. Now apply $I = V/R_{tot}$.'
+        explanation: |
+          **Answer:** {{V/(2*R)}} A
+
+          **Why:** Series resistances add: $R_{tot} = {{2*R}}$ Ω, double the original. By the result
+          from Q2, doubling $R$ halves the current: {{I}} A → {{V/(2*R)}} A.
+
+          **Common mistakes:**
+          - {{V/R}} A — the extra resistor *does* reduce the current.
+          - {{2*V/R}} A — that's what two resistors in *parallel* would give.
+          - {{V/(4*R)}} A — the current halves once, not once per resistor.
+
+          **Connects to:** Q5 compares the *power* of this circuit with the single resistor.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          With the two {{R}} Ω resistors in series across the {{V}} V battery, what is the voltage
+          across **each** resistor?
+        answer: { expr: "V / 2", unit: "V" }
+        distractors:
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "V / 4", unit: "V", misconception: double-halving }
+          - { expr: "V / (2*R)", unit: "V", misconception: current-voltage-confusion }
+        hints:
+          nudge: "First find the current through the series pair."
+          buildsOn: "The total resistance is now {{2*R}} Ω."
+          partial: '$I = {{V}}/{{2*R}}$ A. Each resistor''s voltage is $I \times R$.'
+        explanation: |
+          **Answer:** {{V/2}} V each.
+
+          **Why:** The current is $I = V/R_{tot} = {{V}}/{{2*R}} = {{V/(2*R)}}$ A, the same through both.
+          Each resistor's voltage is $IR = {{V/(2*R)}} \times {{R}} = {{V/2}}$ V. The two drops add
+          up to the battery's {{V}} V.
+
+          **Common mistakes:**
+          - {{V}} V each — in series, the voltage is *shared*.
+          - {{V/4}} V — the battery voltage is split once, between two equal resistors.
+          - {{V/(2*R)}} V — that number is the current, in amperes.
+
+          **Connects to:** Q5 uses this circuit's current to find its power.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: electric-power
+    uses: [s1]
+    clueFor: [s5]
+    establishes: "Single {{R}} Ω resistor at {{V}} V: P = {{P}} W."
+    standaloneContext: "A {{V}} V battery is connected across a single {{R}} Ω resistor, so {{I}} A flows."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          The single resistor from the first question has {{V}} V across it and {{I}} A through it.
+          What power does it dissipate?
+        answer: { expr: "V * I", unit: "W" }
+        distractors:
+          - { expr: "V / I", unit: "W", misconception: power-divide }
+          - { expr: "V + I", unit: "W", misconception: power-add }
+          - { expr: "I", unit: "W", misconception: power-is-current }
+        hints:
+          nudge: "Power is voltage times what?"
+          partial: "$P = VI$"
+        explanation: |
+          **Answer:** {{P}} W
+
+          **Why:** $P = VI = {{V}} \times {{I}} = {{P}}$ W.
+
+          **Common mistakes:**
+          - {{V/I}} — $V/I$ is the resistance (Ω), not power.
+          - {{V+I}} — volts and amperes can't be added.
+          - {{I}} — that's the current.
+
+          **Connects to:** Q5 compares this power with the series circuit's.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          Go back to the single {{R}} Ω resistor across the {{V}} V battery. At what rate does the
+          resistor turn electrical energy into heat?
+        answer: { expr: "V^2 / R", unit: "W" }
+        distractors:
+          - { expr: "V / R", unit: "W", misconception: power-is-current }
+          - { expr: "V * R", unit: "W", misconception: power-formula-mixup }
+          - { expr: "V", unit: "W", misconception: power-equals-voltage }
+        hints:
+          nudge: "Which power formula uses quantities you already know?"
+          buildsOn: "From Q1: the current is {{I}} A."
+          partial: "$P = VI$ with $I = {{I}}$ A — or equivalently $P = V^2/R$."
+        explanation: |
+          **Answer:** {{P}} W
+
+          **Why:** Using the current from Q1, $P = VI = {{V}} \times {{I}} = {{P}}$ W.
+          Check: $V^2/R = {{V^2}}/{{R}} = {{P}}$ W ✓.
+
+          **Common mistakes:**
+          - {{V/R}} W — that's the current (in A), not the power.
+          - {{V*R}} W — power is $V^2/R$, not $VR$; more resistance gives *less* power here.
+          - {{V}} W — that's the voltage.
+
+          **Connects to:** Q5 compares this with the series circuit.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          The {{R}} Ω resistor is replaced by a {{R/2}} Ω resistor, still across the {{V}} V battery.
+          By what factor does the power change?
+        options:
+          - { text: "It doubles", correct: true }
+          - { text: "It halves", misconception: power-proportional-R }
+          - { text: "It quadruples", misconception: square-law }
+          - { text: "It stays the same — the battery sets the power", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "Use the power formula where $V$ — which doesn't change — appears."
+          partial: "$P = V^2/R$. What happens when $R$ halves?"
+        explanation: |
+          **Answer:** it doubles.
+
+          **Why:** With $V$ fixed, $P = V^2/R$. Halving $R$ doubles $P$:
+          {{P}} W → {{2*P}} W.
+
+          **Common mistakes:**
+          - "Halves" — with fixed $V$, power is inversely proportional to $R$.
+          - "Quadruples" — $R$ appears to the first power, not squared.
+          - "Same" — the battery fixes voltage, not power.
+
+          **Connects to:** in Q5 and Q6 the total resistance changes the same way.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: electric-power
+    uses: [s3, s4]
+    clueFor: [s6]
+    establishes: "Series pair draws {{P/2}} W — half of the single resistor's {{P}} W."
+    standaloneContext: |
+      A {{V}} V battery: a single {{R}} Ω resistor dissipates {{P}} W. With two {{R}} Ω resistors
+      in series the current is {{V/(2*R)}} A.
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 3
+        prompt: |
+          In the series circuit, the current is {{V/(2*R)}} A and the total resistance is {{2*R}} Ω.
+          What total power does the battery deliver?
+        answer: { expr: "V^2 / (2*R)", unit: "W" }
+        distractors:
+          - { expr: "V^2 / R", unit: "W", misconception: series-no-change }
+          - { expr: "2 * V^2 / R", unit: "W", misconception: more-resistors-more-power }
+          - { expr: "V^2 / (4*R)", unit: "W", misconception: forgot-total-R }
+        hints:
+          nudge: "Pick the power formula that uses the battery voltage and the total resistance."
+          partial: "$P = V^2 / R_{tot} = {{V}}^2 / {{2*R}}$"
+        explanation: |
+          **Answer:** {{P/2}} W
+
+          **Why:** $P = V^2/R_{tot} = {{V^2}}/{{2*R}} = {{P/2}}$ W. Check: $P = VI = {{V}} \times {{V/(2*R)}} = {{P/2}}$ W ✓.
+
+          **Common mistakes:**
+          - {{P}} W — that's the single-resistor value; the circuit changed.
+          - {{2*P}} W — adding series resistance *reduces* power.
+          - {{P/4}} W — you halved the current and squared it, but forgot that $R_{tot}$ also doubled.
+
+          **Connects to:** Q6 compares this with a parallel arrangement.
+      standard:
+        id: s5-s
+        difficulty: 4
+        prompt: |
+          Compare the total power drawn from the battery by the two-resistor **series** circuit with
+          the power of the single-resistor circuit.
+        options:
+          - { text: "Series draws half as much", correct: true }
+          - { text: "Series draws twice as much — more resistors, more power", misconception: more-resistors-more-power }
+          - { text: "Both draw the same — the battery fixes the power", misconception: power-fixed-by-battery }
+          - { text: "Series draws a quarter as much", misconception: forgot-total-R }
+        hints:
+          nudge: "Which quantity is the same in both circuits: $V$, $I$, or $R_{tot}$?"
+          buildsOn: "Single resistor: {{P}} W. Series pair: total {{2*R}} Ω."
+          partial: "Both circuits have the same $V$, so compare $V^2/R_{tot}$."
+        explanation: |
+          **Answer:** series draws half as much — {{P/2}} W versus {{P}} W.
+
+          **Why:** The battery voltage is the same in both, so use $P = V^2/R_{tot}$.
+          The series circuit has double the resistance ({{2*R}} Ω, from Q3), so half the power.
+
+          **Common mistakes:**
+          - "Twice" — extra *series* resistance chokes the current and lowers the total power.
+          - "Same" — a battery fixes voltage; power depends on what's connected.
+          - "Quarter" — the current halves, so $I^2$ quarters, but $R_{tot}$ doubles: $\tfrac14 \times 2 = \tfrac12$.
+
+          **Connects to:** Q6 asks the same question for a parallel arrangement.
+      harder:
+        id: s5-h
+        difficulty: 5
+        prompt: |
+          In the two-resistor series circuit, one resistor is bypassed with a plain wire (short-circuited).
+          What happens to the total power drawn from the battery?
+        options:
+          - { text: "It doubles", correct: true }
+          - { text: "It quadruples", misconception: square-law }
+          - { text: "It stays the same", misconception: power-fixed-by-battery }
+          - { text: "It drops to zero", misconception: short-means-no-current }
+        hints:
+          nudge: "After the bypass, what does the circuit effectively look like?"
+          buildsOn: "Series pair: {{P/2}} W. Single resistor: {{P}} W."
+          partial: "Current takes the wire and skips that resistor, leaving just one {{R}} Ω resistor."
+        explanation: |
+          **Answer:** it doubles — from {{P/2}} W to {{P}} W.
+
+          **Why:** The wire has (ideally) zero resistance, so the bypassed resistor carries no current.
+          The circuit becomes the single-resistor circuit from Q4, which draws {{P}} W —
+          twice the series pair's {{P/2}} W.
+
+          **Common mistakes:**
+          - "Quadruples" — $R_{tot}$ halves, and with fixed $V$, $P = V^2/R$ only doubles.
+          - "Same" — removing resistance changes the power.
+          - "Zero" — only the bypassed resistor goes dark; the rest of the circuit still works.
+
+          **Connects to:** Q6 — what if the resistors were side by side instead?
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: parallel-resistance
+    uses: [s3, s5]
+    establishes: "Parallel pair draws {{2*P}} W — 4× the series pair."
+    standaloneContext: |
+      A {{V}} V battery and two {{R}} Ω resistors. In series they draw {{P/2}} W in total;
+      a single resistor draws {{P}} W.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The two {{R}} Ω resistors are now connected in **parallel** across the {{V}} V battery,
+          so each has the full {{V}} V across it. What total current leaves the battery?
+        answer: { expr: "2*V / R", unit: "A" }
+        distractors:
+          - { expr: "V / (2*R)", unit: "A", misconception: series-parallel-confusion }
+          - { expr: "V / R", unit: "A", misconception: parallel-one-branch }
+          - { expr: "4*V / R", unit: "A", misconception: square-law }
+        hints:
+          nudge: "Find the current in one branch, then think about how many branches there are."
+          partial: "Each branch: $I = {{V}}/{{R}} = {{I}}$ A. The battery supplies all branches."
+        explanation: |
+          **Answer:** {{2*V/R}} A
+
+          **Why:** Each branch has the full {{V}} V, so each carries {{I}} A. The battery supplies both:
+          {{I}} + {{I}} = {{2*V/R}} A. Equivalently, $R_{par} = {{R/2}}$ Ω and $I = V/R_{par}$.
+
+          **Common mistakes:**
+          - {{V/(2*R)}} A — that's the *series* current.
+          - {{V/R}} A — that's one branch only.
+          - {{4*V/R}} A — current adds per branch; it doesn't square.
+
+          **Connects to:** more current at the same voltage means more power drawn.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          Now connect the two {{R}} Ω resistors in **parallel** across the battery instead.
+          Which arrangement drains the battery faster, and by what factor?
+        options:
+          - { text: "Parallel — 4× the power of series", correct: true }
+          - { text: "Parallel — 2× the power of series", misconception: parallel-partial }
+          - { text: "Series — 2× the power of parallel", misconception: resistance-means-more-work }
+          - { text: "They drain it equally", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "What is the voltage across each resistor in parallel?"
+          buildsOn: "Series pair: {{P/2}} W total (Q5)."
+          partial: "In parallel, each resistor gets the full {{V}} V, so each dissipates {{P}} W."
+        explanation: |
+          **Answer:** parallel — 4× the power of series.
+
+          **Why:** In parallel, each resistor has the full {{V}} V and dissipates {{P}} W (as in Q4),
+          so the total is {{2*P}} W. In series the total was {{P/2}} W (Q5).
+          Ratio: ${{2*P}} / {{P/2}} = 4$.
+
+          **Common mistakes:**
+          - "2×" — you compared with the single resistor ({{P}} W), not with the series pair.
+          - "Series drains faster" — more resistance in the path means *less* current and less power.
+          - "Equal" — power depends on the total resistance, which differs by a factor of 4.
+
+          **Connects to:** the challenge — build a circuit with a specific current.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          An ideal {{V}} V battery powering the single {{R}} Ω resistor lasts 8 hours.
+          How long does it last powering the two {{R}} Ω resistors connected in parallel?
+        options:
+          - { text: "4 hours", correct: true }
+          - { text: "2 hours", misconception: wrong-baseline }
+          - { text: "16 hours", misconception: resistance-means-more-work }
+          - { text: "8 hours", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "Battery life = stored energy ÷ power drawn."
+          buildsOn: "Single resistor: {{P}} W. Each parallel branch also dissipates {{P}} W."
+          partial: "Parallel total: {{2*P}} W — twice the single resistor's."
+        explanation: |
+          **Answer:** 4 hours.
+
+          **Why:** The stored energy is fixed. The parallel pair draws {{2*P}} W, twice the single
+          resistor's {{P}} W, so the battery lasts half as long: 8 h ÷ 2 = 4 h.
+
+          **Common mistakes:**
+          - "2 h" — that uses the parallel-vs-*series* factor (4×), but the baseline here is the single resistor.
+          - "16 h" — more resistors in parallel *lower* the total resistance and drain faster.
+          - "8 h" — the battery's energy is fixed; its power output is not.
+
+          **Connects to:** the challenge — design a circuit for a target current.
+
+  # ─────────────── remediation (shown after 2 misses near s3) ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: series-resistance
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Two different resistors are connected in series in a single loop. Which statement about the current is true?"
+        options:
+          - { text: "The same current flows through both", correct: true }
+          - { text: "More current flows through the first resistor", misconception: current-used-up }
+          - { text: "The current splits equally between them", misconception: series-parallel-confusion }
+          - { text: "Current flows only through the smaller resistor", misconception: current-takes-easiest-path }
+        hints:
+          nudge: "In a single loop, is there anywhere the current could go other than through both?"
+          partial: "There is only one path, so every charge passes through both resistors."
+        explanation: |
+          **Answer:** the same current flows through both.
+
+          **Why:** Series means one path. Every charge that passes the first resistor must then pass
+          the second, so the current is identical everywhere in the loop.
+
+          **Common mistakes:**
+          - "More through the first" — charge isn't used up.
+          - "Splits equally" — splitting happens only at a junction (parallel).
+          - "Only the smaller" — with only one path, there's no choice to make.
+
+          **Connects to:** because the current is the same, series resistances simply add.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l2.ch
+  type: circuit-builder
+  title: "Hit the target current"
+  concept: series-resistance
+  uses: [s3, s6]
+  params:
+    sets:
+      - { V: 6, R: 4 }
+      - { V: 12, R: 8 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "Using the {{V}} V battery and any of the {{R}} Ω resistors, build a circuit where exactly {{V/(2*R)}} A flows out of the battery."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, V / (2*R))" }
+      feedback:
+        - { if: "near(I, V/R)", say: "One resistor gives {{R}} Ω. You need more total resistance." }
+        - { if: "I > V/R", say: "Parallel connections *lower* the total resistance. Try series.", misconception: series-parallel-confusion }
+        - { if: "near(I, V/(3*R))", say: "Three in series is too much resistance." }
+      hints:
+        nudge: "What total resistance gives {{V/(2*R)}} A at {{V}} V?"
+        buildsOn: "From Q3: series resistances add."
+        partial: "You need $R_{tot} = {{2*R}}$ Ω."
+      solution: { netlist: ["B1 n1 0", "R1 n1 n2", "R2 n2 0"] }
+      explanation: |
+        $R_{tot} = V/I = {{V}}/{{V/(2*R)}} = {{2*R}}$ Ω — two resistors in series.
+    standard:
+      difficulty: 4
+      goal: "Using the {{V}} V battery and up to three {{R}} Ω resistors, build a circuit where exactly {{V/(1.5*R)}} A flows out of the battery."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, V / (1.5*R))" }
+      feedback:
+        - { if: "near(I, V/(3*R))", say: "Three in series gives {{3*R}} Ω — too much. Can you make a total between {{R}} Ω and {{2*R}} Ω?" }
+        - { if: "near(I, V/(2*R))", say: "Two in series gives {{2*R}} Ω. Close — you need a little less resistance." }
+        - { if: "near(I, V/R)", say: "One resistor gives {{R}} Ω. You need more — but not a whole extra resistor's worth." }
+        - { if: "I > V/R", say: "Parallel connections lower the total below {{R}} Ω, but you need more than {{R}} Ω.", misconception: series-parallel-confusion }
+      hints:
+        nudge: "What total resistance do you need? Is it more or less than one resistor?"
+        buildsOn: "Series adds resistance (Q3). Two equal resistors in parallel give half of one (Q6)."
+        partial: "You need $R_{tot} = {{1.5*R}}$ Ω = one resistor plus half of one."
+      solution: { netlist: ["B1 n1 0", "R1 n1 n2", "R2 n2 0", "R3 n2 0"] }
+      explanation: |
+        You need $R_{tot} = V/I = {{1.5*R}}$ Ω $= R + R/2$. Put one resistor in series with a
+        parallel pair: $R_{tot} = {{R}} + ({{R}} \parallel {{R}}) = {{R}} + {{R/2}} = {{1.5*R}}$ Ω.
+    harder:
+      difficulty: 5
+      goal: "Use **all three** {{R}} Ω resistors to build a circuit where exactly {{1.5*V/R}} A flows out of the {{V}} V battery."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, 1.5 * V / R) and n == 3" }
+      feedback:
+        - { if: "n < 3", say: "Use all three resistors." }
+        - { if: "near(I, V/(1.5*R))", say: "That's $R + R/2$ = {{1.5*R}} Ω. You need *less* total resistance than one resistor." }
+        - { if: "near(I, 3*V/R)", say: "All three in parallel gives {{R/3}} Ω — too little." }
+      hints:
+        nudge: "The target current is larger than {{V/R}} A, so the total must be *less* than {{R}} Ω."
+        buildsOn: "Parallel lowers resistance (Q6); series raises it (Q3)."
+        partial: "You need $R_{tot} = {{2*R/3}}$ Ω. Try one resistor in parallel with a series pair."
+      solution: { netlist: ["B1 n1 0", "R1 n1 0", "R2 n1 n2", "R3 n2 0"] }
+      explanation: |
+        $R_{tot} = V/I = {{2*R/3}}$ Ω. One resistor in parallel with a series pair gives
+        $\dfrac{R \cdot 2R}{R + 2R} = \dfrac{2R}{3} = {{2*R/3}}$ Ω, so $I = {{1.5*V/R}}$ A.
+
+summary:
+  keyTakeaways:
+    - "$I = V/R$: with the voltage fixed, current is inversely proportional to resistance."
+    - "Series resistances add; the same current flows through each."
+    - "Parallel branches each get the full voltage; the total resistance drops."
+    - "$P = VI = I^2R = V^2/R$; with a fixed battery, less total resistance means more power."
+  next: phys2.u3.l3
