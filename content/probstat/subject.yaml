@@ -1,0 +1,93 @@
+id: probstat
+title: "Probability & Statistics"
+short: "Prob & Stats"
+description: "Probability, random variables, joint distributions, limit theorems and statistical inference."
+prerequisites: [calc1]
+background: "Calculus II helpful for continuous distributions"
+tools: [probability-sim, distribution-fitter, graph-manipulator]
+units:
+  - id: probstat.u1
+    title: "Probability Foundations"
+    baseDifficulty: 2
+    lessons:
+      - id: probstat.u1.l1
+        title: "Sample spaces & events"
+        concepts: [sample-spaces, probability-axioms]
+      - id: probstat.u1.l2
+        title: "Counting-based probability"
+        concepts: [counting-probability]
+      - id: probstat.u1.l3
+        title: "Conditional probability"
+        concepts: [conditional-probability]
+      - id: probstat.u1.l4
+        title: "Independence"
+        concepts: [independence]
+      - id: probstat.u1.l5
+        title: "Total probability & Bayes' theorem"
+        concepts: [total-probability, bayes-theorem]
+  - id: probstat.u2
+    title: "Random Variables"
+    baseDifficulty: 3
+    lessons:
+      - id: probstat.u2.l1
+        title: "Discrete random variables"
+        concepts: [pmf-cdf]
+      - id: probstat.u2.l2
+        title: "Expectation & variance"
+        concepts: [expectation, variance]
+      - id: probstat.u2.l3
+        title: "Binomial & geometric"
+        concepts: [binomial-distribution, geometric-distribution]
+      - id: probstat.u2.l4
+        title: "Poisson"
+        concepts: [poisson-distribution]
+      - id: probstat.u2.l5
+        title: "Continuous random variables"
+        concepts: [pdf-cdf]
+      - id: probstat.u2.l6
+        title: "Uniform & exponential"
+        concepts: [uniform-exponential]
+      - id: probstat.u2.l7
+        title: "The normal distribution"
+        concepts: [normal-distribution]
+  - id: probstat.u3
+    title: "Joint Distributions & Limit Theorems"
+    baseDifficulty: 4
+    lessons:
+      - id: probstat.u3.l1
+        title: "Joint distributions"
+        concepts: [joint-distributions]
+      - id: probstat.u3.l2
+        title: "Covariance & correlation"
+        concepts: [covariance-correlation]
+      - id: probstat.u3.l3
+        title: "Sums of random variables"
+        concepts: [sums-of-rvs]
+      - id: probstat.u3.l4
+        title: "The law of large numbers"
+        concepts: [law-of-large-numbers]
+      - id: probstat.u3.l5
+        title: "The central limit theorem"
+        concepts: [central-limit-theorem]
+  - id: probstat.u4
+    title: "Statistical Inference"
+    baseDifficulty: 4
+    lessons:
+      - id: probstat.u4.l1
+        title: "Descriptive statistics"
+        concepts: [descriptive-statistics]
+      - id: probstat.u4.l2
+        title: "Sampling distributions & standard error"
+        concepts: [standard-error]
+      - id: probstat.u4.l3
+        title: "Confidence intervals"
+        concepts: [confidence-intervals]
+      - id: probstat.u4.l4
+        title: "Hypothesis testing"
+        concepts: [hypothesis-testing]
+      - id: probstat.u4.l5
+        title: "Errors & power"
+        concepts: [errors-power]
+      - id: probstat.u4.l6
+        title: "Simple linear regression"
+        concepts: [linear-regression]

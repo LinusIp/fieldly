@@ -1,0 +1,45 @@
+- { id: propositions, title: "Propositions" }
+- { id: connectives, title: "Logical connectives" }
+- { id: truth-tables, title: "Truth tables" }
+- { id: logical-equivalence, title: "Logical equivalence" }
+- { id: conditionals, title: "Converse, inverse, contrapositive" }
+- { id: quantifiers, title: "Predicates & quantifiers" }
+- { id: rules-of-inference, title: "Rules of inference" }
+- { id: direct-proof, title: "Direct proof" }
+- { id: proof-by-contrapositive, title: "Proof by contrapositive" }
+- { id: proof-by-contradiction, title: "Proof by contradiction" }
+- { id: proof-by-cases, title: "Proof by cases" }
+- { id: counterexamples, title: "Counterexamples" }
+- { id: induction, title: "Mathematical induction" }
+- { id: strong-induction, title: "Strong induction" }
+- { id: well-ordering, title: "Well-ordering principle" }
+- { id: sets, title: "Sets" }
+- { id: set-operations, title: "Set operations" }
+- { id: injective-surjective, title: "Injective, surjective, bijective" }
+- { id: function-inverses, title: "Inverses & composition" }
+- { id: cardinality, title: "Cardinality" }
+- { id: relation-properties, title: "Properties of relations" }
+- { id: equivalence-relations, title: "Equivalence relations" }
+- { id: partial-orders, title: "Partial orders" }
+- { id: sum-product-rules, title: "Sum & product rules" }
+- { id: permutations, title: "Permutations" }
+- { id: combinations, title: "Combinations" }
+- { id: binomial-theorem, title: "Binomial theorem" }
+- { id: pigeonhole, title: "Pigeonhole principle" }
+- { id: inclusion-exclusion, title: "Inclusion–exclusion" }
+- { id: stars-and-bars, title: "Stars and bars" }
+- { id: recurrences-discrete, title: "Recurrence relations" }
+- { id: divisibility, title: "Divisibility" }
+- { id: modular-arithmetic, title: "Modular arithmetic" }
+- { id: gcd-euclid, title: "GCD & Euclid's algorithm" }
+- { id: bezout, title: "Bézout's identity" }
+- { id: primes, title: "Primes" }
+- { id: modular-inverses, title: "Modular inverses" }
+- { id: rsa, title: "RSA" }
+- { id: graph-basics, title: "Graph basics" }
+- { id: handshake-lemma, title: "Handshake lemma" }
+- { id: paths-connectivity, title: "Paths & connectivity" }
+- { id: euler-hamilton, title: "Euler & Hamilton paths" }
+- { id: bipartite-colouring, title: "Bipartite graphs & colouring" }
+- { id: planar-graphs, title: "Planar graphs" }
+- { id: trees-discrete, title: "Trees" }

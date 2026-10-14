@@ -1,0 +1,63 @@
+- { id: electric-charge, title: "Electric charge" }
+- { id: conductors-insulators, title: "Conductors vs insulators" }
+- { id: coulombs-law, title: "Coulomb's law" }
+- { id: force-superposition, title: "Superposition of forces" }
+- { id: electric-field, title: "Electric field" }
+- { id: point-charge-field, title: "Field of a point charge" }
+- { id: field-lines, title: "Field lines" }
+- { id: continuous-charge, title: "Continuous charge distributions" }
+- { id: electric-dipoles, title: "Electric dipoles" }
+- { id: electric-flux, title: "Electric flux" }
+- { id: gauss-law, title: "Gauss's law" }
+- { id: conductors-equilibrium, title: "Conductors in equilibrium" }
+- { id: electric-potential, title: "Electric potential" }
+- { id: electric-potential-energy, title: "Electric potential energy" }
+- { id: potential-superposition, title: "Superposition of potential" }
+- { id: equipotentials, title: "Equipotentials" }
+- { id: field-from-potential, title: "E = −∇V" }
+- { id: electric-current, title: "Electric current" }
+- { id: resistivity, title: "Resistance & resistivity" }
+- { id: charge-conservation, title: "Conservation of charge" }
+- { id: ohms-law, title: "Ohm's law" }
+- { id: series-resistance, title: "Series resistance" }
+- { id: electric-power, title: "Electrical power" }
+- { id: parallel-resistance, title: "Parallel resistance" }
+- { id: equivalent-resistance, title: "Equivalent resistance" }
+- { id: voltage-current-division, title: "Voltage & current division" }
+- { id: emf-internal-resistance, title: "EMF & internal resistance" }
+- { id: max-power-transfer, title: "Maximum power transfer" }
+- { id: junction-rule, title: "Kirchhoff's junction rule" }
+- { id: loop-rule, title: "Kirchhoff's loop rule" }
+- { id: ammeters-voltmeters, title: "Ammeter & voltmeter placement" }
+- { id: meter-loading, title: "Meter loading effects" }
+- { id: capacitance, title: "Capacitance" }
+- { id: capacitor-combinations, title: "Capacitor combinations" }
+- { id: capacitor-energy, title: "Energy stored in a capacitor" }
+- { id: rc-circuits, title: "RC circuits" }
+- { id: time-constant, title: "Time constant" }
+- { id: magnetic-force-charge, title: "Magnetic force on a moving charge" }
+- { id: right-hand-rule, title: "Right-hand rule" }
+- { id: cyclotron-motion, title: "Circular motion in a magnetic field" }
+- { id: velocity-selector, title: "Velocity selector & mass spectrometer" }
+- { id: force-on-current, title: "Force on a current-carrying wire" }
+- { id: torque-on-loop, title: "Torque on a current loop" }
+- { id: biot-savart, title: "Biot–Savart law" }
+- { id: amperes-law, title: "Ampère's law" }
+- { id: solenoids-toroids, title: "Solenoids & toroids" }
+- { id: magnetic-materials, title: "Magnetic materials" }
+- { id: magnetic-flux, title: "Magnetic flux" }
+- { id: faradays-law, title: "Faraday's law" }
+- { id: lenzs-law, title: "Lenz's law" }
+- { id: motional-emf, title: "Motional EMF" }
+- { id: generators, title: "AC generators" }
+- { id: eddy-currents, title: "Eddy currents" }
+- { id: inductance, title: "Self-inductance" }
+- { id: rl-circuits, title: "RL circuits" }
+- { id: lc-circuits, title: "LC oscillations" }
+- { id: field-energy, title: "Energy in electric & magnetic fields" }
+- { id: ac-circuits, title: "AC circuits" }
+- { id: maxwell-equations, title: "Maxwell's equations" }
+- { id: em-waves, title: "Electromagnetic waves" }
+- { id: poynting-intensity, title: "Poynting vector & intensity" }
+- { id: em-spectrum, title: "The EM spectrum" }
+- { id: polarization, title: "Polarization" }

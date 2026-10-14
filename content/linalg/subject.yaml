@@ -1,0 +1,125 @@
+id: linalg
+title: "Linear Algebra"
+short: "Lin Alg"
+description: "Linear systems, matrices, vector spaces, linear transformations, eigenvalues and orthogonality."
+prerequisites: []
+background: "Algebra (Calculus I helpful)"
+tools: [row-reducer, matrix-transform, vector-play, graph-manipulator]
+units:
+  - id: linalg.u1
+    title: "Linear Systems"
+    baseDifficulty: 2
+    lessons:
+      - id: linalg.u1.l1
+        title: "Systems of linear equations"
+        concepts: [linear-systems]
+      - id: linalg.u1.l2
+        title: "Row reduction & echelon forms"
+        concepts: [row-operations, echelon-forms]
+      - id: linalg.u1.l3
+        title: "Vector equations & span"
+        concepts: [linear-combinations, span]
+      - id: linalg.u1.l4
+        title: "The matrix equation Ax = b"
+        concepts: [matrix-vector-product, existence-of-solutions]
+      - id: linalg.u1.l5
+        title: "Solution sets"
+        concepts: [homogeneous-systems, parametric-vector-form]
+      - id: linalg.u1.l6
+        title: "Linear independence"
+        concepts: [linear-independence]
+  - id: linalg.u2
+    title: "Matrix Algebra & Determinants"
+    baseDifficulty: 3
+    lessons:
+      - id: linalg.u2.l1
+        title: "Matrix operations"
+        concepts: [matrix-operations, matrix-multiplication]
+      - id: linalg.u2.l2
+        title: "The inverse of a matrix"
+        concepts: [matrix-inverse]
+      - id: linalg.u2.l3
+        title: "The invertible matrix theorem"
+        concepts: [invertible-matrix-theorem]
+      - id: linalg.u2.l4
+        title: "LU factorization"
+        concepts: [lu-factorization]
+      - id: linalg.u2.l5
+        title: "Determinants"
+        concepts: [determinants]
+      - id: linalg.u2.l6
+        title: "Properties of determinants"
+        concepts: [determinant-properties]
+  - id: linalg.u3
+    title: "Vector Spaces"
+    baseDifficulty: 3
+    lessons:
+      - id: linalg.u3.l1
+        title: "Vector spaces & subspaces"
+        concepts: [vector-spaces, subspaces]
+      - id: linalg.u3.l2
+        title: "Null space & column space"
+        concepts: [null-space, column-space]
+      - id: linalg.u3.l3
+        title: "Bases"
+        concepts: [bases]
+      - id: linalg.u3.l4
+        title: "Dimension & rank"
+        concepts: [dimension, rank-nullity]
+      - id: linalg.u3.l5
+        title: "Coordinates & change of basis"
+        concepts: [coordinates, change-of-basis]
+  - id: linalg.u4
+    title: "Linear Transformations"
+    baseDifficulty: 3
+    lessons:
+      - id: linalg.u4.l1
+        title: "Linear transformations & matrices"
+        concepts: [linear-transformations, standard-matrix]
+      - id: linalg.u4.l2
+        title: "Geometric transformations in 2D"
+        concepts: [geometric-transformations]
+      - id: linalg.u4.l3
+        title: "Composition"
+        concepts: [composition-of-transformations]
+      - id: linalg.u4.l4
+        title: "Kernel & range"
+        concepts: [kernel-range]
+  - id: linalg.u5
+    title: "Eigenvalues & Eigenvectors"
+    baseDifficulty: 4
+    lessons:
+      - id: linalg.u5.l1
+        title: "Eigenvalues & eigenvectors"
+        concepts: [eigenvectors]
+      - id: linalg.u5.l2
+        title: "The characteristic equation"
+        concepts: [characteristic-equation]
+      - id: linalg.u5.l3
+        title: "Diagonalization"
+        concepts: [diagonalization]
+      - id: linalg.u5.l4
+        title: "Complex eigenvalues"
+        concepts: [complex-eigenvalues]
+      - id: linalg.u5.l5
+        title: "Applications"
+        concepts: [markov-chains, dynamical-systems]
+  - id: linalg.u6
+    title: "Orthogonality & Least Squares"
+    baseDifficulty: 4
+    lessons:
+      - id: linalg.u6.l1
+        title: "Inner product, length & orthogonality"
+        concepts: [inner-product, orthogonal-complements]
+      - id: linalg.u6.l2
+        title: "Orthogonal sets & projections"
+        concepts: [orthogonal-sets, orthogonal-projection]
+      - id: linalg.u6.l3
+        title: "Gram–Schmidt & QR"
+        concepts: [gram-schmidt, qr-factorization]
+      - id: linalg.u6.l4
+        title: "Least squares"
+        concepts: [least-squares]
+      - id: linalg.u6.l5
+        title: "Symmetric matrices"
+        concepts: [symmetric-matrices]

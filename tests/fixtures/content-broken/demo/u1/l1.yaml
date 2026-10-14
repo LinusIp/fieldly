@@ -1,0 +1,116 @@
+# Deliberately broken: every comment marks an error the validator must report.
+id: demo.u1.l1
+title: 'Broken lesson'
+version: 1
+concepts: [ohms-law]
+estimatedMinutes: 5
+params:
+  sets:
+    - { V: 9, R: 3 }
+intro: "Intro with bad math $\\frac{1}{$ here." # KaTeX error
+workedExample: 'A 9 V battery across 3 Ω.' # same numbers as the param set (warning)
+chain:
+  - id: s1
+    role: core
+    concept: ohms-law
+    establishes: 'Fact {{Q}}' # unknown symbol Q
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 2
+        prompt: 'Q'
+        options:
+          - { text: 'a', correct: true }
+          - { text: 'b', misconception: m1 }
+          - { text: 'c', misconception: m2 }
+          - { text: 'd', misconception: m3 }
+        hints: { nudge: 'n', partial: 'p' }
+        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
+      standard:
+        id: s1-s
+        difficulty: 2 # not strictly greater than easier
+        prompt: 'What is V·R or V²/R?'
+        answer: { expr: 'V * R', unit: 'W' }
+        distractors:
+          - { expr: 'V^2 / R', unit: 'W', misconception: m1 } # both show "27 W"
+          - { expr: 'V', unit: 'W', misconception: m2 }
+          - { expr: 'R', unit: 'W', misconception: no-such-misconception } # unknown misconception
+        hints: { nudge: 'n', partial: 'p' }
+        explanation: '**Answer:** a **Why:** w **Common mistakes:** c' # missing Connects to
+      harder:
+        id: s1-h
+        difficulty: 4
+        prompt: 'Q'
+        options:
+          - { text: 'a', correct: true }
+          - { text: 'b', misconception: m1 }
+          - { text: 'c', misconception: m2 }
+          - { text: 'c2', correct: true } # two correct options
+        hints: { nudge: 'n', partial: 'p' }
+        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
+  - id: s2
+    role: core
+    concept: ohms-law
+    uses: [s3] # points forward
+    establishes: 'f'
+    variants:
+      easier: &q
+        id: s2-e
+        difficulty: 1
+        prompt: 'Q'
+        options:
+          - { text: 'a', correct: true }
+          - { text: 'b', misconception: m1 }
+          - { text: 'c', misconception: m2 }
+          - { text: 'd', misconception: m3 }
+        hints: { nudge: 'n', partial: 'p' }
+        explanation: '**Answer:** a **Why:** w **Common mistakes:** c **Connects to:** c'
+      standard: { <<: *q, id: s2-s, difficulty: 2 }
+      harder: { <<: *q, id: s2-h, difficulty: 3 }
+  - id: s3
+    role: core
+    concept: ohms-law
+    establishes: 'f'
+    variants:
+      easier: { <<: *q, id: s3-e, difficulty: 1 }
+      standard: { <<: *q, id: s3-s, difficulty: 2 }
+      harder: { <<: *q, id: s3-h, difficulty: 3 }
+challenge:
+  id: demo.ch
+  type: no-such-type # unknown challenge type
+  title: 't'
+  concept: ohms-law
+  variants:
+    easier:
+      {
+        difficulty: 3,
+        goal: 'g',
+        config: {},
+        check: { expr: 'true' },
+        hints: { nudge: 'n', partial: 'p' },
+        solution: {},
+        explanation: 'e',
+      }
+    standard:
+      {
+        difficulty: 4,
+        goal: 'g',
+        config: {},
+        check: { expr: 'true' },
+        hints: { nudge: 'n', partial: 'p' },
+        solution: {},
+        explanation: 'e',
+      }
+    harder:
+      {
+        difficulty: 5,
+        goal: 'g',
+        config: {},
+        check: { expr: 'true' },
+        hints: { nudge: 'n', partial: 'p' },
+        solution: {},
+        explanation: 'e',
+      }
+summary:
+  keyTakeaways: ['k']
+  next: demo.u9.l9 # not a listed lesson

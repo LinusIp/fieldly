@@ -1,0 +1,36 @@
+- { id: area-between-curves, title: "Area between curves" }
+- { id: volume-slicing, title: "Volumes by slicing" }
+- { id: disk-washer, title: "Disk & washer methods" }
+- { id: cylindrical-shells, title: "Cylindrical shells" }
+- { id: arc-length, title: "Arc length" }
+- { id: surface-area, title: "Surface area of revolution" }
+- { id: work-integrals, title: "Work by integration" }
+- { id: hydrostatic-force, title: "Hydrostatic force" }
+- { id: moments-centroids, title: "Moments & centroids" }
+- { id: integration-by-parts, title: "Integration by parts" }
+- { id: trig-integrals, title: "Trigonometric integrals" }
+- { id: trig-substitution, title: "Trigonometric substitution" }
+- { id: partial-fractions, title: "Partial fractions" }
+- { id: integration-strategy, title: "Choosing a technique" }
+- { id: improper-integrals, title: "Improper integrals" }
+- { id: comparison-integrals, title: "Comparison for integrals" }
+- { id: numerical-integration, title: "Numerical integration" }
+- { id: sequences, title: "Sequences" }
+- { id: partial-sums, title: "Partial sums" }
+- { id: geometric-series, title: "Geometric series" }
+- { id: telescoping-series, title: "Telescoping series" }
+- { id: divergence-test, title: "nth-term (divergence) test" }
+- { id: integral-test, title: "Integral test" }
+- { id: p-series, title: "p-series" }
+- { id: comparison-tests, title: "Comparison tests" }
+- { id: alternating-series, title: "Alternating series test" }
+- { id: absolute-convergence, title: "Absolute vs conditional convergence" }
+- { id: ratio-root-tests, title: "Ratio & root tests" }
+- { id: power-series, title: "Power series" }
+- { id: interval-of-convergence, title: "Interval of convergence" }
+- { id: taylor-series, title: "Taylor & Maclaurin series" }
+- { id: taylor-error, title: "Taylor polynomial error" }
+- { id: parametric-curves, title: "Parametric curves" }
+- { id: parametric-calculus, title: "Calculus with parametric curves" }
+- { id: polar-coordinates, title: "Polar coordinates" }
+- { id: polar-area-length, title: "Area & length in polar" }

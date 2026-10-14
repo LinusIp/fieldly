@@ -1,0 +1,146 @@
+id: phys1
+title: "Physics I: Mechanics"
+short: "Mechanics"
+description: "Kinematics, Newton's laws, energy, momentum, rotation, oscillations and gravitation."
+prerequisites: [calc1]
+background: "Calculus I can be taken alongside"
+tools: [projectile-launcher, motion-graph, force-diagram, collision-lab, torque-balance, graph-manipulator]
+units:
+  - id: phys1.u1
+    title: "Kinematics"
+    baseDifficulty: 2
+    lessons:
+      - id: phys1.u1.l1
+        title: "Units, dimensions & vectors"
+        concepts: [si-units, dimensional-analysis, vector-components, vector-addition]
+      - id: phys1.u1.l2
+        title: "Motion in one dimension"
+        concepts: [displacement-distance, velocity-speed, acceleration]
+      - id: phys1.u1.l3
+        title: "Motion graphs"
+        concepts: [motion-graphs]
+      - id: phys1.u1.l4
+        title: "Constant acceleration & free fall"
+        concepts: [kinematic-equations, free-fall]
+      - id: phys1.u1.l5
+        title: "Projectile motion"
+        concepts: [projectile-motion]
+      - id: phys1.u1.l6
+        title: "Relative motion"
+        concepts: [relative-motion]
+      - id: phys1.u1.l7
+        title: "Uniform circular motion"
+        concepts: [centripetal-acceleration, period-frequency]
+  - id: phys1.u2
+    title: "Newton's Laws"
+    baseDifficulty: 3
+    lessons:
+      - id: phys1.u2.l1
+        title: "Forces & free-body diagrams"
+        concepts: [contact-field-forces, free-body-diagrams]
+      - id: phys1.u2.l2
+        title: "Newton's first and second laws"
+        concepts: [inertia, newtons-second-law]
+      - id: phys1.u2.l3
+        title: "Newton's third law & connected objects"
+        concepts: [newtons-third-law, connected-objects]
+      - id: phys1.u2.l4
+        title: "Friction"
+        concepts: [friction]
+      - id: phys1.u2.l5
+        title: "Inclined planes"
+        concepts: [inclined-planes]
+      - id: phys1.u2.l6
+        title: "Dynamics of circular motion"
+        concepts: [circular-dynamics]
+      - id: phys1.u2.l7
+        title: "Drag & terminal velocity"
+        concepts: [drag-terminal-velocity]
+  - id: phys1.u3
+    title: "Work & Energy"
+    baseDifficulty: 3
+    lessons:
+      - id: phys1.u3.l1
+        title: "Work"
+        concepts: [work]
+      - id: phys1.u3.l2
+        title: "Kinetic energy & the work–energy theorem"
+        concepts: [kinetic-energy, work-energy-theorem]
+      - id: phys1.u3.l3
+        title: "Potential energy & conservation"
+        concepts: [potential-energy, energy-conservation]
+      - id: phys1.u3.l4
+        title: "Non-conservative forces"
+        concepts: [non-conservative-forces]
+      - id: phys1.u3.l5
+        title: "Power"
+        concepts: [mechanical-power, efficiency]
+      - id: phys1.u3.l6
+        title: "Energy diagrams"
+        concepts: [energy-diagrams]
+  - id: phys1.u4
+    title: "Momentum"
+    baseDifficulty: 3
+    lessons:
+      - id: phys1.u4.l1
+        title: "Momentum & impulse"
+        concepts: [momentum, impulse]
+      - id: phys1.u4.l2
+        title: "Conservation of momentum"
+        concepts: [momentum-conservation]
+      - id: phys1.u4.l3
+        title: "Collisions in one dimension"
+        concepts: [collisions-1d]
+      - id: phys1.u4.l4
+        title: "Collisions in two dimensions"
+        concepts: [collisions-2d]
+      - id: phys1.u4.l5
+        title: "Centre of mass"
+        concepts: [centre-of-mass]
+  - id: phys1.u5
+    title: "Rotation"
+    baseDifficulty: 4
+    lessons:
+      - id: phys1.u5.l1
+        title: "Rotational kinematics"
+        concepts: [rotational-kinematics]
+      - id: phys1.u5.l2
+        title: "Torque"
+        concepts: [torque]
+      - id: phys1.u5.l3
+        title: "Moment of inertia"
+        concepts: [moment-of-inertia]
+      - id: phys1.u5.l4
+        title: "Rotational dynamics"
+        concepts: [rotational-dynamics]
+      - id: phys1.u5.l5
+        title: "Rotational energy & rolling"
+        concepts: [rolling-energy]
+      - id: phys1.u5.l6
+        title: "Angular momentum"
+        concepts: [angular-momentum]
+      - id: phys1.u5.l7
+        title: "Static equilibrium"
+        concepts: [static-equilibrium]
+  - id: phys1.u6
+    title: "Oscillations & Gravitation"
+    baseDifficulty: 4
+    lessons:
+      - id: phys1.u6.l1
+        title: "Simple harmonic motion"
+        concepts: [simple-harmonic-motion]
+      - id: phys1.u6.l2
+        title: "Pendulums"
+        concepts: [pendulums]
+      - id: phys1.u6.l3
+        title: "Energy in SHM & damping"
+        concepts: [shm-energy, damping]
+      - id: phys1.u6.l4
+        title: "Newton's law of gravitation"
+        concepts: [universal-gravitation]
+      - id: phys1.u6.l5
+        title: "Orbits & Kepler's laws"
+        concepts: [orbits-kepler]
+      - id: phys1.u6.l6
+        title: "Gravitational PE & escape speed"
+        concepts: [gravitational-pe, escape-speed]

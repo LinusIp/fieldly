@@ -8,3 +8,13 @@ One line each: date — decision — reason.
 - 2026-10-14 — Tailwind CSS v4 via `@tailwindcss/vite`, theme colours as CSS variables mapped with `@theme inline` — v4 is current stable and needs no PostCSS config.
 - 2026-10-14 — Deploy workflow uses the current majors: checkout@v7, setup-node@v7, setup-python@v7, upload-pages-artifact@v5, deploy-pages@v5 — §6.3 asks to bump to latest majors.
 - 2026-10-14 — `build` also runs `tsc --noEmit` — Vite does not type-check, and `strict: true` should be enforced in CI.
+- 2026-10-14 — Exact integers below 1e5 print exactly (12345 → "12345"); everything else goes to 3 significant figures — §7.4 says "integers printed as integers", and rounding counts like 1024 to 1020 would be wrong.
+- 2026-10-14 — Negative numbers use the Unicode minus "−" in text and "-" inside KaTeX — typographically correct in both places.
+- 2026-10-14 — Each challenge type is split into a React-free `logic.ts` (schemas, `resolveConfig`, scopes) and a component — the Node validator must import the logic without React or DOM.
+- 2026-10-14 — Challenge `config` holds expression strings; each type's `resolveConfig` turns them into numbers/text before the component sees them — §9.1 says the component receives "templates and expressions already resolved".
+- 2026-10-14 — `subject.yaml` gains optional `background` (free-text prerequisites such as "algebra") and `tools` — §16 lists non-subject prerequisites that cannot be subject ids.
+- 2026-10-14 — Lesson `prerequisites` default to the previous lesson in the subject (crossing unit boundaries) — §16 says "previous lesson in the unit"; the first lesson of a unit then points at the end of the previous unit.
+- 2026-10-14 — "Standard difficulties are non-decreasing" (§2.5) is enforced as a validator error — it is stated as a rule, not a guideline.
+- 2026-10-14 — Lesson YAML is parsed with merge keys (`<<: *anchor`) enabled — lets authors reuse blocks without copy-paste.
+- 2026-10-14 — A lesson file with validator errors is emitted but marked unavailable ("Coming soon") in the index — `content:build` fails anyway in CI; in watch mode the rest of the site keeps working.
+- 2026-10-14 — Lesson player, review, profile and settings are lazy route chunks — keeps mathjs, KaTeX and Markdown out of the initial JS budget (§4).

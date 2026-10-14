@@ -1,0 +1,137 @@
+id: discrete
+title: "Discrete Mathematics"
+short: "Discrete"
+description: "Logic, proofs, sets and relations, counting, number theory, graphs and trees."
+prerequisites: []
+background: "Algebra"
+tools: [truth-table, parsons, graph-builder, algorithm-stepper, probability-sim, code-runner]
+units:
+  - id: discrete.u1
+    title: "Logic"
+    baseDifficulty: 2
+    lessons:
+      - id: discrete.u1.l1
+        title: "Propositions & connectives"
+        concepts: [propositions, connectives]
+      - id: discrete.u1.l2
+        title: "Truth tables & equivalence"
+        concepts: [truth-tables, logical-equivalence]
+      - id: discrete.u1.l3
+        title: "Conditionals"
+        concepts: [conditionals]
+      - id: discrete.u1.l4
+        title: "Predicates & quantifiers"
+        concepts: [quantifiers]
+      - id: discrete.u1.l5
+        title: "Rules of inference"
+        concepts: [rules-of-inference]
+  - id: discrete.u2
+    title: "Proofs"
+    baseDifficulty: 3
+    lessons:
+      - id: discrete.u2.l1
+        title: "Direct proof"
+        concepts: [direct-proof]
+      - id: discrete.u2.l2
+        title: "Contrapositive & contradiction"
+        concepts: [proof-by-contrapositive, proof-by-contradiction]
+      - id: discrete.u2.l3
+        title: "Cases & counterexamples"
+        concepts: [proof-by-cases, counterexamples]
+      - id: discrete.u2.l4
+        title: "Mathematical induction"
+        concepts: [induction]
+      - id: discrete.u2.l5
+        title: "Strong induction & well-ordering"
+        concepts: [strong-induction, well-ordering]
+  - id: discrete.u3
+    title: "Sets, Functions & Relations"
+    baseDifficulty: 3
+    lessons:
+      - id: discrete.u3.l1
+        title: "Sets & set operations"
+        concepts: [sets, set-operations]
+      - id: discrete.u3.l2
+        title: "Functions"
+        concepts: [injective-surjective, function-inverses]
+      - id: discrete.u3.l3
+        title: "Cardinality"
+        concepts: [cardinality]
+      - id: discrete.u3.l4
+        title: "Relations"
+        concepts: [relation-properties]
+      - id: discrete.u3.l5
+        title: "Equivalence relations"
+        concepts: [equivalence-relations]
+      - id: discrete.u3.l6
+        title: "Partial orders"
+        concepts: [partial-orders]
+  - id: discrete.u4
+    title: "Counting"
+    baseDifficulty: 3
+    lessons:
+      - id: discrete.u4.l1
+        title: "Sum & product rules"
+        concepts: [sum-product-rules]
+      - id: discrete.u4.l2
+        title: "Permutations & combinations"
+        concepts: [permutations, combinations]
+      - id: discrete.u4.l3
+        title: "Binomial theorem"
+        concepts: [binomial-theorem]
+      - id: discrete.u4.l4
+        title: "Pigeonhole principle"
+        concepts: [pigeonhole]
+      - id: discrete.u4.l5
+        title: "Inclusion–exclusion"
+        concepts: [inclusion-exclusion]
+      - id: discrete.u4.l6
+        title: "Combinations with repetition"
+        concepts: [stars-and-bars]
+      - id: discrete.u4.l7
+        title: "Recurrence relations"
+        concepts: [recurrences-discrete]
+  - id: discrete.u5
+    title: "Number Theory"
+    baseDifficulty: 3
+    lessons:
+      - id: discrete.u5.l1
+        title: "Divisibility"
+        concepts: [divisibility]
+      - id: discrete.u5.l2
+        title: "Modular arithmetic"
+        concepts: [modular-arithmetic]
+      - id: discrete.u5.l3
+        title: "GCD & the Euclidean algorithm"
+        concepts: [gcd-euclid, bezout]
+      - id: discrete.u5.l4
+        title: "Primes"
+        concepts: [primes]
+      - id: discrete.u5.l5
+        title: "Modular inverses"
+        concepts: [modular-inverses]
+      - id: discrete.u5.l6
+        title: "RSA cryptography"
+        concepts: [rsa]
+  - id: discrete.u6
+    title: "Graphs & Trees"
+    baseDifficulty: 4
+    lessons:
+      - id: discrete.u6.l1
+        title: "Graph basics"
+        concepts: [graph-basics, handshake-lemma]
+      - id: discrete.u6.l2
+        title: "Paths & connectivity"
+        concepts: [paths-connectivity]
+      - id: discrete.u6.l3
+        title: "Euler & Hamilton paths"
+        concepts: [euler-hamilton]
+      - id: discrete.u6.l4
+        title: "Bipartite graphs & colouring"
+        concepts: [bipartite-colouring]
+      - id: discrete.u6.l5
+        title: "Planar graphs"
+        concepts: [planar-graphs]
+      - id: discrete.u6.l6
+        title: "Trees"
+        concepts: [trees-discrete]

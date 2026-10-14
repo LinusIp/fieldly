@@ -8,3 +8,5 @@ playwright-report
 content
 BUILD_SPEC.md
 *.md
+tests/fixtures
+.claude

@@ -1,0 +1,147 @@
+id: phys2
+title: "Physics II: Electricity & Magnetism"
+short: "E&M"
+description: "Charges, fields, circuits, magnetism and induction."
+prerequisites: [phys1, calc1]
+background: "Calculus II helpful"
+tools: [circuit-builder, transient-plotter, charge-field, particle-in-field, graph-manipulator]
+units:
+  - id: phys2.u1
+    title: "Electric Charge & Field"
+    baseDifficulty: 3
+    lessons:
+      - id: phys2.u1.l1
+        title: "Charge & Coulomb's law"
+        concepts: [electric-charge, conductors-insulators, coulombs-law]
+      - id: phys2.u1.l2
+        title: "Superposition of forces"
+        concepts: [force-superposition]
+      - id: phys2.u1.l3
+        title: "The electric field"
+        concepts: [electric-field, point-charge-field]
+      - id: phys2.u1.l4
+        title: "Field lines"
+        concepts: [field-lines]
+      - id: phys2.u1.l5
+        title: "Continuous charge distributions"
+        concepts: [continuous-charge]
+      - id: phys2.u1.l6
+        title: "Electric dipoles"
+        concepts: [electric-dipoles]
+  - id: phys2.u2
+    title: "Gauss's Law & Electric Potential"
+    baseDifficulty: 3
+    lessons:
+      - id: phys2.u2.l1
+        title: "Electric flux"
+        concepts: [electric-flux]
+      - id: phys2.u2.l2
+        title: "Gauss's law"
+        concepts: [gauss-law]
+      - id: phys2.u2.l3
+        title: "Conductors in equilibrium"
+        concepts: [conductors-equilibrium]
+      - id: phys2.u2.l4
+        title: "Electric potential & potential energy"
+        concepts: [electric-potential, electric-potential-energy]
+      - id: phys2.u2.l5
+        title: "Potential of charge distributions"
+        concepts: [potential-superposition]
+      - id: phys2.u2.l6
+        title: "Equipotentials & E = −∇V"
+        concepts: [equipotentials, field-from-potential]
+  - id: phys2.u3
+    title: "Current & DC Circuits"
+    baseDifficulty: 3
+    lessons:
+      - id: phys2.u3.l1
+        title: "Current, resistance & resistivity"
+        concepts: [electric-current, resistivity, charge-conservation]
+      - id: phys2.u3.l2
+        title: "Ohm's Law and Electrical Power"
+        concepts: [ohms-law, series-resistance, electric-power, parallel-resistance]
+        prerequisites: [phys2.u3.l1]
+      - id: phys2.u3.l3
+        title: "Series & parallel networks"
+        concepts: [series-resistance, parallel-resistance, equivalent-resistance, voltage-current-division]
+      - id: phys2.u3.l4
+        title: "EMF & internal resistance"
+        concepts: [emf-internal-resistance, max-power-transfer]
+      - id: phys2.u3.l5
+        title: "Kirchhoff's rules"
+        concepts: [junction-rule, loop-rule]
+      - id: phys2.u3.l6
+        title: "Meters in circuits"
+        concepts: [ammeters-voltmeters, meter-loading]
+      - id: phys2.u3.l7
+        title: "Capacitors"
+        concepts: [capacitance, capacitor-combinations, capacitor-energy]
+      - id: phys2.u3.l8
+        title: "RC circuits"
+        concepts: [rc-circuits, time-constant]
+  - id: phys2.u4
+    title: "Magnetism"
+    baseDifficulty: 4
+    lessons:
+      - id: phys2.u4.l1
+        title: "Magnetic force on moving charges"
+        concepts: [magnetic-force-charge, right-hand-rule]
+      - id: phys2.u4.l2
+        title: "Charged particles in fields"
+        concepts: [cyclotron-motion, velocity-selector]
+      - id: phys2.u4.l3
+        title: "Force & torque on currents"
+        concepts: [force-on-current, torque-on-loop]
+      - id: phys2.u4.l4
+        title: "Biot–Savart law"
+        concepts: [biot-savart]
+      - id: phys2.u4.l5
+        title: "Ampère's law"
+        concepts: [amperes-law]
+      - id: phys2.u4.l6
+        title: "Solenoids & toroids"
+        concepts: [solenoids-toroids]
+      - id: phys2.u4.l7
+        title: "Magnetic materials"
+        concepts: [magnetic-materials]
+  - id: phys2.u5
+    title: "Electromagnetic Induction"
+    baseDifficulty: 4
+    lessons:
+      - id: phys2.u5.l1
+        title: "Faraday's law"
+        concepts: [magnetic-flux, faradays-law]
+      - id: phys2.u5.l2
+        title: "Lenz's law"
+        concepts: [lenzs-law]
+      - id: phys2.u5.l3
+        title: "Motional EMF"
+        concepts: [motional-emf]
+      - id: phys2.u5.l4
+        title: "Generators & eddy currents"
+        concepts: [generators, eddy-currents]
+      - id: phys2.u5.l5
+        title: "Inductance & RL circuits"
+        concepts: [inductance, rl-circuits]
+      - id: phys2.u5.l6
+        title: "LC circuits & field energy"
+        concepts: [lc-circuits, field-energy]
+      - id: phys2.u5.l7
+        title: "AC circuits"
+        concepts: [ac-circuits]
+  - id: phys2.u6
+    title: "Maxwell's Equations & EM Waves"
+    baseDifficulty: 4
+    lessons:
+      - id: phys2.u6.l1
+        title: "Displacement current & Maxwell's equations"
+        concepts: [maxwell-equations]
+      - id: phys2.u6.l2
+        title: "Electromagnetic waves"
+        concepts: [em-waves]
+      - id: phys2.u6.l3
+        title: "Energy & intensity"
+        concepts: [poynting-intensity]
+      - id: phys2.u6.l4
+        title: "The spectrum & polarization"
+        concepts: [em-spectrum, polarization]

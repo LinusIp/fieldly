@@ -1,0 +1,153 @@
+id: dsa
+title: "Data Structures & Algorithms"
+short: "DSA"
+description: "Algorithm analysis, linear structures, hashing, sorting, trees, graphs and algorithm design."
+prerequisites: []
+background: "An introductory programming course (Python or JavaScript); Discrete Mathematics helps"
+tools: [code-runner, algorithm-stepper, parsons, graph-builder]
+units:
+  - id: dsa.u1
+    title: "Foundations"
+    baseDifficulty: 2
+    lessons:
+      - id: dsa.u1.l1
+        title: "Algorithm analysis"
+        concepts: [big-o, growth-rates]
+      - id: dsa.u1.l2
+        title: "Analysing loops"
+        concepts: [loop-analysis]
+      - id: dsa.u1.l3
+        title: "Recursion"
+        concepts: [recursion]
+      - id: dsa.u1.l4
+        title: "Recurrences"
+        concepts: [recurrences-dsa]
+      - id: dsa.u1.l5
+        title: "Amortized analysis"
+        concepts: [amortized-analysis]
+  - id: dsa.u2
+    title: "Linear Data Structures"
+    baseDifficulty: 2
+    lessons:
+      - id: dsa.u2.l1
+        title: "Arrays & dynamic arrays"
+        concepts: [arrays]
+      - id: dsa.u2.l2
+        title: "Linked lists"
+        concepts: [linked-lists]
+      - id: dsa.u2.l3
+        title: "Stacks"
+        concepts: [stacks]
+      - id: dsa.u2.l4
+        title: "Queues & deques"
+        concepts: [queues]
+      - id: dsa.u2.l5
+        title: "Two pointers"
+        concepts: [two-pointers]
+      - id: dsa.u2.l6
+        title: "Sliding window"
+        concepts: [sliding-window]
+      - id: dsa.u2.l7
+        title: "Prefix sums"
+        concepts: [prefix-sums]
+  - id: dsa.u3
+    title: "Hashing"
+    baseDifficulty: 3
+    lessons:
+      - id: dsa.u3.l1
+        title: "Hash functions & hash tables"
+        concepts: [hash-tables]
+      - id: dsa.u3.l2
+        title: "Collision handling"
+        concepts: [collision-handling]
+      - id: dsa.u3.l3
+        title: "Load factor & resizing"
+        concepts: [load-factor]
+      - id: dsa.u3.l4
+        title: "Hash map patterns"
+        concepts: [hash-map-patterns]
+  - id: dsa.u4
+    title: "Searching & Sorting"
+    baseDifficulty: 3
+    lessons:
+      - id: dsa.u4.l1
+        title: "Binary search"
+        concepts: [binary-search]
+      - id: dsa.u4.l2
+        title: "Elementary sorts"
+        concepts: [elementary-sorts, sort-stability]
+      - id: dsa.u4.l3
+        title: "Merge sort"
+        concepts: [merge-sort]
+      - id: dsa.u4.l4
+        title: "Quicksort"
+        concepts: [quicksort]
+      - id: dsa.u4.l5
+        title: "Heaps & heapsort"
+        concepts: [heaps]
+      - id: dsa.u4.l6
+        title: "Sorting lower bounds & linear sorts"
+        concepts: [sorting-lower-bound, linear-sorts]
+  - id: dsa.u5
+    title: "Trees"
+    baseDifficulty: 3
+    lessons:
+      - id: dsa.u5.l1
+        title: "Binary trees & traversals"
+        concepts: [tree-traversals]
+      - id: dsa.u5.l2
+        title: "Binary search trees"
+        concepts: [bst]
+      - id: dsa.u5.l3
+        title: "Balanced trees"
+        concepts: [balanced-trees]
+      - id: dsa.u5.l4
+        title: "Priority queues"
+        concepts: [priority-queues]
+      - id: dsa.u5.l5
+        title: "Tries"
+        concepts: [tries]
+      - id: dsa.u5.l6
+        title: "Tree recursion patterns"
+        concepts: [tree-recursion]
+  - id: dsa.u6
+    title: "Graphs"
+    baseDifficulty: 4
+    lessons:
+      - id: dsa.u6.l1
+        title: "Graph representations"
+        concepts: [graph-representations]
+      - id: dsa.u6.l2
+        title: "Breadth-first search"
+        concepts: [bfs]
+      - id: dsa.u6.l3
+        title: "Depth-first search"
+        concepts: [dfs, topological-sort]
+      - id: dsa.u6.l4
+        title: "Dijkstra's algorithm"
+        concepts: [dijkstra]
+      - id: dsa.u6.l5
+        title: "Bellman–Ford"
+        concepts: [bellman-ford]
+      - id: dsa.u6.l6
+        title: "Minimum spanning trees"
+        concepts: [mst, union-find]
+  - id: dsa.u7
+    title: "Algorithm Design"
+    baseDifficulty: 4
+    lessons:
+      - id: dsa.u7.l1
+        title: "Greedy algorithms"
+        concepts: [greedy]
+      - id: dsa.u7.l2
+        title: "Divide & conquer"
+        concepts: [divide-and-conquer]
+      - id: dsa.u7.l3
+        title: "Dynamic programming I"
+        concepts: [dp-1d]
+      - id: dsa.u7.l4
+        title: "Dynamic programming II"
+        concepts: [dp-2d]
+      - id: dsa.u7.l5
+        title: "Backtracking"
+        concepts: [backtracking]

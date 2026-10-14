@@ -1,0 +1,4 @@
+- { id: m1, short: 'one', explain: 'one' }
+- { id: m2, short: 'two', explain: 'two' }
+- { id: m3, short: 'three', explain: 'three' }
+- { id: m-unused, short: 'unused', explain: 'unused' }

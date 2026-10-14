@@ -1,0 +1,16 @@
+id: demo
+title: 'Demo'
+short: 'Demo'
+description: 'Deliberately broken fixture content.'
+prerequisites: [nosuchsubject]
+units:
+  - id: demo.u1
+    title: 'Unit'
+    baseDifficulty: 2
+    lessons:
+      - id: demo.u1.l1
+        title: 'Broken lesson'
+        concepts: [ohms-law, missing-concept]
+      - id: demo.u1.l3
+        title: 'Wrong id'
+        concepts: [ohms-law]

@@ -1,0 +1,101 @@
+id: calc2
+title: "Calculus II"
+short: "Calc II"
+description: "Applications and techniques of integration, sequences and series, parametric and polar curves."
+prerequisites: [calc1]
+tools: [graph-manipulator, riemann-sum, series-explorer, parsons]
+units:
+  - id: calc2.u1
+    title: "Applications of Integration"
+    baseDifficulty: 3
+    lessons:
+      - id: calc2.u1.l1
+        title: "Area between curves"
+        concepts: [area-between-curves]
+      - id: calc2.u1.l2
+        title: "Volumes by slicing"
+        concepts: [volume-slicing, disk-washer]
+      - id: calc2.u1.l3
+        title: "Volumes by cylindrical shells"
+        concepts: [cylindrical-shells]
+      - id: calc2.u1.l4
+        title: "Arc length & surface area"
+        concepts: [arc-length, surface-area]
+      - id: calc2.u1.l5
+        title: "Work & physical applications"
+        concepts: [work-integrals, hydrostatic-force]
+      - id: calc2.u1.l6
+        title: "Centre of mass"
+        concepts: [moments-centroids]
+  - id: calc2.u2
+    title: "Techniques of Integration"
+    baseDifficulty: 3
+    lessons:
+      - id: calc2.u2.l1
+        title: "Integration by parts"
+        concepts: [integration-by-parts]
+      - id: calc2.u2.l2
+        title: "Trigonometric integrals"
+        concepts: [trig-integrals]
+      - id: calc2.u2.l3
+        title: "Trigonometric substitution"
+        concepts: [trig-substitution]
+      - id: calc2.u2.l4
+        title: "Partial fractions"
+        concepts: [partial-fractions]
+      - id: calc2.u2.l5
+        title: "Strategy for integration"
+        concepts: [integration-strategy]
+      - id: calc2.u2.l6
+        title: "Improper integrals"
+        concepts: [improper-integrals, comparison-integrals]
+      - id: calc2.u2.l7
+        title: "Numerical integration"
+        concepts: [numerical-integration]
+  - id: calc2.u3
+    title: "Sequences & Series"
+    baseDifficulty: 4
+    lessons:
+      - id: calc2.u3.l1
+        title: "Sequences"
+        concepts: [sequences]
+      - id: calc2.u3.l2
+        title: "Series & geometric series"
+        concepts: [partial-sums, geometric-series, telescoping-series]
+      - id: calc2.u3.l3
+        title: "Divergence & integral tests"
+        concepts: [divergence-test, integral-test, p-series]
+      - id: calc2.u3.l4
+        title: "Comparison tests"
+        concepts: [comparison-tests]
+      - id: calc2.u3.l5
+        title: "Alternating series"
+        concepts: [alternating-series, absolute-convergence]
+      - id: calc2.u3.l6
+        title: "Ratio & root tests"
+        concepts: [ratio-root-tests]
+      - id: calc2.u3.l7
+        title: "Power series"
+        concepts: [power-series, interval-of-convergence]
+      - id: calc2.u3.l8
+        title: "Taylor & Maclaurin series"
+        concepts: [taylor-series]
+      - id: calc2.u3.l9
+        title: "Taylor polynomial error"
+        concepts: [taylor-error]
+  - id: calc2.u4
+    title: "Parametric Equations & Polar Coordinates"
+    baseDifficulty: 4
+    lessons:
+      - id: calc2.u4.l1
+        title: "Parametric curves"
+        concepts: [parametric-curves]
+      - id: calc2.u4.l2
+        title: "Calculus with parametric curves"
+        concepts: [parametric-calculus]
+      - id: calc2.u4.l3
+        title: "Polar coordinates"
+        concepts: [polar-coordinates]
+      - id: calc2.u4.l4
+        title: "Area and length in polar"
+        concepts: [polar-area-length]

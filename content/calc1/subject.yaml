@@ -1,0 +1,108 @@
+id: calc1
+title: "Calculus I"
+short: "Calc I"
+description: "Limits, derivatives and their applications, and an introduction to integrals."
+prerequisites: []
+background: "Algebra and trigonometry"
+tools: [graph-manipulator, riemann-sum, algorithm-stepper]
+units:
+  - id: calc1.u1
+    title: "Limits & Continuity"
+    baseDifficulty: 2
+    lessons:
+      - id: calc1.u1.l1
+        title: "Functions and their graphs"
+        concepts: [domain-range, function-composition, inverse-functions, graph-transformations]
+      - id: calc1.u1.l2
+        title: "The idea of a limit"
+        concepts: [limit-graphs-tables, one-sided-limits, limit-nonexistence]
+      - id: calc1.u1.l3
+        title: "Computing limits"
+        concepts: [limit-laws, direct-substitution, limit-algebraic-techniques, indeterminate-0-0]
+      - id: calc1.u1.l4
+        title: "Limits at infinity & asymptotes"
+        concepts: [end-behaviour, asymptotes, dominant-terms]
+      - id: calc1.u1.l5
+        title: "Continuity"
+        concepts: [continuity, discontinuity-types, intermediate-value-theorem]
+      - id: calc1.u1.l6
+        title: "Squeeze theorem & trig limits"
+        concepts: [squeeze-theorem, trig-limits]
+      - id: calc1.u1.l7
+        title: "The ε–δ definition"
+        concepts: [epsilon-delta]
+  - id: calc1.u2
+    title: "Derivatives"
+    baseDifficulty: 2
+    lessons:
+      - id: calc1.u2.l1
+        title: "The derivative as a limit"
+        concepts: [secant-tangent, difference-quotient, derivative-at-point, differentiability]
+      - id: calc1.u2.l2
+        title: "Basic differentiation rules"
+        concepts: [power-rule, constant-multiple-sum-rules, polynomial-derivatives]
+      - id: calc1.u2.l3
+        title: "Product and quotient rules"
+        concepts: [product-rule, quotient-rule]
+      - id: calc1.u2.l4
+        title: "The chain rule"
+        concepts: [chain-rule]
+      - id: calc1.u2.l5
+        title: "Derivatives of trig, exponential & log functions"
+        concepts: [trig-derivatives, exp-derivatives, log-derivatives, logarithmic-differentiation]
+      - id: calc1.u2.l6
+        title: "Implicit differentiation & inverse functions"
+        concepts: [implicit-differentiation, inverse-trig-derivatives]
+      - id: calc1.u2.l7
+        title: "Related rates"
+        concepts: [related-rates]
+  - id: calc1.u3
+    title: "Applications of Derivatives"
+    baseDifficulty: 3
+    lessons:
+      - id: calc1.u3.l1
+        title: "Linear approximation & differentials"
+        concepts: [linear-approximation, differentials]
+      - id: calc1.u3.l2
+        title: "Extreme values"
+        concepts: [critical-points, closed-interval-method]
+      - id: calc1.u3.l3
+        title: "The Mean Value Theorem"
+        concepts: [rolles-theorem, mean-value-theorem]
+      - id: calc1.u3.l4
+        title: "Shape of a graph"
+        concepts: [monotonicity, first-derivative-test, concavity, second-derivative-test]
+      - id: calc1.u3.l5
+        title: "Curve sketching"
+        concepts: [curve-sketching, asymptotes]
+      - id: calc1.u3.l6
+        title: "Optimization"
+        concepts: [optimization]
+      - id: calc1.u3.l7
+        title: "L'Hôpital's rule"
+        concepts: [lhopital, indeterminate-forms]
+      - id: calc1.u3.l8
+        title: "Newton's method"
+        concepts: [newtons-method]
+  - id: calc1.u4
+    title: "Integrals"
+    baseDifficulty: 3
+    lessons:
+      - id: calc1.u4.l1
+        title: "Antiderivatives"
+        concepts: [antiderivatives, initial-value-problems]
+      - id: calc1.u4.l2
+        title: "Area and Riemann sums"
+        concepts: [sigma-notation, riemann-sums]
+      - id: calc1.u4.l3
+        title: "The definite integral"
+        concepts: [definite-integral, signed-area]
+      - id: calc1.u4.l4
+        title: "The Fundamental Theorem of Calculus"
+        concepts: [ftc-part-1, ftc-part-2]
+      - id: calc1.u4.l5
+        title: "The substitution rule"
+        concepts: [u-substitution]
+      - id: calc1.u4.l6
+        title: "Net change & average value"
+        concepts: [net-change, average-value]
