@@ -1,7 +1,9 @@
 /**
  * Validate content, then emit public/content/index.json and public/content/<subjectId>.json.
- * `--watch` rebuilds on every change under content/ (used by `npm run dev`).
+ * `--watch` rebuilds on every change under content/ — and under the validator and challenge code
+ * it runs (used by `npm run dev`). `--lenient` writes the output even when there are errors.
  */
+import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdirSync, rmSync, watch, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -33,25 +35,53 @@ export function buildContent(opts: { failOnError: boolean } = { failOnError: tru
   return result.errors.length === 0;
 }
 
+/**
+ * Rebuild on changes. Each rebuild runs in a fresh process, so edits to the validator or to
+ * challenge logic take effect without restarting the dev server (an in-process build would keep
+ * the modules it loaded first).
+ */
 export function watchContent(): void {
+  const dirs = [
+    CONTENT,
+    join(ROOT, 'scripts'),
+    join(ROOT, 'src', 'challenges'),
+    join(ROOT, 'src', 'engine'),
+    join(ROOT, 'src', 'content'),
+  ];
+  const tsx = join(ROOT, 'node_modules', 'tsx', 'dist', 'cli.mjs');
   let timer: NodeJS.Timeout | undefined;
-  watch(CONTENT, { recursive: true }, () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      try {
-        buildContent({ failOnError: false });
-      } catch (e) {
-        console.error(e);
+  let running: ChildProcess | null = null;
+  let again = false;
+  const run = () => {
+    if (running) {
+      again = true;
+      return;
+    }
+    running = spawn(process.execPath, [tsx, join(ROOT, 'scripts', 'build-content.ts'), '--lenient'], {
+      stdio: 'inherit',
+      cwd: ROOT,
+    });
+    running.on('exit', () => {
+      running = null;
+      if (again) {
+        again = false;
+        run();
       }
-    }, 150);
-  });
-  console.log('content:build — watching content/ for changes');
+    });
+  };
+  for (const dir of dirs)
+    watch(dir, { recursive: true }, () => {
+      clearTimeout(timer);
+      timer = setTimeout(run, 150);
+    });
+  console.log('content:build — watching content/ and the validator/challenge code for changes');
 }
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (isMain) {
   const watchMode = process.argv.includes('--watch');
-  const ok = buildContent({ failOnError: !watchMode });
+  const lenient = watchMode || process.argv.includes('--lenient');
+  const ok = buildContent({ failOnError: !lenient });
   if (watchMode) watchContent();
-  else process.exit(ok ? 0 : 1);
+  else process.exit(ok || lenient ? 0 : 1);
 }
