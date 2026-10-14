@@ -43,15 +43,15 @@ export const configSchema = z
       .min(1),
     overlays: z
       .strictObject({
-        /** Tangent line at the x given by each named control. */
-        tangent: z.union([name, z.array(name).min(1)]).optional(),
-        /** Secant from x0 to x0 + h (control names). */
-        secant: z.strictObject({ at: name, h: name }).optional(),
+        /** Tangent line at each x (a control name or an expression). */
+        tangent: z.union([numOrExpr, z.array(numOrExpr).min(1)]).optional(),
+        /** Secant from x0 to x0 + h (control names or expressions). */
+        secant: z.strictObject({ at: numOrExpr, h: numOrExpr }).optional(),
         /** Shaded signed area between a and b (control names or expressions). */
         area: z.strictObject({ a: numOrExpr, b: numOrExpr }).optional(),
         derivative: z.boolean().optional(),
-        /** A(x) = ∫ from `from` to x of f; `at` names the control whose A-value is reported. */
-        accumulation: z.strictObject({ from: numOrExpr, at: name.optional() }).optional(),
+        /** A(x) = ∫ from `from` to x of f; `at` (a control or expression) is where A is reported. */
+        accumulation: z.strictObject({ from: numOrExpr, at: numOrExpr.optional() }).optional(),
         /** Horizontal band y = L ± ε, with an optional vertical line at x = a and strip a ± dx (an ε–δ box). */
         band: z
           .strictObject({ y: numOrExpr, eps: numOrExpr, x: numOrExpr.optional(), dx: numOrExpr.optional() })
@@ -83,11 +83,7 @@ export const configSchema = z
       );
       need(!c.controls.some((k) => k.drag), 'draggable controls need function mode');
     }
-    const names = new Set(c.controls.map((k) => k.name));
     const o = c.overlays ?? {};
-    const tangents = o.tangent === undefined ? [] : Array.isArray(o.tangent) ? o.tangent : [o.tangent];
-    for (const n of [...tangents, o.secant?.at, o.secant?.h, o.accumulation?.at])
-      if (n !== undefined) need(names.has(n), `overlay refers to unknown control "${n}"`);
     if (o.target) {
       const t = o.target;
       if (c.mode === 'function') need(!!t.f, 'target needs f in function mode');
@@ -122,12 +118,13 @@ export interface Config {
   /** Plot window; entries may be expressions in the controls (e.g. a zoom width), so it is resolved per state. */
   view: { x: [number | string, number | string]; y: [number | string, number | string] };
   controls: Control[];
-  tangents: string[];
-  secant?: { at: string; h: string };
+  /** Overlay positions may name controls, so they are resolved per state (see `model`). */
+  tangents: (number | string)[];
+  secant?: { at: number | string; h: number | string };
   /** Area bounds stay raw so they can name controls; resolved per state. */
   area?: { a: number | string; b: number | string };
   derivative: boolean;
-  accumulation?: { from: number; at?: string };
+  accumulation?: { from: number; at?: number | string };
   /** May name controls (e.g. a guessed limit L), so it is resolved per state. */
   band?: { y: number | string; eps: number | string; x?: number | string; dx?: number | string };
   target?: { f?: string; x?: string; y?: string; r?: string };
@@ -232,7 +229,16 @@ export function model(config: Config, values: Record<string, number>) {
         dx: config.band.dx !== undefined ? num(config.band.dx) : undefined,
       }
     : undefined;
-  return { scope, f, fp, A, area, main, target, view, band };
+  const tangents = config.tangents.map(num);
+  const secant = config.secant ? { at: num(config.secant.at), h: num(config.secant.h) } : undefined;
+  const accAt = config.accumulation?.at !== undefined ? num(config.accumulation.at) : undefined;
+  /** The point the readouts (f(x₀), slopes, A(x₀)) refer to. */
+  const x0 =
+    tangents[0] ??
+    secant?.at ??
+    accAt ??
+    (config.controls.some((k) => k.name === 'x0') ? values.x0 : undefined);
+  return { scope, f, fp, A, area, main, target, view, band, tangents, secant, x0 };
 }
 
 /** Parameter range sampled for the plot and for matchError. */
@@ -255,20 +261,9 @@ export function matchError(config: Config, m: ReturnType<typeof model>): number 
   return worst;
 }
 
-/** The control whose x the tangent/secant/accumulation readouts refer to. */
-export function x0Name(config: Config): string | undefined {
-  return (
-    config.tangents[0] ??
-    config.secant?.at ??
-    config.accumulation?.at ??
-    config.controls.find((k) => k.name === 'x0')?.name
-  );
-}
-
 function scopeFor(values: Record<string, number>, config: Config): CheckScope {
   const m = model(config, values);
   const s: CheckScope = { ...values };
-  const xName = x0Name(config);
   if (m.f && m.fp) {
     const f = m.f;
     const fp = m.fp;
@@ -276,14 +271,14 @@ function scopeFor(values: Record<string, number>, config: Config): CheckScope {
     s.fp = (x: number) => fp(x);
     /** max |f(x) − c| on [lo, hi], skipping points where f is undefined. */
     s.maxDev = (lo: number, hi: number, c: number) => maxAbsOn((x) => f(x) - c, lo, hi);
-    if (xName !== undefined) {
-      const x0 = values[xName];
+    if (m.x0 !== undefined) {
+      const x0 = m.x0;
       s.x0 = x0;
       s.fx0 = f(x0);
       s.fpx0 = fp(x0);
-      if (config.secant) {
-        const h = values[config.secant.h];
-        s.secantSlope = (f(x0 + h) - f(x0)) / h;
+      if (m.secant) {
+        const { at, h } = m.secant;
+        s.secantSlope = (f(at + h) - f(at)) / h;
       }
       if (m.A) s.Ax0 = m.A(x0);
     }

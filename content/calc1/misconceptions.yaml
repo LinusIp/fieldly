@@ -1087,3 +1087,166 @@
   explain: |
     Pick a small positive ε instead.
   lessons: [calc1.u1.l7]
+
+# ── calc1.u2.l1: the derivative as a limit ──
+- id: secant-rise-only
+  short: "Slope is rise over run — divide the change in f by the change in x."
+  explain: |
+    (f(b) − f(a))/(b − a).
+  lessons: [calc1.u2.l1]
+
+- id: slope-inverted
+  short: "Slope is rise over run, not run over rise."
+  explain: |
+    Change in y on top.
+  lessons: [calc1.u2.l1]
+
+- id: secant-endpoint-value
+  short: "A value of f is a height, not a slope."
+  explain: |
+    A slope compares two heights over a run.
+  lessons: [calc1.u2.l1]
+
+- id: secant-is-tangent
+  short: "A secant over a finite h only approximates the tangent; its slope reaches f′(a) only in the limit h → 0."
+  explain: |
+    The difference is the h-terms in the quotient.
+  lessons: [calc1.u2.l1]
+
+- id: average-of-velocities
+  short: "Average velocity is total displacement over total time."
+  explain: |
+    Δs/Δt over the interval.
+  lessons: [calc1.u2.l1]
+
+- id: dq-drop-h-early
+  short: "Simplify the quotient first; h disappears only when you take the limit."
+  explain: |
+    Before the limit, terms with h remain.
+  lessons: [calc1.u2.l1]
+
+- id: dq-cancel-partial
+  short: "Divide every term on top by h."
+  explain: |
+    (2xh + h²)/h = 2x + h.
+  lessons: [calc1.u2.l1]
+
+- id: dq-h-equals-one
+  short: "Setting h = 1 gives a secant slope; the derivative needs h → 0."
+  explain: |
+    Take the limit of the simplified quotient.
+  lessons: [calc1.u2.l1]
+
+- id: dq-h-zero
+  short: "At h = 0 the quotient is 0/0 — the derivative is a limit as h → 0, never the value at h = 0."
+  explain: |
+    Use small non-zero h.
+  lessons: [calc1.u2.l1]
+
+- id: dq-half-step
+  short: "Use the full run between the two points."
+  explain: |
+    2.1 − 1.9 = 0.2.
+  lessons: [calc1.u2.l1]
+
+- id: derivative-is-value
+  short: "f′(a) is a slope; f(a) is a height — different numbers."
+  explain: |
+    The derivative measures how fast f changes.
+  lessons: [calc1.u2.l1]
+
+- id: constant-multiple-dropped
+  short: "A constant factor stays: (k·f)′ = k·f′."
+  explain: |
+    d/dx (kx²) = 2kx.
+  lessons: [calc1.u2.l1]
+
+- id: constant-multiple-dropped-twice
+  short: "Keep both the constant and the power: d/dx (kx²) = 2kx."
+  explain: |
+    Bring down the exponent and keep the coefficient.
+  lessons: [calc1.u2.l1]
+
+- id: cross-term-once
+  short: "(a + h)² has two cross terms: a·h + h·a = 2ah."
+  explain: |
+    Expand (a + h)(a + h) term by term.
+  lessons: [calc1.u2.l1]
+
+- id: square-as-double
+  short: "Squaring isn't doubling: (3 + h)² ≠ 2(3 + h)."
+  explain: |
+    Multiply the expression by itself.
+  lessons: [calc1.u2.l1]
+
+- id: tangent-intercept
+  short: "Find the intercept from the point: y = f(a) + f′(a)(x − a)."
+  explain: |
+    Check that the line passes through (a, f(a)).
+  lessons: [calc1.u2.l1]
+
+- id: tangent-intercept-double
+  short: "Solve m·a + b = f(a) for b: b = f(a) − m·a."
+  explain: |
+    Substitute back to check.
+  lessons: [calc1.u2.l1]
+
+- id: tangent-through-origin
+  short: "Tangent lines don't have to pass through the origin."
+  explain: |
+    Use the point of tangency.
+  lessons: [calc1.u2.l1]
+
+- id: tangent-adds-slope
+  short: "A tangent line is a straight line y = mx + b, not the curve shifted."
+  explain: |
+    y = f(a) + f′(a)(x − a).
+  lessons: [calc1.u2.l1]
+
+- id: tangent-swapped
+  short: "The slope is f′(a); the line passes through height f(a)."
+  explain: |
+    Don't swap value and slope.
+  lessons: [calc1.u2.l1]
+
+- id: tangent-root-at-point
+  short: "The tangent passes through (a, f(a)), which isn't on the x-axis."
+  explain: |
+    Set y = 0 in the tangent equation.
+  lessons: [calc1.u2.l1]
+
+- id: continuous-implies-differentiable
+  short: "Continuous doesn't mean differentiable: |x| is continuous at 0 but has a corner."
+  explain: |
+    Differentiable needs the one-sided slopes to agree.
+  lessons: [calc1.u2.l1]
+
+- id: continuous-implies-differentiable-contrapositive
+  short: "Failing to be differentiable says nothing about continuity: |x| is continuous at 0."
+  explain: |
+    Only "differentiable ⇒ continuous" is always true.
+  lessons: [calc1.u2.l1]
+
+- id: differentiable-equals-continuous
+  short: "Differentiability is stronger than continuity."
+  explain: |
+    Every differentiable function is continuous, not the reverse.
+  lessons: [calc1.u2.l1]
+
+- id: corner-slope-average
+  short: "At a corner the one-sided slopes disagree; averaging them isn't a derivative."
+  explain: |
+    The limit of the quotient must exist.
+  lessons: [calc1.u2.l1]
+
+- id: vertical-tangent-differentiable
+  short: "A vertical tangent means an infinite slope — not differentiable."
+  explain: |
+    The quotient goes to ±∞.
+  lessons: [calc1.u2.l1]
+
+- id: cusp-differentiable
+  short: "At a cusp the one-sided slopes go to opposite infinities."
+  explain: |
+    No limit, so no derivative.
+  lessons: [calc1.u2.l1]

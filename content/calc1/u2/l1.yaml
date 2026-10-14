@@ -1,0 +1,646 @@
+id: calc1.u2.l1
+title: "The derivative as a limit"
+version: 1
+concepts: [secant-tangent, difference-quotient, derivative-at-point, differentiability]
+estimatedMinutes: 25
+
+# Scenario: the parabola f(x) = k x² near the point x = a.
+params:
+  sets:
+    - { k: 3, a: 4 }
+    - { k: 6, a: 5 }
+    - { k: 4, a: 3 }
+
+intro: |
+  The slope of a **secant** through $(a, f(a))$ and $(a + h, f(a + h))$ is the **difference quotient**
+
+  $$\frac{f(a + h) - f(a)}{h},$$
+
+  the average rate of change over $[a, a + h]$. As $h \to 0$ the secant turns into the **tangent**, and its
+  slope becomes the **derivative**:
+
+  $$f'(a) = \lim_{h \to 0} \frac{f(a + h) - f(a)}{h}.$$
+
+  Plugging in $h = 0$ gives $\frac{0}{0}$ — so simplify first, exactly as in U1.
+
+  The tangent line at $a$ is $y = f(a) + f'(a)(x - a)$.
+
+  $f$ is **differentiable** at $a$ when that limit exists. Differentiable implies continuous, but not the
+  other way round: $|x|$ is continuous at 0 but has a corner there, where the left and right slopes ($-1$ and $1$) disagree.
+
+workedExample: |
+  $g(x) = 5x^2$ at $x = 4$:
+
+  - Difference quotient: $\frac{5(4 + h)^2 - 80}{h} = \frac{40h + 5h^2}{h} = 40 + 5h$ for $h \ne 0$.
+  - $g'(4) = \lim_{h \to 0} (40 + 5h) = 40$.
+  - Tangent: $y = 80 + 40(x - 4) = 40x - 80$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: secant-tangent
+    clueFor: [s2]
+    establishes: "Secant slope from {{a}} to {{a}} + h for {{k}}x²: {{k}}(2·{{a}} + h); at h = 0.5 it's {{k*(2*a + 0.5)}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: 'What is the slope of the secant to $f(x) = x^2$ through $x = 1$ and $x = 3$?'
+        answer: { expr: "4" }
+        distractors:
+          - { expr: "8", misconception: secant-rise-only }
+          - { expr: "0.25", misconception: slope-inverted }
+          - { expr: "9", misconception: secant-endpoint-value }
+        hints:
+          nudge: "Rise over run."
+          partial: "(9 − 1)/(3 − 1)"
+        explanation: |
+          **Answer:** 4
+
+          **Why:** $\frac{f(3) - f(1)}{3 - 1} = \frac{9 - 1}{2} = 4$.
+
+          **Common mistakes:**
+          - 8 — that's the rise; divide by the run, 2.
+          - 0.25 — run over rise is upside down.
+          - 9 — that's $f(3)$, a height, not a slope.
+
+          **Connects to:** Q2 — the general difference quotient.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'Find the slope of the secant to $f(x) = {{k}}x^2$ from $x = {{a}}$ to $x = {{a + 0.5}}$.'
+        answer: { expr: "k*(2*a + 0.5)" }
+        distractors:
+          - { expr: "k*(2*a + 0.5)/2", misconception: secant-rise-only }
+          - { expr: "2*k*a", misconception: secant-is-tangent }
+          - { expr: "1/(k*(2*a + 0.5))", misconception: slope-inverted }
+        hints:
+          nudge: "Compute f at both ends, then rise over run."
+          partial: "(f({{a+0.5}}) − f({{a}}))/0.5"
+        explanation: |
+          **Answer:** ${{k*(2*a + 0.5)}}$
+
+          **Why:** $\frac{ {{k}}({{a+0.5}})^2 - {{k*a^2}} }{0.5} = {{k*(2*a+0.5)}}$.
+
+          **Common mistakes:**
+          - ${{k*(2*a+0.5)/2}}$ — that's the rise; the run is 0.5.
+          - ${{2*k*a}}$ — that's the tangent's slope, the limit as $h \to 0$.
+          - The reciprocal — slope is rise over run.
+
+          **Connects to:** Q2 — any h.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: 'A cart is at $s(t) = {{k}}t^2$ metres after $t$ seconds. What is its average velocity from $t = {{a}}$ to $t = {{a + 1}}$?'
+        answer: { expr: "k*(2*a + 1)", unit: "m/s" }
+        distractors:
+          - { expr: "2*k*a", unit: "m/s", misconception: secant-is-tangent }
+          - { expr: "k*(a + 1)^2", unit: "m/s", misconception: secant-endpoint-value }
+          - { expr: "k*(2*a + 1)/2", unit: "m/s", misconception: average-of-velocities }
+        hints:
+          nudge: "Average velocity = change in position / change in time."
+          partial: "({{k}}·{{(a+1)^2}} − {{k*a^2}})/1"
+        explanation: |
+          **Answer:** ${{k*(2*a+1)}}$ m/s
+
+          **Why:** $\frac{s({{a+1}}) - s({{a}})}{1} = {{k*(a+1)^2}} - {{k*a^2}} = {{k*(2*a+1)}}$ — a secant slope on the position graph.
+
+          **Common mistakes:**
+          - ${{2*k*a}}$ — that's the velocity at the instant $t = {{a}}$.
+          - ${{k*(a+1)^2}}$ — that's a position.
+          - Halving — the time interval is 1 s, so nothing halves.
+
+          **Connects to:** Q2 — shrinking the interval.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: difference-quotient
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "(f({{a}} + h) − f({{a}}))/h = {{2*k*a}} + {{k}}h for h ≠ 0."
+    standaloneContext: "The secant slope through (a, f(a)) and (a + h, f(a + h)) is (f(a + h) − f(a))/h."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'Simplify $\dfrac{(x + h)^2 - x^2}{h}$ for $h \ne 0$.'
+        options:
+          - { text: '$2x + h$', correct: true }
+          - { text: '$2x$', misconception: dq-drop-h-early }
+          - { text: '$h$', misconception: square-distributes }
+          - { text: '$2x + h^2$', misconception: dq-cancel-partial }
+        verify:
+          - { lhs: "((x + h)^2 - x^2) / h", rhs: "2*x + h", vars: { x: [-3, 3], h: [0.1, 2] } }
+        hints:
+          nudge: "Expand (x + h)² first."
+          partial: "x² + 2xh + h² − x² = 2xh + h²."
+        explanation: |
+          **Answer:** $2x + h$.
+
+          **Why:** $\frac{2xh + h^2}{h} = 2x + h$ — every term on top has a factor $h$.
+
+          **Common mistakes:**
+          - $2x$ — that's the *limit*; before $h \to 0$ the $h$ remains.
+          - $h$ — $(x + h)^2 \ne x^2 + h^2$.
+          - $2x + h^2$ — divide every term by $h$.
+
+          **Connects to:** Q3 — letting h → 0.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'For $f(x) = {{k}}x^2$, simplify $\dfrac{f({{a}} + h) - f({{a}})}{h}$.'
+        options:
+          - { text: '${{2*k*a}} + {{k}}h$', correct: true }
+          - { text: '${{2*k*a}}$', misconception: dq-drop-h-early }
+          - { text: '${{2*a}} + h$', misconception: constant-multiple-dropped }
+          - { text: '${{k}}h$', misconception: square-distributes }
+        verify:
+          - { lhs: "(k*(a + h)^2 - k*a^2) / h", rhs: "2*k*a + k*h", vars: { h: [0.1, 2] } }
+        hints:
+          nudge: "Expand {{k}}({{a}} + h)² and subtract {{k*a^2}}."
+          buildsOn: "Q1: this is the secant slope for a general h."
+          partial: "{{k}}({{a^2}} + {{2*a}}h + h²) − {{k*a^2}} = {{2*k*a}}h + {{k}}h²."
+        explanation: |
+          **Answer:** ${{2*k*a}} + {{k}}h$.
+
+          **Why:** The top is ${{2*k*a}}h + {{k}}h^2$; dividing by $h$ gives ${{2*k*a}} + {{k}}h$. At $h = 0.5$ that's Q1's ${{k*(2*a+0.5)}}$.
+
+          **Common mistakes:**
+          - ${{2*k*a}}$ — that's after taking the limit.
+          - ${{2*a}} + h$ — the factor ${{k}}$ multiplies everything.
+          - ${{k}}h$ — the cross term ${{2*k*a}}h$ was lost.
+
+          **Connects to:** Q3 — the limit.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'For $f(x) = \dfrac{1}{x}$, simplify $\dfrac{f(x + h) - f(x)}{h}$.'
+        options:
+          - { text: '$-\dfrac{1}{x(x + h)}$', correct: true }
+          - { text: '$\dfrac{1}{x(x + h)}$', misconception: factor-sign }
+          - { text: '$-\dfrac{1}{x^2}$', misconception: dq-drop-h-early }
+          - { text: '$\dfrac{1}{h}$', misconception: dq-cancel-partial }
+        verify:
+          - { lhs: "(1/(x + h) - 1/x) / h", rhs: "-1 / (x * (x + h))", vars: { x: [1, 3], h: [0.1, 1] } }
+        hints:
+          nudge: "Combine 1/(x + h) − 1/x into one fraction."
+          buildsOn: "Q1: same quotient, different f."
+          partial: "(x − (x + h))/(x(x + h)) = −h/(x(x + h))."
+        explanation: |
+          **Answer:** $-\frac{1}{x(x + h)}$.
+
+          **Why:** $\frac{1}{x+h} - \frac{1}{x} = \frac{-h}{x(x+h)}$; divide by $h$. As $h \to 0$ this tends to $-\frac{1}{x^2}$.
+
+          **Common mistakes:**
+          - Positive — $x - (x + h) = -h$.
+          - $-\frac{1}{x^2}$ — that's the limit, not the simplified quotient.
+          - $\frac{1}{h}$ — the fractions must be combined first.
+
+          **Connects to:** Q3 — the limit.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: derivative-at-point
+    uses: [s2]
+    clueFor: [s4, s6]
+    establishes: "f'({{a}}) = lim (h → 0) of ({{2*k*a}} + {{k}}h) = {{2*k*a}}."
+    standaloneContext: "For f(x) = k x², the difference quotient at a is 2ka + kh (h ≠ 0)."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'The difference quotient of $x^2$ at $x = 1$ is $2 + h$. What is $f''(1)$?'
+        answer: { expr: "2" }
+        distractors:
+          - { expr: "3", misconception: dq-h-equals-one }
+          - { expr: "1", misconception: derivative-is-value }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        hints:
+          nudge: "Let h → 0."
+          partial: "2 + 0"
+        explanation: |
+          **Answer:** 2
+
+          **Why:** $\lim_{h \to 0} (2 + h) = 2$.
+
+          **Common mistakes:**
+          - 3 — that's $h = 1$, a secant.
+          - 1 — that's $f(1)$, a height.
+          - 0 — the $\frac{0}{0}$ was simplified away first.
+
+          **Connects to:** Q4 — the tangent line.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: 'For $f(x) = {{k}}x^2$, find $f''({{a}})$.'
+        answer: { expr: "2*k*a" }
+        distractors:
+          - { expr: "k*a^2", misconception: derivative-is-value }
+          - { expr: "2*k*a + k", misconception: dq-h-equals-one }
+          - { expr: "2*a", misconception: constant-multiple-dropped }
+        hints:
+          nudge: "Take the limit of the simplified quotient."
+          buildsOn: "Q2: the quotient is {{2*k*a}} + {{k}}h."
+          partial: "h → 0."
+        explanation: |
+          **Answer:** ${{2*k*a}}$
+
+          **Why:** $\lim_{h \to 0} ({{2*k*a}} + {{k}}h) = {{2*k*a}}$ (Q2).
+
+          **Common mistakes:**
+          - ${{k*a^2}}$ — that's $f({{a}})$.
+          - ${{2*k*a+k}}$ — that's the secant with $h = 1$.
+          - ${{2*a}}$ — the ${{k}}$ stays.
+
+          **Connects to:** Q4 — tangent lines.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'Using the limit definition, find $f''({{a^2}})$ for $f(x) = \sqrt{x}$.'
+        answer: { expr: "1/(2*a)" }
+        distractors:
+          - { expr: "a/2", misconception: quotient-law-inverted }
+          - { expr: "1/a", misconception: conjugate-half }
+          - { expr: "a", misconception: derivative-is-value }
+        hints:
+          nudge: "Rationalize: multiply by √({{a^2}} + h) + {{a}}."
+          buildsOn: "Q2: write the quotient, then simplify before h → 0."
+          partial: "h / (h(√({{a^2}} + h) + {{a}})) → 1/({{a}} + {{a}})."
+        explanation: |
+          **Answer:** $\frac{1}{ {{2*a}} } \approx {{1/(2*a)}}$
+
+          **Why:** $\frac{\sqrt{ {{a^2}} + h} - {{a}}}{h} = \frac{1}{\sqrt{ {{a^2}} + h} + {{a}}} \to \frac{1}{ {{2*a}} }$.
+
+          **Common mistakes:**
+          - $\frac{ {{a}} }{2}$ — upside down.
+          - $\frac{1}{ {{a}} }$ — the conjugate gives ${{a}} + {{a}}$.
+          - ${{a}}$ — that's $f({{a^2}})$.
+
+          **Connects to:** Q4 — tangent lines.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: derivative-at-point
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Tangent to {{k}}x² at x = {{a}}: y = {{2*k*a}}x − {{k*a^2}}."
+    standaloneContext: "The tangent line at a is y = f(a) + f'(a)(x − a)."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: 'Which is the tangent line to $f(x) = x^2$ at $x = 1$ (where $f''(1) = 2$)?'
+        options:
+          - { text: '$y = 2x - 1$', correct: true }
+          - { text: '$y = 2x + 1$', misconception: tangent-intercept }
+          - { text: '$y = 2x$', misconception: tangent-through-origin }
+          - { text: '$y = x^2 + 2$', misconception: tangent-adds-slope }
+        verify:
+          - { lhs: "1 + 2*(x - 1)", rhs: "2*x - 1", vars: { x: [-3, 3] } }
+        hints:
+          nudge: "y = f(1) + f′(1)(x − 1)."
+          partial: "1 + 2(x − 1)."
+        explanation: |
+          **Answer:** $y = 2x - 1$.
+
+          **Why:** $y = 1 + 2(x - 1) = 2x - 1$; it passes through $(1, 1)$ with slope 2.
+
+          **Common mistakes:**
+          - $2x + 1$ — that misses the point: at $x = 1$ it gives 3.
+          - $2x$ — tangents don't have to pass through the origin.
+          - $x^2 + 2$ — a tangent line is a line.
+
+          **Connects to:** Q6 — smooth joins.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Find the tangent line to $f(x) = {{k}}x^2$ at $x = {{a}}$.'
+        options:
+          - { text: '$y = {{2*k*a}}x - {{k*a^2}}$', correct: true }
+          - { text: '$y = {{2*k*a}}x + {{k*a^2}}$', misconception: tangent-intercept }
+          - { text: '$y = {{2*k*a}}x$', misconception: tangent-through-origin }
+          - { text: '$y = {{k*a^2}}x - {{2*k*a}}$', misconception: tangent-swapped }
+        verify:
+          - { lhs: "k*a^2 + 2*k*a*(x - a)", rhs: "2*k*a*x - k*a^2", vars: { x: [-3, 3] } }
+        hints:
+          nudge: "Point ({{a}}, {{k*a^2}}), slope {{2*k*a}}."
+          buildsOn: "Q3: f′({{a}}) = {{2*k*a}}."
+          partial: "y = {{k*a^2}} + {{2*k*a}}(x − {{a}})."
+        explanation: |
+          **Answer:** $y = {{2*k*a}}x - {{k*a^2}}$.
+
+          **Why:** $y = {{k*a^2}} + {{2*k*a}}(x - {{a}}) = {{2*k*a}}x - {{2*k*a^2}} + {{k*a^2}}$. Check: at $x = {{a}}$ it gives ${{k*a^2}}$.
+
+          **Common mistakes:**
+          - $+{{k*a^2}}$ — at $x = {{a}}$ that gives ${{3*k*a^2}}$, not ${{k*a^2}}$.
+          - Through the origin — the intercept isn't 0.
+          - Swapped — the slope is $f'({{a}})$, not $f({{a}})$.
+
+          **Connects to:** Q6 — smooth joins.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: 'Where does the tangent to $f(x) = {{k}}x^2$ at $x = {{a}}$ cross the $x$-axis?'
+        answer: { expr: "a/2" }
+        distractors:
+          - { expr: "0", misconception: tangent-through-origin }
+          - { expr: "a", misconception: tangent-root-at-point }
+          - { expr: "-a/2", misconception: sign-slip }
+        hints:
+          nudge: "Set y = 0 in the tangent line."
+          buildsOn: "Q3: slope {{2*k*a}} at ({{a}}, {{k*a^2}})."
+          partial: "{{2*k*a}}x − {{k*a^2}} = 0."
+        explanation: |
+          **Answer:** $x = {{a/2}}$
+
+          **Why:** ${{2*k*a}}x = {{k*a^2}}$ gives $x = \frac{ {{a}} }{2}$ — halfway to the point of tangency, for every parabola $kx^2$.
+
+          **Common mistakes:**
+          - 0 — the tangent misses the origin (unless $a = 0$).
+          - ${{a}}$ — the tangent passes through $({{a}}, {{k*a^2}})$, not $({{a}}, 0)$.
+          - Negative — both terms are positive here.
+
+          **Connects to:** Q6 — smooth joins.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: differentiability
+    clueFor: [s6]
+    establishes: "Differentiable ⇒ continuous, not conversely: corners, cusps and vertical tangents break differentiability."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: 'Is $f(x) = |x|$ differentiable at $x = 0$?'
+        options:
+          - { text: 'No: slopes $-1$ on the left and $1$ on the right disagree (a corner)', correct: true }
+          - { text: 'Yes: it is continuous at 0', misconception: continuous-implies-differentiable }
+          - { text: 'Yes: $f''(0) = 0$', misconception: corner-slope-average }
+          - { text: 'No: $|0|$ is undefined', misconception: zero-is-undefined }
+        hints:
+          nudge: "Compute the one-sided limits of |h|/h."
+          partial: "−1 from the left, 1 from the right."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** $\frac{|h|}{h}$ is $-1$ for $h < 0$ and $1$ for $h > 0$, so the limit doesn't exist.
+
+          **Common mistakes:**
+          - "Continuous" — continuity doesn't guarantee a slope.
+          - "$f'(0) = 0$" — averaging the sides isn't allowed.
+          - "Undefined" — $|0| = 0$.
+
+          **Connects to:** Q6 — smooth joins.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'Which statement is always true?'
+        options:
+          - { text: 'If $f$ is differentiable at $a$, then $f$ is continuous at $a$', correct: true }
+          - { text: 'If $f$ is continuous at $a$, then $f$ is differentiable at $a$', misconception: continuous-implies-differentiable }
+          - { text: 'If $f$ is not differentiable at $a$, it is not continuous at $a$', misconception: continuous-implies-differentiable-contrapositive }
+          - { text: 'Differentiable and continuous mean the same thing', misconception: differentiable-equals-continuous }
+        hints:
+          nudge: "Think of |x| at 0."
+          partial: "It's continuous but not differentiable."
+        explanation: |
+          **Answer:** differentiable ⇒ continuous.
+
+          **Why:** If $\frac{f(a + h) - f(a)}{h}$ has a limit, then $f(a + h) - f(a) = h \cdot (\ldots) \to 0 \cdot f'(a) = 0$.
+
+          **Common mistakes:**
+          - The converse — $|x|$ is a counterexample.
+          - "Not differentiable ⇒ not continuous" — $|x|$ again.
+          - "Same thing" — differentiability is stronger.
+
+          **Connects to:** Q6 — smooth joins.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: 'Which function **is** differentiable at $x = 0$?'
+        options:
+          - { text: '$x\,|x|$', correct: true }
+          - { text: '$|x|$', misconception: continuous-implies-differentiable }
+          - { text: '$\sqrt[3]{x}$', misconception: vertical-tangent-differentiable }
+          - { text: '$x^{2/3}$', misconception: cusp-differentiable }
+        hints:
+          nudge: "Compute (f(h) − f(0))/h for each."
+          partial: "For x|x|: h|h|/h = |h| → 0."
+        explanation: |
+          **Answer:** $x|x|$, with derivative 0.
+
+          **Why:** $\frac{h|h|}{h} = |h| \to 0$. The others: $|x|$ has a corner, $\sqrt[3]{x}$ a vertical tangent (quotient → ∞), $x^{2/3}$ a cusp.
+
+          **Common mistakes:**
+          - $|x|$ — a corner.
+          - $\sqrt[3]{x}$ — $\frac{h^{1/3}}{h} = h^{-2/3} \to \infty$.
+          - $x^{2/3}$ — the quotient $h^{-1/3}$ goes to $\pm\infty$.
+
+          **Connects to:** Q6 — smooth joins.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: differentiability
+    uses: [s3, s4, s5]
+    establishes: "kx² (x ≤ {{a}}) joined to its tangent line (x > {{a}}) is differentiable at {{a}}: same value, same slope."
+    standaloneContext: |
+      For f(x) = k x², f'(a) = 2ka and the tangent at a is y = 2ka·x − ka². Differentiable needs the one-sided slopes to agree.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'A table gives $f(1.9) = 3.61$ and $f(2.1) = 4.41$. Estimate $f''(2)$.'
+        answer: { expr: "4" }
+        distractors:
+          - { expr: "0.8", misconception: secant-rise-only }
+          - { expr: "4.01", misconception: derivative-is-value }
+          - { expr: "8", misconception: dq-half-step }
+        hints:
+          nudge: "Use the secant through both points."
+          buildsOn: "Q3: the derivative is the limit of secant slopes."
+          partial: "(4.41 − 3.61)/0.2"
+        explanation: |
+          **Answer:** 4
+
+          **Why:** $\frac{4.41 - 3.61}{2.1 - 1.9} = \frac{0.8}{0.2} = 4$ — a symmetric secant around 2 approximates the tangent's slope (Q3).
+
+          **Common mistakes:**
+          - 0.8 — divide by the run.
+          - 4.01 — that's an estimate of $f(2)$, not of $f'(2)$.
+          - 8 — the run is 0.2, not 0.1.
+
+          **Connects to:** the challenge.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          $g(x) = {{k}}x^2$ for $x \le {{a}}$ and $g(x) = mx + b$ for $x > {{a}}$. Which $m$ is needed for $g$ to be differentiable at ${{a}}$?
+        answer: { expr: "2*k*a" }
+        distractors:
+          - { expr: "k*a^2", misconception: derivative-is-value }
+          - { expr: "k*a", misconception: constant-multiple-dropped }
+          - { expr: "2*a", misconception: constant-multiple-dropped-twice }
+        hints:
+          nudge: "Differentiable at {{a}} needs the left and right slopes to agree."
+          buildsOn: "Q3: the parabola's slope at {{a}} is {{2*k*a}}. Q5: corners aren't differentiable."
+          partial: "The line's slope m must equal {{2*k*a}}."
+        explanation: |
+          **Answer:** $m = {{2*k*a}}$
+
+          **Why:** The left slope is $f'({{a}}) = {{2*k*a}}$ (Q3); without $m = {{2*k*a}}$ there'd be a corner (Q5).
+
+          **Common mistakes:**
+          - ${{k*a^2}}$ — that's the height at ${{a}}$.
+          - ${{k*a}}$ — the derivative of ${{k}}x^2$ is ${{2*k}}x$.
+          - ${{2*a}}$ — the factor ${{k}}$ stays.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: 'Continuing: with $m = {{2*k*a}}$, which $b$ makes $g$ differentiable at ${{a}}$?'
+        answer: { expr: "-k*a^2" }
+        distractors:
+          - { expr: "k*a^2", misconception: tangent-intercept }
+          - { expr: "0", misconception: tangent-through-origin }
+          - { expr: "-2*k*a^2", misconception: tangent-intercept-double }
+        hints:
+          nudge: "Differentiable needs continuous first: the pieces must meet."
+          buildsOn: "Q4: the line must be the tangent. Q5: differentiable ⇒ continuous."
+          partial: "{{2*k*a}} · {{a}} + b = {{k*a^2}}."
+        explanation: |
+          **Answer:** $b = -{{k*a^2}}$
+
+          **Why:** Continuity at ${{a}}$ (Q5) needs ${{2*k*a}} \cdot {{a}} + b = {{k*a^2}}$, so $b = {{k*a^2 - 2*k*a^2}}$. The line is then exactly Q4's
+          tangent.
+
+          **Common mistakes:**
+          - $+{{k*a^2}}$ — then the line sits ${{2*k*a^2}}$ too high at ${{a}}$.
+          - 0 — the tangent misses the origin.
+          - $-{{2*k*a^2}}$ — add back $f({{a}}) = {{k*a^2}}$.
+
+          **Connects to:** the challenge.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: difference-quotient
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'Expand $(3 + h)^2$.'
+        options:
+          - { text: '$9 + 6h + h^2$', correct: true }
+          - { text: '$9 + h^2$', misconception: square-distributes }
+          - { text: '$9 + 3h + h^2$', misconception: cross-term-once }
+          - { text: '$6 + 2h$', misconception: square-as-double }
+        verify:
+          - { lhs: "(3 + h)^2", rhs: "9 + 6*h + h^2", vars: { h: [-2, 2] } }
+        hints:
+          nudge: "(3 + h)(3 + h): four products."
+          partial: "9 + 3h + 3h + h²."
+        explanation: |
+          **Answer:** $9 + 6h + h^2$.
+
+          **Why:** $(3 + h)(3 + h) = 9 + 3h + 3h + h^2$. The cross term $6h$ is what survives in $\frac{(3+h)^2 - 9}{h} = 6 + h$.
+
+          **Common mistakes:**
+          - $9 + h^2$ — the cross terms are missing.
+          - $3h$ once — there are two cross products.
+          - $6 + 2h$ — squaring isn't doubling.
+
+          **Connects to:** Q2 — simplifying the quotient.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u2.l1.ch
+  type: graph-manipulator
+  title: "Secant to tangent"
+  concept: secant-tangent
+  uses: [s1, s3]
+  params:
+    sets:
+      - { a: 1 }
+      - { a: 2 }
+      - { a: 3 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $f(x) = x^3 - 2x$ at $x = {{a}}$. Shrink $h$ until the secant's slope is within **0.1** of the tangent's slope ${{3*a^2 - 2}}$.
+      config:
+        f: "x^3 - 2*x"
+        view: { x: ["a - 1", "a + 1.5"], y: ["a^3 - 5*a - 2", "a^3 + 6*a^2 - 2*a + 6"] }
+        controls:
+          - { name: h, min: 0.0005, max: 1.5, step: 0.0005, initial: 1.5 }
+        overlays: { secant: { at: "a", h: "h" }, tangent: "a" }
+      check: { expr: "abs(secantSlope - fpx0) < 0.1" }
+      feedback:
+        - { if: "true", say: "The secant is still too steep. Slide the second point closer: smaller h.", misconception: secant-is-tangent }
+      hints:
+        nudge: "Watch the orange secant swing toward the tangent as h shrinks."
+        buildsOn: "From Q3: f′(a) is the limit of secant slopes."
+        partial: "The gap is 3·{{a}}·h + h² — make it less than 0.1."
+      solution: { h: "0.5 * 0.1 / (3*a + 1)" }
+      explanation: |
+        The secant slope is $3a^2 - 2 + 3ah + h^2$; the extra $3ah + h^2$ shrinks to 0 with $h$ — that's the limit defining $f'({{a}})$.
+    standard:
+      difficulty: 3
+      goal: |
+        Same $f(x) = x^3 - 2x$ at $x = {{a}}$, but get the secant slope within **0.01** of the tangent slope.
+      config:
+        f: "x^3 - 2*x"
+        view: { x: ["a - 1", "a + 1.5"], y: ["a^3 - 5*a - 2", "a^3 + 6*a^2 - 2*a + 6"] }
+        controls:
+          - { name: h, min: 0.0005, max: 1.5, step: 0.0005, initial: 1.5 }
+        overlays: { secant: { at: "a", h: "h" }, tangent: "a" }
+      check: { expr: "abs(secantSlope - fpx0) < 0.01" }
+      feedback:
+        - { if: "abs(secantSlope - fpx0) < 0.1", say: "Within 0.1 — ten times closer is needed. Keep shrinking h." }
+        - { if: "true", say: "Still too far apart: shrink h.", misconception: secant-is-tangent }
+      hints:
+        nudge: "The error is roughly proportional to h."
+        buildsOn: "From Q2: the quotient is f′(a) plus terms with h."
+        partial: "3·{{a}}·h < 0.01 means h below about {{0.01/(3*a)}}."
+      solution: { h: "0.5 * 0.01 / (3*a + 1)" }
+      explanation: |
+        The gap $3ah + h^2$ is about $3ah$: ten times more accuracy needs ten times smaller $h$.
+    harder:
+      difficulty: 4
+      goal: |
+        $g(x) = \sqrt{x}$ at $x = {{a/4}}$, where it curves sharply. Get the secant slope within **0.01** of the tangent slope. $h$ may be negative
+        — but not 0.
+      config:
+        f: "sqrt(x)"
+        view: { x: [0, "a/4 + 1.2"], y: [-0.2, 1.6] }
+        controls:
+          - { name: h, min: -0.2, max: 1, step: 0.0005, initial: 1 }
+        overlays: { secant: { at: "a/4", h: "h" }, tangent: "a/4" }
+      check: { expr: "abs(secantSlope - fpx0) < 0.01" }
+      feedback:
+        - { if: "h == 0", say: "With h = 0 the quotient is 0/0 — the derivative is a limit, not a value at h = 0.", misconception: dq-h-zero }
+        - { if: "true", say: "Still too far apart. Near a sharp bend you need a much smaller h.", misconception: secant-is-tangent }
+      hints:
+        nudge: "The tighter the bend, the smaller h must be."
+        buildsOn: "From Q3: f′ = lim of the quotient — h never equals 0."
+        partial: "Near {{a/4}} the error is about h/(8·({{a/4}})^1.5)."
+      solution: { h: "0.004 * (a/4)^1.5" }
+      explanation: |
+        For $\sqrt{x}$ the secant error is about $\frac{|h|}{8x^{3/2}}$ — large near 0, where the curve bends sharply. The derivative there,
+        $\frac{1}{2\sqrt{x}}$, is still the limit of the secant slopes.
+
+summary:
+  keyTakeaways:
+    - "Secant slope (f(a + h) − f(a))/h is the average rate of change over [a, a + h]."
+    - "f′(a) = lim_{h→0} of that quotient; simplify the 0/0 before letting h → 0."
+    - "The tangent line at a is y = f(a) + f′(a)(x − a)."
+    - "Differentiable ⇒ continuous, not conversely: corners, cusps and vertical tangents fail."
+  next: calc1.u2.l2

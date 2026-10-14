@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { graphLogic } from '../../src/challenges/graph-manipulator/logic';
+import { graphLogic, model } from '../../src/challenges/graph-manipulator/logic';
 import { approximate, effectiveN, riemannLogic } from '../../src/challenges/riemann-sum/logic';
 import { seriesLogic, taylorCoefficients } from '../../src/challenges/series-explorer/logic';
 import { makeResolveCtx, type ChallengeLogic } from '../../src/challenges/types';
@@ -127,7 +127,36 @@ describe('graph-manipulator', () => {
         overlays: { tangent: 'a' },
       }),
     ).toThrow();
-    expect(() => graphLogic.configSchema.parse({ ...raw, overlays: { tangent: 'nope' } })).toThrow();
+    // Overlay positions are expressions: an unknown name fails when the scope is computed.
+    const bad = setup(graphLogic, { ...raw, overlays: { tangent: 'nope' } }, { k: 1 });
+    expect(() => bad.at(graphLogic.initialState(bad.config))).toThrow(/nope/);
+  });
+
+  it('places overlays at expressions and follows control-dependent views', () => {
+    const { config, at } = setup(
+      graphLogic,
+      {
+        f: 'x^3',
+        view: { x: ['a - w', 'a + w'], y: [-1, 30] },
+        controls: [
+          { name: 'h', min: 0.001, max: 1, step: 0.001, initial: 0.5 },
+          { name: 'w', min: 0.1, max: 2, step: 0.1, initial: 1 },
+        ],
+        overlays: {
+          secant: { at: 'a', h: 'h' },
+          tangent: 'a',
+          band: { y: 'a^3', eps: 0.1, x: 'a', dx: 'h' },
+        },
+      },
+      { a: 2 },
+    );
+    const s = at({ values: { h: 0.1, w: 0.5 } });
+    expect(s.x0).toBe(2);
+    expect(s.fpx0).toBeCloseTo(12, 5);
+    expect(s.secantSlope).toBeCloseTo(12 + 3 * 2 * 0.1 + 0.01, 9); // 3a² + 3ah + h²
+    const m = model(config, { h: 0.1, w: 0.5 });
+    expect(m.view.x).toEqual([1.5, 2.5]);
+    expect(m.band).toEqual({ y: 8, eps: 0.1, x: 2, dx: 0.1 });
   });
 });
 

@@ -2,16 +2,7 @@ import { useId, useRef } from 'react';
 import { formatNumber } from '../../engine/format';
 import { ticks } from '../plot';
 import type { ChallengeComponentProps } from '../types';
-import {
-  checkScope,
-  currentValues,
-  domain,
-  model,
-  x0Name,
-  type Config,
-  type Control,
-  type State,
-} from './logic';
+import { checkScope, currentValues, domain, model, type Config, type Control, type State } from './logic';
 
 const W = 640;
 const H = 360;
@@ -92,8 +83,7 @@ export function GraphManipulator({
 
   const f = m.f;
   const fp = m.fp;
-  const xName = x0Name(config);
-  const x0 = xName !== undefined ? values[xName] : undefined;
+  const x0 = m.x0;
   const line = (px: number, py: number, slope: number) =>
     `M${sx(x0v).toFixed(1)},${sy(py + slope * (x0v - px)).toFixed(1)}L${sx(x1v).toFixed(1)},${sy(py + slope * (x1v - px)).toFixed(1)}`;
 
@@ -242,18 +232,16 @@ export function GraphManipulator({
           <path d={pathOf(m.main, domain(config, m))} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
           {f &&
             fp &&
-            config.tangents.map((n) => {
-              const x = values[n];
+            m.tangents.map((x, i) => {
               const y = f(x);
               return Number.isFinite(y) ? (
-                <path key={n} d={line(x, y, fp(x))} stroke="var(--c-accent)" strokeWidth={1.8} fill="none" />
+                <path key={i} d={line(x, y, fp(x))} stroke="var(--c-accent)" strokeWidth={1.8} fill="none" />
               ) : null;
             })}
           {f &&
-            config.secant &&
+            m.secant &&
             (() => {
-              const x = values[config.secant.at];
-              const h = values[config.secant.h];
+              const { at: x, h } = m.secant;
               const y = f(x);
               const y2 = f(x + h);
               if (!Number.isFinite(y) || !Number.isFinite(y2) || h === 0) return null;
