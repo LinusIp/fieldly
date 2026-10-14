@@ -6,6 +6,7 @@ import { circuitLogic, describeState, type Config, type RawConfig, type Solution
 const circuitBuilder: InteractiveModule<RawConfig, Config, State, Solution> = {
   ...circuitLogic,
   Component: makePlaceholder<Config, State>(describeState),
+  placeholder: true,
 };
 
 export default circuitBuilder;

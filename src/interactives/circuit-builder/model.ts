@@ -338,7 +338,16 @@ export function parseBuildNetlist(lines: string[], config: Config): Netlist {
 }
 
 export function scopeFromResult(r: SolveResult, net: Netlist, config: Config): CheckScope {
-  const s: CheckScope = { I: r.I, Req: r.Req, Ptot: r.Ptot, n: r.n, isShort: r.isShort, isOpen: r.isOpen };
+  // `parts` is what challenge `par` counts (§7.5).
+  const s: CheckScope = {
+    I: r.I,
+    Req: r.Req,
+    Ptot: r.Ptot,
+    n: r.n,
+    parts: r.n,
+    isShort: r.isShort,
+    isOpen: r.isOpen,
+  };
   // Parts that could be placed but aren't yet read 0, so rules like "P_L2 > 0" still evaluate.
   const totals = new Map<ElementKind, number>();
   for (const p of config.palette)

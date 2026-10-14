@@ -1,10 +1,10 @@
-import type { ChallengeModule } from './types';
+import type { InteractiveModule } from './types';
 
-/** Lazy map: challenge type → module. Each type is its own chunk, loaded when first needed. */
+/** Lazy map: interactive type → module (model + view). Each type is its own chunk, loaded when first needed. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyModule = ChallengeModule<any, any, any, any>;
+export type AnyModule = InteractiveModule<any, any, any, any>;
 
-export const challengeRegistry: Record<string, () => Promise<AnyModule>> = {
+export const interactiveRegistry: Record<string, () => Promise<AnyModule>> = {
   'circuit-builder': () => import('./circuit-builder').then((m) => m.default),
   'transient-plotter': () => import('./transient-plotter').then((m) => m.default),
   'code-runner': () => import('./code-runner').then((m) => m.default),
@@ -17,11 +17,11 @@ export const challengeRegistry: Record<string, () => Promise<AnyModule>> = {
 
 const cache = new Map<string, Promise<AnyModule>>();
 
-export function loadChallenge(type: string): Promise<AnyModule> {
+export function loadInteractive(type: string): Promise<AnyModule> {
   let p = cache.get(type);
   if (!p) {
-    const loader = challengeRegistry[type];
-    if (!loader) return Promise.reject(new Error(`Unknown challenge type "${type}"`));
+    const loader = interactiveRegistry[type];
+    if (!loader) return Promise.reject(new Error(`Unknown interactive type "${type}"`));
     p = loader().catch((e) => {
       cache.delete(type);
       throw e;

@@ -66,6 +66,8 @@ export interface InteractiveModule<
   Solution = unknown,
 > extends InteractiveModel<Raw, Config, State, Solution> {
   Component: FC<InteractiveViewProps<Config, State>>;
+  /** The view is a stand-in until the full one is built (§14 Phase 2); hosts offer "Do it for me". */
+  placeholder?: boolean;
   /** Optional async work before a check (e.g. running the student's code); returns the new state. */
   beforeCheck?(state: State, config: Config, ctx: { codeLang: 'python' | 'javascript' }): Promise<State>;
 }
