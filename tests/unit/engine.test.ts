@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { evalBoolean, evalNumber, near } from '../../src/engine/expr';
 import { formatNumber } from '../../src/engine/format';
-import { buildOptions, type OptionQuestion } from '../../src/engine/options';
+import { buildOptions, type McqQuestion } from '../../src/widgets/mcq/model';
 import {
   applyDerived,
   buildScope,
@@ -80,7 +80,7 @@ describe('params', () => {
 });
 
 describe('options', () => {
-  const q: OptionQuestion = {
+  const q: Pick<McqQuestion, 'id' | 'answer' | 'distractors' | 'options' | 'fixedOrder'> = {
     id: 'q',
     answer: { expr: 'V / R', unit: 'A' },
     distractors: [
@@ -95,7 +95,7 @@ describe('options', () => {
     expect(o.find((x) => x.correct)?.text).toBe('2 A');
   });
   it('shuffles static options deterministically', () => {
-    const s: OptionQuestion = {
+    const s: typeof q = {
       ...q,
       answer: undefined,
       distractors: undefined,

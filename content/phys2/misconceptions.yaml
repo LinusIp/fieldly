@@ -1106,3 +1106,58 @@
   explain: |
     From $T = \tau \ln 2$, divide: $\tau = T/\ln 2$.
   lessons: [phys2.u3.l8]
+
+# ── phys2.u3.l2: Ohm's law and electrical power (reference lesson) ──
+- id: parallel-gets-more
+  short: "Each parallel branch carries only part of the current that feeds it."
+  explain: |
+    The current splits at the junction; a resistor carrying all of it dissipates more (P = I²R).
+  lessons: [phys2.u3.l2]
+
+- id: ohm-rearrange
+  short: "Rearrange V = IR carefully: V is already on its own."
+  explain: |
+    V = IR; I = V/R; R = V/I.
+  lessons: [phys2.u3.l2]
+
+- id: computed-power-instead
+  short: "V × I is the power in watts, not the resistance."
+  explain: |
+    Resistance is R = V/I.
+  lessons: [phys2.u3.l2]
+
+- id: largest-only
+  short: "In series every resistor adds to the total, not just the largest."
+  explain: |
+    R_tot = R₁ + R₂ + R₃.
+  lessons: [phys2.u3.l2]
+
+- id: average-resistance
+  short: "Parallel resistance is not the average — it is smaller than the smallest resistor."
+  explain: |
+    1/R = 1/R₁ + 1/R₂, or product over sum for two.
+  lessons: [phys2.u3.l2]
+
+- id: power-rearrange
+  short: "From P = VI, the current is I = P/V — not V/P."
+  explain: |
+    Check the units: watts ÷ volts = amperes.
+  lessons: [phys2.u3.l2]
+
+- id: divider-swapped
+  short: "That is the voltage across the other resistor."
+  explain: |
+    In series, each resistor gets V × (its R) / R_tot — the bigger resistor gets the bigger share.
+  lessons: [phys2.u3.l2]
+
+- id: equal-split
+  short: "The split is equal only when the parts are identical."
+  explain: |
+    Series voltages and parallel currents divide in proportion to resistance (or its inverse).
+  lessons: [phys2.u3.l2]
+
+- id: parallel-dimmer
+  short: "Bulbs in parallel each get the full battery voltage, so each is as bright as a single bulb."
+  explain: |
+    It is series bulbs that share the voltage and glow dimmer.
+  lessons: [phys2.u3.l2]

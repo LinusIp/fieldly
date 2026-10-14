@@ -1,48 +1,57 @@
 /**
- * DC circuit solver: Modified Nodal Analysis (§9.2 circuit-builder).
- * - Wires and closed switches merge their terminals into one node (union-find).
- * - Ammeters are zero-volt sources, so their current is solved for; voltmeters are open circuits.
- * - A zero-resistance path across the battery is a short circuit; no resistive loop is an open circuit.
+ * DC steady-state circuit solver: Modified Nodal Analysis (§9.4 circuit-builder).
+ * - Wires and closed switches merge their terminals into one node (union-find), so loops of wires
+ *   never make the system singular.
+ * - Batteries are voltage sources (− terminal of B1 is ground); internal resistance adds a node.
+ * - Ideal ammeters are zero-volt sources (their current is solved for); ideal voltmeters and
+ *   capacitors are open. Non-ideal meters are resistors.
+ * - A tiny conductance from every node to ground keeps floating parts solvable.
  */
 
-export type ElementKind = 'resistor' | 'bulb' | 'wire' | 'switch' | 'ammeter' | 'voltmeter';
+export type ElementKind =
+  'battery' | 'resistor' | 'bulb' | 'capacitor' | 'wire' | 'switch' | 'ammeter' | 'voltmeter';
 
 export interface NetElement {
   label: string;
   kind: ElementKind;
+  /** First node (the + terminal for a battery). */
   a: string;
   b: string;
   resistance?: number;
+  voltage?: number;
+  internalResistance?: number;
+  capacitance?: number;
   closed?: boolean;
 }
 
 export interface Netlist {
-  battery: { p: string; n: string; voltage: number; internalResistance?: number };
   elements: NetElement[];
+  meters?: { ammeterResistance?: number; voltmeterResistance?: number };
 }
 
 export interface ElementResult {
-  /** Current through the element (A), ≥ 0; NaN when undefined (e.g. a floating voltmeter). */
+  /** Magnitudes. NaN when undefined (an ammeter in a loop of ammeters). */
   I: number;
-  /** Voltage across the element (V), ≥ 0. */
   V: number;
-  /** Power dissipated (W). */
   P: number;
-  /** Direction of conventional current: +1 from a to b, −1 from b to a, 0 none. */
-  dir: number;
+  /** Signed, positive from the first node (a) to the second (b). */
+  Is: number;
+  Vs: number;
 }
 
 export interface SolveResult {
+  /** Current out of B1's + terminal (A). */
   I: number;
+  /** B1 terminal voltage ÷ I. */
   Req: number;
+  /** Total power delivered by all batteries. */
   Ptot: number;
+  /** Resistors + bulbs placed. */
   n: number;
   isShort: boolean;
   isOpen: boolean;
   elements: Record<string, ElementResult>;
-  /** Node voltages relative to the battery's negative terminal; undefined for floating nodes. */
   nodeV: Map<string, number>;
-  /** Canonical node id of every terminal key. */
   nodeOf: (key: string) => string;
   warnings: string[];
 }
@@ -68,14 +77,15 @@ class UnionFind {
 }
 
 const EPS = 1e-12;
+const G_MIN = 1e-9;
 
-/** Solve A x = b in place with partial pivoting; returns null when singular. */
+/** Solve A x = b with partial pivoting; returns null when singular. */
 export function gaussSolve(A: number[][], b: number[]): number[] | null {
   const n = b.length;
   for (let col = 0; col < n; col++) {
     let piv = col;
     for (let r = col + 1; r < n; r++) if (Math.abs(A[r][col]) > Math.abs(A[piv][col])) piv = r;
-    if (Math.abs(A[piv][col]) < 1e-10) return null;
+    if (Math.abs(A[piv][col]) < 1e-12) return null;
     [A[col], A[piv]] = [A[piv], A[col]];
     [b[col], b[piv]] = [b[piv], b[col]];
     for (let r = col + 1; r < n; r++) {
@@ -94,137 +104,116 @@ export function gaussSolve(A: number[][], b: number[]): number[] | null {
   return x;
 }
 
-function conducts(e: NetElement): boolean {
-  return e.kind === 'resistor' || e.kind === 'bulb';
+const isWireLike = (e: NetElement) => e.kind === 'wire' || (e.kind === 'switch' && !!e.closed);
+
+/** Resistance an element presents, or null when it is open or a voltage source. */
+function resistanceOf(e: NetElement, net: Netlist): number | null {
+  if (e.kind === 'resistor' || e.kind === 'bulb') return Math.max(e.resistance ?? 0, EPS);
+  if (e.kind === 'ammeter' && net.meters?.ammeterResistance) return net.meters.ammeterResistance;
+  if (e.kind === 'voltmeter' && net.meters?.voltmeterResistance) return net.meters.voltmeterResistance;
+  return null;
 }
 
-function shorts(e: NetElement, ammetersAsWires: boolean): boolean {
-  return (
-    e.kind === 'wire' || (e.kind === 'switch' && !!e.closed) || (ammetersAsWires && e.kind === 'ammeter')
-  );
-}
+const idealAmmeter = (e: NetElement, net: Netlist) => e.kind === 'ammeter' && !net.meters?.ammeterResistance;
 
-export function solveCircuit(net: Netlist): SolveResult {
-  const { voltage: V } = net.battery;
-  const rInt = net.battery.internalResistance ?? 0;
+export function solveCircuit(net: Netlist, opts: { ammetersAsWires?: boolean } = {}): SolveResult {
   const warnings: string[] = [];
+  const els = net.elements;
+  const batteries = els.filter((e) => e.kind === 'battery');
+  const b1 = batteries.find((e) => e.label === 'B1') ?? batteries[0];
 
-  // Zero-resistance connections, with and without ammeters.
   const uf = new UnionFind();
-  const ufA = new UnionFind();
-  for (const e of net.elements) {
+  for (const e of els) {
     uf.find(e.a);
     uf.find(e.b);
-    if (shorts(e, false)) uf.union(e.a, e.b);
-    if (shorts(e, true)) ufA.union(e.a, e.b);
+    if (isWireLike(e) || (opts.ammetersAsWires && e.kind === 'ammeter')) uf.union(e.a, e.b);
   }
-  uf.find(net.battery.p);
-  uf.find(net.battery.n);
   const nodeOf = (k: string) => uf.find(k);
-  const P = nodeOf(net.battery.p);
-  const N = nodeOf(net.battery.n);
-  const isShort = ufA.find(net.battery.p) === ufA.find(net.battery.n);
+  const ground = b1 ? nodeOf(b1.b) : nodeOf(els[0]?.a ?? '0');
 
-  // Active component: nodes reachable from the battery through resistive elements and ammeters.
-  const adj = new Map<string, string[]>();
+  // Short: a battery's terminals joined by zero-resistance parts (wires, switches, ideal ammeters).
+  const ufA = new UnionFind();
+  for (const e of els) {
+    ufA.find(e.a);
+    ufA.find(e.b);
+    if (isWireLike(e) || idealAmmeter(e, net)) ufA.union(e.a, e.b);
+  }
+  const shorted = batteries.filter((bt) => ufA.find(bt.a) === ufA.find(bt.b));
+  const isShort = shorted.some((bt) => !(bt.internalResistance && bt.internalResistance > 0));
+
+  // Open: no conducting path from B1's + back to its − (other batteries count as paths).
+  const adj = new Map<string, Set<string>>();
   const link = (x: string, y: string) => {
-    if (!adj.has(x)) adj.set(x, []);
-    if (!adj.has(y)) adj.set(y, []);
-    adj.get(x)!.push(y);
-    adj.get(y)!.push(x);
+    if (!adj.has(x)) adj.set(x, new Set());
+    if (!adj.has(y)) adj.set(y, new Set());
+    adj.get(x)!.add(y);
+    adj.get(y)!.add(x);
   };
-  for (const e of net.elements) {
-    if (conducts(e) || e.kind === 'ammeter') link(nodeOf(e.a), nodeOf(e.b));
+  for (const e of els) {
+    if (e === b1) continue;
+    if (resistanceOf(e, net) !== null || idealAmmeter(e, net) || e.kind === 'battery')
+      link(nodeOf(e.a), nodeOf(e.b));
   }
-  // The battery itself is not a path: reachability from P must find N through the circuit.
-  const reach = new Set<string>([P]);
-  const stack = [P];
-  while (stack.length) {
-    const x = stack.pop()!;
-    for (const y of adj.get(x) ?? [])
-      if (!reach.has(y)) {
-        reach.add(y);
-        stack.push(y);
-      }
-  }
-  const isOpen = !isShort && !reach.has(N);
-
-  const elements: Record<string, ElementResult> = {};
-  const nodeV = new Map<string, number>();
-  const zero = (): ElementResult => ({ I: 0, V: 0, P: 0, dir: 0 });
-  const nUsed = net.elements.filter(
-    (e) =>
-      e.kind === 'resistor' &&
-      reach.has(nodeOf(e.a)) &&
-      reach.has(nodeOf(e.b)) &&
-      nodeOf(e.a) !== nodeOf(e.b),
-  ).length;
-
-  if (isShort || isOpen) {
-    for (const e of net.elements) elements[e.label] = zero();
-    if (isOpen) {
-      // Voltmeters across the gap still read the battery voltage where they connect P and N sides.
-      for (const x of reach) nodeV.set(x, V);
-      // Everything connected to the negative terminal sits at 0 V.
-      const low = new Set<string>([N]);
-      const st = [N];
-      while (st.length) {
-        const y = st.pop()!;
-        for (const z of adj.get(y) ?? [])
-          if (!low.has(z)) {
-            low.add(z);
-            st.push(z);
-          }
-      }
-      for (const y of low) nodeV.set(y, 0);
-      for (const e of net.elements)
-        if (e.kind === 'voltmeter') {
-          const va = nodeV.get(nodeOf(e.a));
-          const vb = nodeV.get(nodeOf(e.b));
-          elements[e.label] = {
-            I: 0,
-            V: va !== undefined && vb !== undefined ? Math.abs(va - vb) : NaN,
-            P: 0,
-            dir: 0,
-          };
+  let isOpen = false;
+  if (b1 && !isShort) {
+    const start = nodeOf(b1.a);
+    const goal = nodeOf(b1.b);
+    const seen = new Set([start]);
+    const stack = [start];
+    while (stack.length) {
+      const x = stack.pop()!;
+      for (const y of adj.get(x) ?? [])
+        if (!seen.has(y)) {
+          seen.add(y);
+          stack.push(y);
         }
     }
-    const I = isShort ? (rInt > 0 ? V / rInt : Infinity) : 0;
+    isOpen = start !== goal && !seen.has(goal);
+  }
+  const n = els.filter((e) => e.kind === 'resistor' || e.kind === 'bulb').length;
+
+  const zeroResult = (): SolveResult => {
+    const elements: Record<string, ElementResult> = {};
+    for (const e of els) elements[e.label] = { I: 0, V: 0, P: 0, Is: 0, Vs: 0 };
     return {
-      I,
+      I: isShort ? Infinity : 0,
       Req: isShort ? 0 : Infinity,
-      Ptot: V * I,
-      n: nUsed,
+      Ptot: isShort ? Infinity : 0,
+      n,
       isShort,
       isOpen,
       elements,
-      nodeV,
+      nodeV: new Map(),
       nodeOf,
       warnings,
     };
-  }
+  };
+  if (isShort) return zeroResult();
 
-  // Nodes of the active component (N is ground).
-  const nodes = [...reach].filter((x) => x !== N);
+  // ── MNA ──────────────────────────────────────────────────────────────────
+  const nodes = [...new Set(els.flatMap((e) => [nodeOf(e.a), nodeOf(e.b)]))].filter((x) => x !== ground);
   const idx = new Map(nodes.map((x, i) => [x, i]));
-  // Internal battery node when there is internal resistance.
-  const INTERNAL = '__battery_internal__';
-  if (rInt > 0) {
-    idx.set(INTERNAL, nodes.length);
-    nodes.push(INTERNAL);
+  const internal = new Map<string, number>(); // battery label → internal node index
+  for (const bt of batteries)
+    if (bt.internalResistance && bt.internalResistance > 0) {
+      internal.set(bt.label, nodes.length);
+      nodes.push(`__int_${bt.label}`);
+    }
+  const sources: { el: NetElement; plus: number; minus: number; volts: number }[] = [];
+  const vi = (node: string) => (node === ground ? -1 : idx.get(node)!);
+  for (const bt of batteries) {
+    const plus = internal.has(bt.label) ? internal.get(bt.label)! : vi(nodeOf(bt.a));
+    sources.push({ el: bt, plus, minus: vi(nodeOf(bt.b)), volts: bt.voltage ?? 0 });
   }
-  const ammeters = net.elements.filter(
-    (e) => e.kind === 'ammeter' && reach.has(nodeOf(e.a)) && nodeOf(e.a) !== nodeOf(e.b),
-  );
+  if (!opts.ammetersAsWires)
+    for (const e of els)
+      if (idealAmmeter(e, net))
+        sources.push({ el: e, plus: vi(nodeOf(e.a)), minus: vi(nodeOf(e.b)), volts: 0 });
   const nV = nodes.length;
-  const m = 1 + ammeters.length;
-  const size = nV + m;
+  const size = nV + sources.length;
   const A = Array.from({ length: size }, () => new Array<number>(size).fill(0));
-  const b = new Array<number>(size).fill(0);
-  const vi = (node: string) => (node === N ? -1 : idx.get(node)!);
-  const stamp = (x: string, y: string, g: number) => {
-    const i = vi(x);
-    const j = vi(y);
+  const rhs = new Array<number>(size).fill(0);
+  const stampG = (i: number, j: number, g: number) => {
     if (i >= 0) A[i][i] += g;
     if (j >= 0) A[j][j] += g;
     if (i >= 0 && j >= 0) {
@@ -232,108 +221,77 @@ export function solveCircuit(net: Netlist): SolveResult {
       A[j][i] -= g;
     }
   };
-  const stampSource = (k: number, plus: string, minus: string, volts: number) => {
-    const row = nV + k;
-    const i = vi(plus);
-    const j = vi(minus);
-    // Current variable flows from plus through the source to minus (inside the source).
-    if (i >= 0) {
-      A[i][row] += 1;
-      A[row][i] += 1;
-    }
-    if (j >= 0) {
-      A[j][row] -= 1;
-      A[row][j] -= 1;
-    }
-    b[row] = volts;
-  };
-
-  for (const e of net.elements) {
-    if (!conducts(e)) continue;
-    const a = nodeOf(e.a);
-    const c = nodeOf(e.b);
-    if (!reach.has(a) || a === c) continue;
-    const R = Math.max(e.resistance ?? 0, EPS);
-    stamp(a, c, 1 / R);
+  for (let i = 0; i < nV; i++) A[i][i] += G_MIN;
+  for (const e of els) {
+    const R = resistanceOf(e, net);
+    if (R !== null) stampG(vi(nodeOf(e.a)), vi(nodeOf(e.b)), 1 / R);
   }
-  // Battery: ideal source from N (−) to the + side, then internal resistance to P.
-  const plusSide = rInt > 0 ? INTERNAL : P;
-  stampSource(0, plusSide, N, V);
-  if (rInt > 0) stamp(INTERNAL, P, 1 / rInt);
-  ammeters.forEach((e, k) => stampSource(k + 1, nodeOf(e.a), nodeOf(e.b), 0));
+  for (const bt of batteries)
+    if (internal.has(bt.label)) stampG(internal.get(bt.label)!, vi(nodeOf(bt.a)), 1 / bt.internalResistance!);
+  sources.forEach((s, k) => {
+    const row = nV + k;
+    // Current variable: flows from the + node through the source to the − node.
+    if (s.plus >= 0) {
+      A[s.plus][row] += 1;
+      A[row][s.plus] += 1;
+    }
+    if (s.minus >= 0) {
+      A[s.minus][row] -= 1;
+      A[row][s.minus] -= 1;
+    }
+    rhs[row] = s.volts;
+  });
 
-  const x = gaussSolve(A, b);
+  const x = gaussSolve(A, rhs);
   if (!x) {
-    warnings.push('singular');
-    // Ammeters in a closed loop with each other: solve again with them as plain wires.
-    if (ammeters.length) {
-      const asWires: Netlist = {
-        ...net,
-        elements: net.elements.map((e) => (e.kind === 'ammeter' ? { ...e, kind: 'wire' as const } : e)),
-      };
-      const r = solveCircuit(asWires);
-      for (const e of ammeters) r.elements[e.label] = { I: NaN, V: 0, P: 0, dir: 0 };
+    if (!opts.ammetersAsWires && els.some((e) => idealAmmeter(e, net))) {
+      // Ammeters in a loop of their own: readings are undefined; solve with them as wires.
+      const r = solveCircuit(net, { ammetersAsWires: true });
+      for (const e of els)
+        if (idealAmmeter(e, net)) r.elements[e.label] = { I: NaN, V: 0, P: 0, Is: NaN, Vs: 0 };
       r.warnings.push('ammeter-loop');
       return r;
     }
-    for (const e of net.elements) elements[e.label] = zero();
-    return {
-      I: Infinity,
-      Req: 0,
-      Ptot: Infinity,
-      n: nUsed,
-      isShort: true,
-      isOpen: false,
-      elements,
-      nodeV,
-      nodeOf,
-      warnings,
-    };
+    warnings.push('conflicting-sources');
+    return { ...zeroResult(), isShort: true, I: Infinity, Req: 0, Ptot: Infinity };
   }
 
-  nodeV.set(N, 0);
-  for (const [node, i] of idx) if (node !== INTERNAL) nodeV.set(node, x[i]);
-  // MNA source current is the current entering the + terminal from outside; the battery
-  // delivers the opposite of that.
-  const I = -x[nV];
-  const ammeterI = new Map(ammeters.map((e, k) => [e.label, x[nV + k + 1]]));
+  const nodeV = new Map<string, number>([[ground, 0]]);
+  for (const [node, i] of idx) nodeV.set(node, x[i]);
+  const vOf = (k: string) => nodeV.get(nodeOf(k)) ?? 0;
+  const srcCurrent = new Map(sources.map((s, k) => [s.el.label, x[nV + k]]));
 
-  for (const e of net.elements) {
-    const va = nodeV.get(nodeOf(e.a));
-    const vb = nodeV.get(nodeOf(e.b));
-    if (conducts(e)) {
-      if (va === undefined || vb === undefined) {
-        elements[e.label] = zero();
-        continue;
-      }
-      const dv = va - vb;
-      const R = Math.max(e.resistance ?? 0, EPS);
-      const i = dv / R;
-      elements[e.label] = { I: Math.abs(i), V: Math.abs(dv), P: (dv * dv) / R, dir: Math.sign(i) };
-    } else if (e.kind === 'voltmeter') {
-      elements[e.label] = {
-        I: 0,
-        V: va !== undefined && vb !== undefined ? Math.abs(va - vb) : NaN,
-        P: 0,
-        dir: 0,
-      };
-    } else if (e.kind === 'ammeter') {
-      const i = ammeterI.get(e.label);
-      // An ammeter bypassed by a wire (both ends on one node) reads 0.
-      elements[e.label] = { I: i === undefined ? 0 : Math.abs(i), V: 0, P: 0, dir: i ? Math.sign(i) : 0 };
-    } else {
-      elements[e.label] = zero();
-    }
+  const elements: Record<string, ElementResult> = {};
+  let Ptot = 0;
+  for (const e of els) {
+    const vs = vOf(e.a) - vOf(e.b);
+    const R = resistanceOf(e, net);
+    if (e.kind === 'battery') {
+      // MNA source current flows + → − inside the battery; the battery delivers its negative.
+      const out = -(srcCurrent.get(e.label) ?? 0);
+      const emf = e.voltage ?? 0;
+      const vt = emf - out * (e.internalResistance ?? 0);
+      Ptot += emf * out;
+      elements[e.label] = { I: Math.abs(out), V: Math.abs(vt), P: Math.abs(vt * out), Is: -out, Vs: vt };
+    } else if (R !== null) {
+      const i = vs / R;
+      elements[e.label] = { I: Math.abs(i), V: Math.abs(vs), P: Math.abs(vs * i), Is: i, Vs: vs };
+    } else if (srcCurrent.has(e.label)) {
+      const i = srcCurrent.get(e.label)!;
+      elements[e.label] = { I: Math.abs(i), V: 0, P: 0, Is: i, Vs: 0 };
+    } else if (e.kind === 'voltmeter' || e.kind === 'capacitor' || (e.kind === 'switch' && !e.closed)) {
+      elements[e.label] = { I: 0, V: Math.abs(vs), P: 0, Is: 0, Vs: vs };
+    } else elements[e.label] = { I: 0, V: 0, P: 0, Is: 0, Vs: 0 };
   }
-
-  const Vterm = V - I * rInt;
+  const b1r = b1 ? elements[b1.label] : undefined;
+  const I = isOpen || !b1r ? 0 : -b1r.Is;
   return {
     I,
-    Req: I > EPS ? Vterm / I : Infinity,
-    Ptot: V * I,
-    n: nUsed,
+    Req: Math.abs(I) > 1e-9 ? b1r!.V / I : Infinity,
+    Ptot: isOpen ? 0 : Ptot,
+    n,
     isShort: false,
-    isOpen: false,
+    isOpen,
     elements,
     nodeV,
     nodeOf,

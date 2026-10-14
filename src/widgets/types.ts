@@ -23,6 +23,10 @@ export interface Grade {
   misconception?: string;
   /** Interpretive feedback (§2.5) as plain text: "too high", "that's the series value". */
   interpretation?: string;
+  /** Partial-credit widgets (estimate) give their own score; others score by §2.6. */
+  score?: number;
+  /** Accepted, with a note (e.g. right value, wrong significant figures). */
+  note?: string;
 }
 
 export interface WidgetModel<Q extends Question = Question, A = unknown> {

@@ -1,10 +1,11 @@
-import type { ChallengeModule } from '../types';
-import { CircuitBuilder } from './view';
-import { circuitLogic, type Config, type RawConfig, type Solution, type State } from './model';
+import { makePlaceholder } from '../Placeholder';
+import type { InteractiveModule } from '../types';
+import { circuitLogic, describeState, type Config, type RawConfig, type Solution, type State } from './model';
 
-const circuitBuilder: ChallengeModule<RawConfig, Config, State, Solution> = {
+// The full circuit view arrives with the interactive framework (§14 Phase 3).
+const circuitBuilder: InteractiveModule<RawConfig, Config, State, Solution> = {
   ...circuitLogic,
-  Component: CircuitBuilder,
+  Component: makePlaceholder<Config, State>(describeState),
 };
 
 export default circuitBuilder;

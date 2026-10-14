@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { hashString } from '../../engine/options';
+import { hashString } from '../../widgets/common';
 import { mulberry32 } from '../../engine/params';
 import type { ChallengeLogic, CheckScope, ResolveCtx } from '../types';
 

@@ -1,88 +1,107 @@
 import { z } from 'zod';
 import { evalNumber, type Scope } from '../../engine/expr';
 import { formatNumber } from '../../engine/format';
-import type { ChallengeLogic, CheckScope } from '../types';
+import type { CheckScope, InteractiveModel, ResolveCtx } from '../types';
 import { solveCircuit, type ElementKind, type Netlist, type NetElement, type SolveResult } from './solver';
 
 /*
- * Grid model. Points are (x, y) with 0 ≤ x ≤ cols, 0 ≤ y ≤ rows. Every element occupies one
- * segment between two neighbouring points. The battery is fixed down column 0: + at (0, 0),
- * − at (0, rows). Points (0, 1)…(0, rows − 1) are inside the battery and take no connections.
+ * circuit-builder (§9.4). Two ways to use it:
+ * - **Preset** (`preset` netlist; view/explore modes and hotspot questions): the layout is fixed and
+ *   only `controls` change values (`locked` is implied).
+ * - **Build** (`battery`/`batteries` + `palette`; challenges): the learner places parts on a snap
+ *   grid. B1 sits on the left edge: + at (0, 0), − at (0, rows).
+ * Netlist lines: "<label> <node+> <node−> [valueExpr]". Prefixes: B battery, R resistor, L bulb,
+ * C capacitor, S switch, A ammeter, M voltmeter (W wire, in layouts). Node 0 is B1's − terminal.
  */
 
 const numOrExpr = z.union([z.number(), z.string().min(1)]);
-const kind = z.enum(['resistor', 'bulb', 'wire', 'switch', 'ammeter', 'voltmeter']);
-const point = z.tuple([z.number().int().min(0), z.number().int().min(0)]);
+const partKind = z.enum(['resistor', 'bulb', 'capacitor', 'switch', 'ammeter', 'voltmeter', 'wire']);
+const BatterySchema = z.strictObject({ voltage: numOrExpr, internalResistance: numOrExpr.optional() });
 
-export const configSchema = z.strictObject({
-  battery: z.strictObject({ voltage: numOrExpr, internalResistance: numOrExpr.optional() }),
-  palette: z
-    .array(
-      z.strictObject({
-        kind,
-        resistance: numOrExpr.optional(),
-        count: z.union([z.number().int().min(1), z.literal('unlimited')]),
-      }),
-    )
-    .min(1),
-  grid: z.strictObject({ cols: z.number().int().min(2).max(12), rows: z.number().int().min(2).max(8) }),
-  constraints: z.strictObject({ maxElements: z.number().int().min(1) }).optional(),
-  preset: z
-    .array(
-      z.strictObject({
-        kind,
-        a: point,
-        b: point,
-        resistance: numOrExpr.optional(),
-        closed: z.boolean().optional(),
-        label: z.string().optional(),
-        locked: z.boolean().optional(),
-      }),
-    )
-    .optional(),
-});
+export const configSchema = z
+  .strictObject({
+    locked: z.boolean().optional(),
+    preset: z.array(z.string().min(1)).min(1).optional(),
+    controls: z
+      .array(
+        z.strictObject({
+          element: z.string().min(1),
+          param: z.enum(['voltage', 'resistance', 'closed']),
+          min: z.number().optional(),
+          max: z.number().optional(),
+          step: z.number().positive().optional(),
+          initial: numOrExpr.optional(),
+        }),
+      )
+      .optional(),
+    hideReadings: z.boolean().optional(),
+    batteries: z.array(BatterySchema).min(1).optional(),
+    battery: BatterySchema.optional(),
+    palette: z
+      .array(
+        z.strictObject({
+          kind: partKind,
+          resistance: numOrExpr.optional(),
+          capacitance: numOrExpr.optional(),
+          count: z.union([z.number().int().min(1), z.literal('unlimited')]),
+        }),
+      )
+      .optional(),
+    meters: z
+      .strictObject({ ammeterResistance: numOrExpr.optional(), voltmeterResistance: numOrExpr.optional() })
+      .optional(),
+    grid: z
+      .strictObject({ cols: z.number().int().min(2).max(12), rows: z.number().int().min(2).max(8) })
+      .optional(),
+  })
+  .superRefine((c, ctx) => {
+    const add = (message: string) => ctx.addIssue({ code: 'custom', message });
+    if (!c.preset && !c.battery && !c.batteries)
+      add('give a preset netlist, or a battery (or batteries) to build with');
+    if (c.battery && c.batteries) add('use battery or batteries, not both');
+    if (c.controls && !c.preset) add('controls need a preset');
+    if (c.preset && c.palette) add('a preset circuit is fixed; it has no palette');
+  });
 
-/**
- * Either a netlist (node 0 = battery −), laid out automatically for display, or — for challenges
- * that start from a preset circuit — grid edits applied to the preset.
- */
+/** A netlist (build mode, challenges) or control values keyed by element label (explore tasks). */
 export const solutionSchema = z.union([
   z.strictObject({ netlist: z.array(z.string().min(1)).min(1) }),
-  z.strictObject({
-    grid: z.strictObject({
-      remove: z.array(z.tuple([point, point])).optional(),
-      add: z
-        .array(
-          z.strictObject({
-            kind,
-            a: point,
-            b: point,
-            resistance: numOrExpr.optional(),
-            closed: z.boolean().optional(),
-          }),
-        )
-        .min(1),
-    }),
-  }),
+  z.record(z.string().regex(/^[BRLS]\d+$/), z.union([z.number(), z.string().min(1)])),
 ]);
 
 export type RawConfig = z.infer<typeof configSchema>;
 export type Solution = z.infer<typeof solutionSchema>;
 export type Point = [number, number];
+export type ControlParam = 'voltage' | 'resistance' | 'closed';
+
+export interface Control {
+  element: string;
+  param: ControlParam;
+  min: number;
+  max: number;
+  step: number;
+  initial: number;
+}
 
 export interface PaletteEntry {
   kind: ElementKind;
   resistance?: number;
+  capacitance?: number;
   count: number;
 }
 
 export interface Config {
-  battery: { voltage: number; internalResistance: number };
+  mode: 'preset' | 'build';
+  /** Preset parts with their values (preset mode). */
+  preset: NetElement[];
+  controls: Control[];
+  hideReadings: boolean;
+  /** Build mode batteries: B1 on the grid edge, B2… placeable. */
+  batteries: { voltage: number; internalResistance: number }[];
   palette: PaletteEntry[];
+  meters: { ammeterResistance?: number; voltmeterResistance?: number };
   cols: number;
   rows: number;
-  maxElements?: number;
-  preset: GridElement[];
   vars: Scope;
 }
 
@@ -93,35 +112,58 @@ export interface GridElement {
   a: Point;
   b: Point;
   resistance?: number;
+  capacitance?: number;
+  voltage?: number;
   closed?: boolean;
   locked?: boolean;
-  palette?: number;
 }
 
 export interface State {
+  /** Placed parts (build mode). */
   elements: GridElement[];
-  /** Set by solutionState when no grid layout fits; the component then shows the netlist. */
+  /** Control values keyed by element label (preset mode). */
+  values: Record<string, number>;
+  /** A solution netlist that has no grid layout; the view lists it instead. */
   netlist?: string[];
-  /** Misconceptions from feedback rules hit so far (for the summary). */
-  misconceptions?: string[];
 }
 
 export const PREFIX: Record<ElementKind, string> = {
+  battery: 'B',
   resistor: 'R',
   bulb: 'L',
+  capacitor: 'C',
   wire: 'W',
   switch: 'S',
   ammeter: 'A',
-  voltmeter: 'V',
+  voltmeter: 'M',
 };
 
 export const KIND_NAME: Record<ElementKind, string> = {
+  battery: 'battery',
   resistor: 'resistor',
   bulb: 'bulb',
+  capacitor: 'capacitor',
   wire: 'wire',
   switch: 'switch',
   ammeter: 'ammeter',
   voltmeter: 'voltmeter',
+};
+
+const KIND_OF_PREFIX = new Map<string, ElementKind>(
+  Object.entries(PREFIX).map(([k, p]) => [p, k as ElementKind]),
+);
+
+export function kindOfLabel(label: string): ElementKind {
+  const k = KIND_OF_PREFIX.get(label[0]);
+  if (!k || !/^[A-Z]\d+$/.test(label)) throw new Error(`unknown element "${label}"`);
+  return k;
+}
+
+export const PARAM_OF: Partial<Record<ElementKind, ControlParam>> = {
+  battery: 'voltage',
+  resistor: 'resistance',
+  bulb: 'resistance',
+  switch: 'closed',
 };
 
 export const pkey = (p: Point) => `${p[0]},${p[1]}`;
@@ -131,208 +173,223 @@ export function nextLabel(elements: GridElement[], k: ElementKind): string {
   for (let i = 1; ; i++) if (!used.has(`${PREFIX[k]}${i}`)) return `${PREFIX[k]}${i}`;
 }
 
-export function resolveConfig(
-  raw: RawConfig,
-  ctx: { num(v: number | string): number; scope: Scope },
-): Config {
-  const cols = raw.grid.cols;
-  const rows = raw.grid.rows;
-  const preset: GridElement[] = [];
-  for (const [i, p] of (raw.preset ?? []).entries()) {
-    const el: GridElement = {
-      id: `preset-${i}`,
-      kind: p.kind,
-      label: p.label ?? nextLabel(preset, p.kind),
-      a: p.a as Point,
-      b: p.b as Point,
-      resistance: p.resistance !== undefined ? ctx.num(p.resistance) : undefined,
-      closed: p.kind === 'switch' ? (p.closed ?? false) : undefined,
-      locked: p.locked ?? true,
+/** Parse one netlist line. `value` overrides are applied by the caller. */
+function parseLine(line: string, vars: Scope): NetElement & { rawValue?: string } {
+  const [label, a, b, ...rest] = line.trim().split(/\s+/);
+  if (!label || !a || !b) throw new Error(`bad netlist line "${line}"`);
+  const kind = kindOfLabel(label);
+  const value = rest.join(' ');
+  const el: NetElement & { rawValue?: string } = { label, kind, a, b, rawValue: value || undefined };
+  if (!value) return el;
+  if (kind === 'switch') el.closed = !/^(open|0|false)$/i.test(value);
+  else {
+    const v = evalNumber(value, vars);
+    if (kind === 'battery') el.voltage = v;
+    else if (kind === 'capacitor') el.capacitance = v;
+    else if (kind === 'resistor' || kind === 'bulb') el.resistance = v;
+  }
+  return el;
+}
+
+export function resolveConfig(raw: RawConfig, ctx: ResolveCtx): Config {
+  const vars = ctx.scope;
+  const preset = (raw.preset ?? []).map((l) => {
+    const el = parseLine(l, vars);
+    if (el.kind === 'switch' && el.closed === undefined) el.closed = true;
+    return el;
+  });
+  const labels = new Set<string>();
+  for (const e of preset) {
+    if (labels.has(e.label)) throw new Error(`duplicate element "${e.label}" in the preset`);
+    labels.add(e.label);
+  }
+  if (raw.preset && !preset.some((e) => e.label === 'B1')) throw new Error('a preset needs a battery B1');
+  const controls: Control[] = (raw.controls ?? []).map((c) => {
+    const el = preset.find((e) => e.label === c.element);
+    if (!el) throw new Error(`control refers to unknown element "${c.element}"`);
+    if (PARAM_OF[el.kind] !== c.param) throw new Error(`${c.element} has no "${c.param}" control`);
+    const current =
+      c.param === 'voltage' ? el.voltage : c.param === 'resistance' ? el.resistance : el.closed ? 1 : 0;
+    const initial = c.initial !== undefined ? ctx.num(c.initial) : (current ?? c.min ?? 0);
+    return {
+      element: c.element,
+      param: c.param,
+      min: c.param === 'closed' ? 0 : (c.min ?? 0),
+      max: c.param === 'closed' ? 1 : (c.max ?? Math.max(initial * 2, 1)),
+      step: c.param === 'closed' ? 1 : (c.step ?? 1),
+      initial,
     };
-    preset.push(el);
-  }
+  });
+  const bats = raw.batteries ?? (raw.battery ? [raw.battery] : []);
   return {
-    battery: {
-      voltage: ctx.num(raw.battery.voltage),
-      internalResistance:
-        raw.battery.internalResistance !== undefined ? ctx.num(raw.battery.internalResistance) : 0,
-    },
-    palette: raw.palette.map((p) => ({
-      kind: p.kind,
-      resistance: p.resistance !== undefined ? ctx.num(p.resistance) : undefined,
-      count: p.count === 'unlimited' ? Infinity : p.count,
-    })),
-    cols,
-    rows,
-    maxElements: raw.constraints?.maxElements,
+    mode: raw.preset ? 'preset' : 'build',
     preset,
-    vars: ctx.scope,
-  };
-}
-
-/** Segment validity: neighbouring points, inside the grid, not on the battery's column. */
-export function validSegment(config: Config, a: Point, b: Point): boolean {
-  const inside = (p: Point) => p[0] >= 0 && p[0] <= config.cols && p[1] >= 0 && p[1] <= config.rows;
-  if (!inside(a) || !inside(b)) return false;
-  const dx = Math.abs(a[0] - b[0]);
-  const dy = Math.abs(a[1] - b[1]);
-  if (dx + dy !== 1) return false;
-  if (a[0] === 0 && b[0] === 0) return false; // battery column
-  const body = (p: Point) => p[0] === 0 && p[1] > 0 && p[1] < config.rows;
-  return !body(a) && !body(b);
-}
-
-export function segKey(a: Point, b: Point): string {
-  const [p, q] = pkey(a) < pkey(b) ? [a, b] : [b, a];
-  return `${pkey(p)}|${pkey(q)}`;
-}
-
-export function toNetlist(state: State, config: Config): Netlist {
-  return {
-    battery: {
-      p: '0,0',
-      n: `0,${config.rows}`,
-      voltage: config.battery.voltage,
-      internalResistance: config.battery.internalResistance,
-    },
-    elements: state.elements.map((e): NetElement => ({
-      label: e.label,
-      kind: e.kind,
-      a: pkey(e.a),
-      b: pkey(e.b),
-      resistance: e.resistance,
-      closed: e.closed,
+    controls,
+    hideReadings: raw.hideReadings ?? false,
+    batteries: bats.map((b) => ({
+      voltage: ctx.num(b.voltage),
+      internalResistance: b.internalResistance !== undefined ? ctx.num(b.internalResistance) : 0,
     })),
+    palette: (raw.palette ?? [])
+      .filter((p) => p.kind !== 'wire')
+      .map((p) => ({
+        kind: p.kind,
+        resistance: p.resistance !== undefined ? ctx.num(p.resistance) : undefined,
+        capacitance: p.capacitance !== undefined ? ctx.num(p.capacitance) : undefined,
+        count: p.count === 'unlimited' ? Infinity : p.count,
+      })),
+    meters: {
+      ammeterResistance:
+        raw.meters?.ammeterResistance !== undefined ? ctx.num(raw.meters.ammeterResistance) : undefined,
+      voltmeterResistance:
+        raw.meters?.voltmeterResistance !== undefined ? ctx.num(raw.meters.voltmeterResistance) : undefined,
+    },
+    cols: raw.grid?.cols ?? 6,
+    rows: raw.grid?.rows ?? 4,
+    vars,
   };
 }
 
-export function scopeFromResult(r: SolveResult, config?: Config): CheckScope {
-  const s: CheckScope = {
-    I: r.I,
-    Req: r.Req,
-    Ptot: r.Ptot,
-    n: r.n,
-    isShort: r.isShort,
-    isOpen: r.isOpen,
-  };
-  // Parts that could be placed but aren't yet read 0, so rules like "P_L2 > 0" still evaluate.
-  if (config) {
-    const totals = new Map<ElementKind, number>();
-    for (const p of config.palette)
-      if (Number.isFinite(p.count)) totals.set(p.kind, (totals.get(p.kind) ?? 0) + p.count);
-    for (const [k, n] of totals)
-      for (let i = 1; i <= n; i++) {
-        const label = `${PREFIX[k]}${i}`;
-        s[`I_${label}`] = 0;
-        s[`V_${label}`] = 0;
-        s[`P_${label}`] = 0;
-      }
+/** Values a control or preset part currently has. */
+export function controlValue(state: State, config: Config, label: string): number | undefined {
+  if (label in state.values) return state.values[label];
+  return config.controls.find((c) => c.element === label)?.initial;
+}
+
+function withValue(e: NetElement, v: number): NetElement {
+  if (e.kind === 'battery') return { ...e, voltage: v };
+  if (e.kind === 'switch') return { ...e, closed: v >= 0.5 };
+  return { ...e, resistance: v };
+}
+
+/** The circuit to solve for a state. */
+export function toNetlist(state: State, config: Config): Netlist {
+  const meters = config.meters;
+  if (config.mode === 'preset') {
+    const elements = config.preset.map((e) => {
+      const v = controlValue(state, config, e.label);
+      return v === undefined ? e : withValue(e, v);
+    });
+    return { elements, meters };
   }
-  for (const [label, el] of Object.entries(r.elements)) {
-    s[`I_${label}`] = el.I;
-    s[`V_${label}`] = el.V;
-    s[`P_${label}`] = el.P;
+  const b1 = config.batteries[0];
+  const battery: NetElement = {
+    label: 'B1',
+    kind: 'battery',
+    a: '0,0',
+    b: `0,${config.rows}`,
+    voltage: b1.voltage,
+    internalResistance: b1.internalResistance,
+  };
+  const elements = state.elements.map((e): NetElement => ({
+    label: e.label,
+    kind: e.kind,
+    a: pkey(e.a),
+    b: pkey(e.b),
+    resistance: e.resistance,
+    capacitance: e.capacitance,
+    voltage: e.voltage,
+    internalResistance:
+      e.kind === 'battery' ? config.batteries[Number(e.label.slice(1)) - 1]?.internalResistance : undefined,
+    closed: e.closed,
+  }));
+  return { elements: [battery, ...elements], meters };
+}
+
+/** Build-mode netlist (a solution): values come from the batteries and palette, in order. */
+export function parseBuildNetlist(lines: string[], config: Config): Netlist {
+  const els = lines.map((l) => parseLine(l, config.vars));
+  const labels = new Set<string>();
+  const used = new Map<ElementKind, number>();
+  const pools = new Map<ElementKind, PaletteEntry[]>();
+  for (const p of config.palette) pools.set(p.kind, [...(pools.get(p.kind) ?? []), p]);
+  for (const e of els) {
+    if (labels.has(e.label)) throw new Error(`duplicate element "${e.label}"`);
+    labels.add(e.label);
+    if (e.kind === 'wire') continue;
+    const n = (used.get(e.kind) ?? 0) + 1;
+    used.set(e.kind, n);
+    if (e.kind === 'battery') {
+      const bt = config.batteries[n - 1];
+      if (!bt)
+        throw new Error(`the solution uses more batteries than the ${config.batteries.length} available`);
+      if (e.voltage === undefined) e.voltage = bt.voltage;
+      e.internalResistance = bt.internalResistance;
+      continue;
+    }
+    // The n-th part of a kind takes the palette entries' values in order.
+    let left = n;
+    let entry: PaletteEntry | undefined;
+    for (const p of pools.get(e.kind) ?? []) {
+      if (left <= p.count) {
+        entry = p;
+        break;
+      }
+      left -= p.count;
+    }
+    if (!entry) throw new Error(`the solution uses more ${KIND_NAME[e.kind]}s than the palette allows`);
+    if ((e.kind === 'resistor' || e.kind === 'bulb') && e.resistance === undefined)
+      e.resistance = entry.resistance;
+    if (e.kind === 'capacitor' && e.capacitance === undefined) e.capacitance = entry.capacitance;
+    if (e.kind === 'switch' && e.closed === undefined) e.closed = true;
+  }
+  if (!els.some((e) => e.label === 'B1')) throw new Error('the netlist needs B1');
+  return { elements: els.map(({ rawValue: _r, ...e }) => e), meters: config.meters };
+}
+
+export function scopeFromResult(r: SolveResult, net: Netlist, config: Config): CheckScope {
+  const s: CheckScope = { I: r.I, Req: r.Req, Ptot: r.Ptot, n: r.n, isShort: r.isShort, isOpen: r.isOpen };
+  // Parts that could be placed but aren't yet read 0, so rules like "P_L2 > 0" still evaluate.
+  const totals = new Map<ElementKind, number>();
+  for (const p of config.palette)
+    if (Number.isFinite(p.count)) totals.set(p.kind, (totals.get(p.kind) ?? 0) + p.count);
+  for (const [k, n] of totals)
+    for (let i = 1; i <= n; i++) for (const q of ['I', 'V', 'P', 'Is', 'Vs']) s[`${q}_${PREFIX[k]}${i}`] = 0;
+  for (const e of net.elements) {
+    const x = r.elements[e.label];
+    if (!x) continue;
+    s[`I_${e.label}`] = x.I;
+    s[`V_${e.label}`] = x.V;
+    s[`P_${e.label}`] = x.P;
+    s[`Is_${e.label}`] = x.Is;
+    s[`Vs_${e.label}`] = x.Vs;
+    if (e.resistance !== undefined) s[`R_${e.label}`] = e.resistance;
+    if (e.kind === 'switch') s[`closed_${e.label}`] = e.closed ? 1 : 0;
   }
   return s;
 }
 
-const KIND_BY_PREFIX: [string, ElementKind][] = [
-  ['R', 'resistor'],
-  ['L', 'bulb'],
-  ['W', 'wire'],
-  ['S', 'switch'],
-  ['A', 'ammeter'],
-  ['V', 'voltmeter'],
-];
-
-export interface ParsedNetlist {
-  net: Netlist;
-  /** Battery nodes as written. */
-  plus: string;
-  minus: string;
+export function checkScope(state: State, config: Config): CheckScope {
+  const net = toNetlist(state, config);
+  return scopeFromResult(solveCircuit(net), net, config);
 }
 
-/** Parse "<label> <node+> <node−> [valueExpr]" lines; node "0" is the battery's − terminal. */
-export function parseNetlist(lines: string[], config: Config): ParsedNetlist {
-  let plus: string | undefined;
-  let minus: string | undefined;
-  const elements: NetElement[] = [];
-  for (const line of lines) {
-    const [label, a, b, ...rest] = line.trim().split(/\s+/);
-    if (!label || !a || !b) throw new Error(`bad netlist line "${line}"`);
-    const value = rest.join(' ');
-    if (label.startsWith('B')) {
-      if (plus !== undefined) throw new Error('netlist has more than one battery');
-      plus = a;
-      minus = b;
-      continue;
-    }
-    const k = KIND_BY_PREFIX.find(([p]) => label.startsWith(p))?.[1];
-    if (!k) throw new Error(`unknown element "${label}"`);
-    const el: NetElement = { label, kind: k, a, b };
-    if (k === 'resistor' || k === 'bulb') {
-      el.resistance = value
-        ? evalNumber(value, config.vars)
-        : config.palette.find((p) => p.kind === k)?.resistance;
-      if (el.resistance === undefined) throw new Error(`no resistance for ${label}`);
-    }
-    if (k === 'switch') el.closed = value !== 'open';
-    elements.push(el);
+/** Control values from a solution record (explore tasks): B → voltage, R/L → resistance, S → closed. */
+function resolveValues(sol: Record<string, number | string>, config: Config): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [label, v] of Object.entries(sol)) {
+    if (config.mode !== 'preset' || !config.preset.some((e) => e.label === label))
+      throw new Error(`solution sets "${label}", which isn't in the preset`);
+    out[label] = typeof v === 'number' ? v : evalNumber(v, config.vars);
   }
-  if (plus === undefined || minus === undefined) throw new Error('netlist has no battery (B1)');
+  return out;
+}
+
+export function applySolution(state: State, solution: Solution, config: Config): State {
+  if ('netlist' in solution && Array.isArray(solution.netlist)) return solutionState(solution, config);
   return {
-    net: {
-      battery: {
-        p: plus,
-        n: minus,
-        voltage: config.battery.voltage,
-        internalResistance: config.battery.internalResistance,
-      },
-      elements,
-    },
-    plus,
-    minus,
+    ...state,
+    values: { ...state.values, ...resolveValues(solution as Record<string, number | string>, config) },
   };
 }
 
-export function checkScope(state: State, config: Config): CheckScope {
-  return scopeFromResult(solveCircuit(toNetlist(state, config)), config);
-}
-
-/** Apply grid edits to the preset; throws if an edit is invalid. */
-export function applyGridSolution(grid: Extract<Solution, { grid: unknown }>['grid'], config: Config): State {
-  const removeKeys = new Set((grid.remove ?? []).map(([a, b]) => segKey(a as Point, b as Point)));
-  const elements = config.preset.filter((e) => !removeKeys.has(segKey(e.a, e.b)));
-  const taken = new Set(elements.map((e) => segKey(e.a, e.b)));
-  for (const add of grid.add) {
-    const a = add.a as Point;
-    const b = add.b as Point;
-    if (!validSegment(config, a, b)) throw new Error(`grid solution: invalid segment ${pkey(a)}–${pkey(b)}`);
-    const key = segKey(a, b);
-    if (taken.has(key)) throw new Error(`grid solution: segment ${pkey(a)}–${pkey(b)} is occupied`);
-    taken.add(key);
-    const resistance =
-      add.resistance !== undefined
-        ? typeof add.resistance === 'number'
-          ? add.resistance
-          : evalNumber(add.resistance, config.vars)
-        : config.palette.find((p) => p.kind === add.kind)?.resistance;
-    elements.push({
-      id: `sol:${key}`,
-      kind: add.kind,
-      label: nextLabel(elements, add.kind),
-      a,
-      b,
-      resistance,
-      closed: add.kind === 'switch' ? (add.closed ?? true) : undefined,
-    });
-  }
-  return { elements };
-}
-
 export function solutionScope(solution: Solution, config: Config): CheckScope {
-  if ('grid' in solution) return checkScope(applyGridSolution(solution.grid, config), config);
-  return scopeFromResult(solveCircuit(parseNetlist(solution.netlist, config).net), config);
+  if ('netlist' in solution && Array.isArray(solution.netlist)) {
+    if (config.mode !== 'build') throw new Error('a netlist solution needs a build-mode circuit');
+    const net = parseBuildNetlist(solution.netlist, config);
+    return scopeFromResult(solveCircuit(net), net, config);
+  }
+  return checkScope(applySolution(initialState(config), solution, config), config);
 }
 
 function permutations<T>(xs: T[]): T[][] {
@@ -345,18 +402,20 @@ function permutations<T>(xs: T[]): T[][] {
 }
 
 /**
- * Lay a netlist out on the grid: each node is a horizontal rail on its own row (battery + on
- * the top row, − on the bottom row) and each element sits vertically in its own column.
- * Returns null when nothing fits without unintended crossings.
+ * Lay a netlist out on the grid: B1's + node is the top rail, its − node the bottom rail, every
+ * other node a horizontal rail on its own row, and each other element sits vertically in its own
+ * column. Returns null when nothing fits without unintended crossings.
  */
-export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElement[] | null {
-  const { net, plus, minus } = parsed;
-  const els = net.elements;
+export function layoutNetlist(net: Netlist, config: Pick<Config, 'cols' | 'rows'>): GridElement[] | null {
+  const b1 = net.elements.find((e) => e.label === 'B1');
+  if (!b1) return null;
+  const plus = b1.a;
+  const minus = b1.b;
+  const els = net.elements.filter((e) => e !== b1);
   if (els.length > config.cols) return null;
   const others = [...new Set(els.flatMap((e) => [e.a, e.b]))].filter((n) => n !== plus && n !== minus);
   const freeRows = Array.from({ length: config.rows - 1 }, (_, i) => i + 1);
   if (others.length > freeRows.length) return null;
-
   const rowChoices = permutations(freeRows).map((p) => p.slice(0, others.length));
   const seen = new Set<string>();
   const orders = permutations(els.map((_, i) => i)).slice(0, 5040);
@@ -371,7 +430,6 @@ export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElemen
     ]);
     for (const order of orders) {
       const colOf = new Map<number, number>(order.map((ei, c) => [ei, c + 1]));
-      // Rail spans.
       const span = new Map<string, [number, number]>();
       const extend = (node: string, x: number) => {
         const s = span.get(node);
@@ -400,12 +458,11 @@ export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElemen
         }
       });
       if (!ok) continue;
-
       const out: GridElement[] = [];
       let wireN = 0;
       const wire = (a: Point, b: Point) => {
         wireN++;
-        out.push({ id: `sol-w${wireN}`, kind: 'wire', label: `W${wireN}`, a, b });
+        out.push({ id: `w${wireN}`, kind: 'wire', label: `W${wireN}`, a, b, locked: true });
       };
       for (const [node, [x0, x1]] of span) {
         const y = rowOf.get(node)!;
@@ -419,18 +476,20 @@ export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElemen
         const mid = lo + Math.floor((hi - lo - 1) / 2);
         for (let y = lo; y < hi; y++) {
           if (y === mid) {
-            // Keep the element's a→b orientation for meters and current direction.
             const top: Point = [x, y];
             const bottom: Point = [x, y + 1];
             const aIsTop = ya < yb;
             out.push({
-              id: `sol-${e.label}`,
+              id: `el-${e.label}`,
               kind: e.kind,
               label: e.label,
               a: aIsTop ? top : bottom,
               b: aIsTop ? bottom : top,
               resistance: e.resistance,
+              capacitance: e.capacitance,
+              voltage: e.voltage,
               closed: e.closed,
+              locked: true,
             });
           } else wire([x, y], [x, y + 1]);
         }
@@ -442,86 +501,84 @@ export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElemen
 }
 
 export function solutionState(solution: Solution, config: Config): State {
-  if ('grid' in solution) return applyGridSolution(solution.grid, config);
-  const parsed = parseNetlist(solution.netlist, config);
-  const laid = layoutNetlist(parsed, config);
+  if (!('netlist' in solution) || !Array.isArray(solution.netlist))
+    return applySolution(initialState(config), solution, config);
+  const net = parseBuildNetlist(solution.netlist, config);
+  const laid = layoutNetlist(net, config);
   if (laid) {
-    const state: State = { elements: [...config.preset, ...laid] };
+    const state: State = { elements: laid.map((e) => ({ ...e, locked: false })), values: {} };
     // Only trust the layout if it behaves exactly like the netlist.
-    const a = solveCircuit(parsed.net);
+    const a = solveCircuit(net);
     const b = solveCircuit(toNetlist(state, config));
     if (Math.abs(a.I - b.I) <= 1e-9 * Math.max(1, Math.abs(a.I)) || (a.isOpen && b.isOpen)) return state;
   }
-  return { elements: [...config.preset], netlist: solution.netlist };
+  return { elements: [], values: {}, netlist: solution.netlist };
 }
 
 export function initialState(config: Config): State {
-  return { elements: [...config.preset] };
+  return { elements: [], values: Object.fromEntries(config.controls.map((c) => [c.element, c.initial])) };
+}
+
+/** Element labels in a preset (hotspot targets). */
+export function elementIds(config: Config): string[] {
+  return config.preset.map((e) => e.label);
 }
 
 export function builtInFeedback(state: State, config: Config): string | null {
   const r = solveCircuit(toNetlist(state, config));
-  if (r.isShort) return 'Short circuit! A zero-resistance path connects the battery terminals directly.';
-  if (r.isOpen)
-    return state.elements.some((e) => e.kind === 'voltmeter')
-      ? 'No complete loop — current needs a closed path from + back to −. (A voltmeter in the path acts like a break.)'
-      : 'No complete loop — current needs a closed path from + back to −.';
+  if (r.isShort) return 'Short circuit! A zero-resistance path connects a battery’s terminals directly.';
+  if (r.isOpen) return 'No complete loop — current needs a closed path from + back to −.';
   if (r.warnings.includes('ammeter-loop'))
     return 'Two ammeters form a loop on their own; their readings are undefined.';
   return null;
 }
 
-function where(p: Point): string {
-  return `column ${p[0]}, row ${p[1]}`;
-}
-
-export function describeElement(e: GridElement): string {
-  const value =
-    e.kind === 'resistor' || e.kind === 'bulb'
-      ? ` (${formatNumber(e.resistance ?? 0)} Ω)`
-      : e.kind === 'switch'
-        ? e.closed
-          ? ' (closed)'
-          : ' (open)'
-        : '';
-  return `${KIND_NAME[e.kind]} ${e.label}${value} from ${where(e.a)} to ${where(e.b)}`;
+function valueText(e: NetElement): string {
+  if (e.kind === 'resistor' || e.kind === 'bulb') return ` (${formatNumber(e.resistance ?? 0)} Ω)`;
+  if (e.kind === 'battery') return ` (${formatNumber(e.voltage ?? 0)} V)`;
+  if (e.kind === 'switch') return e.closed ? ' (closed)' : ' (open)';
+  return '';
 }
 
 export function describeState(state: State, config: Config): string {
-  const parts = state.elements.filter((e) => e.kind !== 'wire');
-  const wires = state.elements.length - parts.length;
-  const r = solveCircuit(toNetlist(state, config));
+  const net = toNetlist(state, config);
+  const r = solveCircuit(net);
+  const parts = net.elements.filter((e) => e.kind !== 'wire');
   const status = r.isShort
     ? 'Short circuit.'
     : r.isOpen
       ? 'No complete loop; no current flows.'
-      : `Battery current ${formatNumber(r.I)} A, equivalent resistance ${formatNumber(r.Req)} Ω.`;
-  const meters = state.elements
-    .filter((e) => e.kind === 'ammeter' || e.kind === 'voltmeter')
-    .map((e) => {
-      const x = r.elements[e.label];
-      return e.kind === 'ammeter'
-        ? `${e.label} reads ${formatNumber(x?.I ?? 0)} A`
-        : `${e.label} reads ${formatNumber(x?.V ?? 0)} V`;
-    });
+      : `Battery current ${formatNumber(r.I)} A.`;
+  const meters = config.hideReadings
+    ? []
+    : net.elements
+        .filter((e) => e.kind === 'ammeter' || e.kind === 'voltmeter')
+        .map((e) => {
+          const x = r.elements[e.label];
+          return e.kind === 'ammeter'
+            ? `${e.label} reads ${formatNumber(x?.I ?? 0)} A`
+            : `${e.label} reads ${formatNumber(x?.V ?? 0)} V`;
+        });
   return [
-    `Circuit with a ${formatNumber(config.battery.voltage)} V battery`,
-    parts.length ? `${parts.map(describeElement).join('; ')}` : 'no components placed',
-    `${wires} wire segment${wires === 1 ? '' : 's'}`,
-    status,
+    `Circuit: ${parts.map((e) => `${KIND_NAME[e.kind]} ${e.label}${valueText(e)}`).join('; ')}`,
+    config.hideReadings ? '' : status,
     ...meters,
-  ].join('. ');
+  ]
+    .filter(Boolean)
+    .join('. ');
 }
 
-export const circuitLogic: ChallengeLogic<RawConfig, Config, State, Solution> = {
+export const circuitLogic: InteractiveModel<RawConfig, Config, State, Solution> = {
   type: 'circuit-builder',
-  configSchema,
-  solutionSchema,
+  configSchema: configSchema as unknown as z.ZodType<RawConfig>,
+  solutionSchema: solutionSchema as unknown as z.ZodType<Solution>,
+  modes: ['view', 'explore', 'challenge', 'sandbox'],
   resolveConfig,
   initialState,
   checkScope,
   builtInFeedback,
   solutionScope,
   solutionState,
+  applySolution,
   describeState,
 };
