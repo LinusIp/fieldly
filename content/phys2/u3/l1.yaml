@@ -1,0 +1,709 @@
+id: phys2.u3.l1
+title: "Current, resistance & resistivity"
+version: 1
+concepts: [electric-current, charge-conservation, resistivity]
+estimatedMinutes: 20
+
+# A nichrome heater element: charge Q passes in time t; the wire has length L (m) and
+# cross-section A (mm²). ρ for nichrome is 1.1 × 10⁻⁶ Ω·m.
+params:
+  sets:
+    - { Q: 12, t: 4, L: 2, A: 0.5, I1: 1.2 }
+    - { Q: 30, t: 6, L: 1.5, A: 0.25, I1: 2 }
+    - { Q: 16, t: 8, L: 3, A: 1.1, I1: 0.5 }
+derived:
+  rho: "1.1e-6"
+  I: "Q / t"
+  R: "rho * L / (A * 1e-6)"
+  V: "I * R"
+
+intro: |
+  An **electric current** is a flow of charge. If a charge $Q$ (coulombs, C) passes a point in a
+  time $t$ (seconds, s), the current is
+
+  $$I = \frac{Q}{t}$$
+
+  measured in amperes (A); 1 A is 1 C/s. Each electron carries $e = 1.6 \times 10^{-19}$ C.
+
+  **Charge is conserved.** It is not created or destroyed in a wire, a lamp or a heater, so in a
+  single loop every part carries the same current. Where a wire splits, the currents in the
+  branches add up to the current that arrived.
+
+  A material opposes the flow with its **resistance** $R$ (ohms, Ω). For a uniform wire,
+
+  $$R = \frac{\rho L}{A}$$
+
+  where $L$ is the length (m), $A$ the cross-sectional area (m²) and $\rho$ the **resistivity**
+  (Ω·m), a property of the material alone. A longer wire is a longer obstacle course; a thicker
+  wire offers more lanes. Copper has $\rho \approx 1.7 \times 10^{-8}$ Ω·m; nichrome, used in
+  heaters, about $1.1 \times 10^{-6}$ Ω·m.
+
+  Areas are often quoted in mm². Since 1 mm = $10^{-3}$ m, 1 mm² = $10^{-6}$ m².
+
+workedExample: |
+  A charge of 20 C flows through a toaster element in 5 s, and the element is 4 m of
+  nichrome wire with a cross-section of 0.4 mm².
+
+  - Current: $I = Q/t = 20/5 = 4$ A
+  - Area in m²: $0.4 \text{ mm}^2 = 0.4 \times 10^{-6} \text{ m}^2 = 4 \times 10^{-7}$ m²
+  - Resistance: $R = \rho L / A = (1.1 \times 10^{-6} \times 4)/(4 \times 10^{-7}) = 11$ Ω
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: electric-current
+    clueFor: [s2]
+    establishes: "Heater current: {{Q}} C every {{t}} s is I = {{I}} A."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          In a heater element, {{Q}} C of charge passes any point in {{t}} s.
+          Which calculation gives the current?
+        options:
+          - { text: "I = {{Q}} ÷ {{t}}", correct: true }
+          - { text: "I = {{Q}} × {{t}}", misconception: charge-rate-multiply }
+          - { text: "I = {{t}} ÷ {{Q}}", misconception: charge-rate-inverted }
+          - { text: "I = {{Q}} (the charge is the current)", misconception: charge-equals-current }
+        hints:
+          nudge: "Current is a *rate*. A rate of flow means an amount per what?"
+          partial: "Current is charge per second, so the time belongs in the denominator."
+        explanation: |
+          **Answer:** $I = {{Q}} \div {{t}}$
+
+          **Why:** Current is the charge passing per second: $I = Q/t$. Spreading the same
+          charge over a longer time means a smaller current, so $t$ divides.
+
+          **Common mistakes:**
+          - ${{Q}} \times {{t}}$ — multiplying would make a slower flow look like a bigger current.
+          - ${{t}} \div {{Q}}$ — that's seconds per coulomb, the fraction upside down.
+          - "$I = Q$" — the total charge isn't a rate; you need the time too.
+
+          **Connects to:** the next question follows this current through the heater.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          In a heater element, {{Q}} C of charge passes any point in {{t}} s.
+          What is the current in the element?
+        answer: { expr: "Q / t", unit: "A" }
+        distractors:
+          - { expr: "Q * t", unit: "A", misconception: charge-rate-multiply }
+          - { expr: "t / Q", unit: "A", misconception: charge-rate-inverted }
+          - { expr: "Q", unit: "A", misconception: charge-equals-current }
+        hints:
+          nudge: "Current measures how much charge passes *each second*."
+          partial: "Divide the charge by the time it takes."
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** $I = Q/t = {{Q}}/{{t}} = {{I}}$ A, i.e. {{I}} coulombs pass every second.
+
+          **Common mistakes:**
+          - {{Q*t}} A — multiplied charge by time; a rate needs division by time.
+          - {{t/Q}} A — divided the wrong way round (seconds per coulomb).
+          - {{Q}} A — that's the total charge, not the charge per second.
+
+          **Connects to:** the next question asks what happens to this current after the heater.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          In a heater element, {{Q}} C of charge passes any point in {{t}} s. Each electron carries
+          $1.6 \times 10^{-19}$ C. How many electrons pass a point each second?
+        answer: { expr: "(Q / t) / 1.6e-19", unit: "electrons per second" }
+        distractors:
+          - { expr: "(Q / t) * 1.6e-19", unit: "electrons per second", misconception: electron-count-multiply }
+          - { expr: "Q / 1.6e-19", unit: "electrons per second", misconception: charge-equals-current }
+          - { expr: "1.6e-19 / (Q / t)", unit: "electrons per second", misconception: charge-rate-inverted }
+        hints:
+          nudge: "First find the charge per second. Then: how many electrons make up that charge?"
+          partial: "The current is $Q/t = {{I}}$ C/s. Divide by the charge of one electron."
+        explanation: |
+          **Answer:** {{(Q/t)/1.6e-19}} electrons per second.
+
+          **Why:** The current is $I = Q/t = {{I}}$ A, i.e. {{I}} C each second. Each electron
+          carries $1.6 \times 10^{-19}$ C, so the number per second is
+          ${{I}} / (1.6 \times 10^{-19}) = {{(Q/t)/1.6e-19}}$.
+
+          **Common mistakes:**
+          - {{(Q/t)*1.6e-19}} — multiplying by $e$ gives a tiny number; counting means dividing by the charge of each.
+          - {{Q/1.6e-19}} — that counts all {{Q}} C, not the charge per second.
+          - {{1.6e-19/(Q/t)}} — the division is upside down.
+
+          **Connects to:** the next question follows this flow of charge through the heater.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: charge-conservation
+    clueFor: [s6]
+    establishes: "Charge is conserved: the {{I}} A entering the heater also leaves it."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Each second, {{I}} C of charge flows *into* the heater element.
+          How much charge flows *out* of it each second?
+        options:
+          - { text: "{{I}} C", correct: true }
+          - { text: "Less than {{I}} C — the heater uses some up", misconception: current-used-up }
+          - { text: "None — it is all turned into heat", misconception: current-converted-to-heat }
+          - { text: "More than {{I}} C — heating adds charge", misconception: heating-adds-charge }
+        hints:
+          nudge: "Can charge pile up inside the wire, or vanish from it?"
+          partial: "Charge is conserved. Whatever goes in each second must come out each second."
+        explanation: |
+          **Answer:** {{I}} C each second.
+
+          **Why:** Charge is conserved and doesn't pile up in a steady current, so the charge
+          leaving each second equals the charge entering: the current is the same, {{I}} A.
+          The heater converts *energy* to heat, not charge.
+
+          **Common mistakes:**
+          - "Less" — what the heater takes is energy; every coulomb still comes out.
+          - "None" — if no charge left, charge would pile up inside, which doesn't happen.
+          - "More" — heating doesn't create charge.
+
+          **Connects to:** in the last question the same idea tells you the current in a new wire.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          The {{I}} A current flows through the heater element and on into the return wire.
+          What current flows in the return wire?
+        options:
+          - { text: "{{I}} A", correct: true }
+          - { text: "Less than {{I}} A — the heater uses some current", misconception: current-used-up }
+          - { text: "0 A — the current is converted into heat", misconception: current-converted-to-heat }
+          - { text: "More than {{I}} A — the hot wire pushes harder", misconception: heating-adds-charge }
+        hints:
+          nudge: "Where could charge go between the heater and the return wire?"
+          partial: "There is only one path, and charge is conserved."
+        explanation: |
+          **Answer:** {{I}} A.
+
+          **Why:** In a single loop the same current flows everywhere. Charge is conserved, so
+          every coulomb that enters the heater leaves it: {{I}} A in, {{I}} A out. The heater
+          takes *energy* from the charges, which is why they leave at a lower potential.
+
+          **Common mistakes:**
+          - "Less than {{I}} A" — current isn't used up; energy is.
+          - "0 A" — converting current into heat would destroy charge.
+          - "More than {{I}} A" — nothing in the loop creates charge.
+
+          **Connects to:** the last question uses this to compare currents in two wires.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          The {{I}} A from the heater reaches a junction where the wire splits into two branches.
+          One branch carries {{I1}} A. What current flows in the other branch?
+        answer: { expr: "I - I1", unit: "A" }
+        distractors:
+          - { expr: "I", unit: "A", misconception: junction-full-current }
+          - { expr: "I1", unit: "A", misconception: branches-equal }
+          - { expr: "I + I1", unit: "A", misconception: junction-adds }
+        hints:
+          nudge: "Charge can't pile up at the junction. What must the two branch currents add up to?"
+          partial: "Current in = current out: ${{I}} = {{I1}} + I_2$."
+        explanation: |
+          **Answer:** {{I-I1}} A
+
+          **Why:** Charge is conserved at the junction, so the branch currents add up to the
+          current arriving: $I_2 = {{I}} - {{I1}} = {{I-I1}}$ A.
+
+          **Common mistakes:**
+          - {{I}} A — each branch doesn't get the full current; it is shared.
+          - {{I1}} A — branches only carry equal currents if they are identical.
+          - {{I+I1}} A — that would create charge at the junction.
+
+          **Connects to:** conservation of charge is what fixes the current in the last question.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: resistivity
+    clueFor: [s4, s5]
+    establishes: "The heater wire ({{L}} m of nichrome, {{A}} mm²) has R = {{R}} Ω."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          The heater element is a uniform wire of length $L$, cross-sectional area $A$ and
+          resistivity $\rho$. Which expression gives its resistance?
+        options:
+          - { text: '$R = \dfrac{\rho L}{A}$', correct: true }
+          - { text: '$R = \dfrac{\rho A}{L}$', misconception: length-area-swap }
+          - { text: '$R = \rho L A$', misconception: area-raises-R }
+          - { text: '$R = \dfrac{L}{\rho A}$', misconception: resistivity-backwards }
+        hints:
+          nudge: "Should a longer wire have more or less resistance? And a thicker one?"
+          partial: "Longer → more resistance (L on top). Thicker → less (A underneath). A worse conductor → more (ρ on top)."
+        explanation: |
+          **Answer:** $R = \rho L / A$
+
+          **Why:** A longer wire is a longer obstacle course, so $R \propto L$. A thicker wire
+          gives the charge more room, so $R \propto 1/A$. A material with higher resistivity
+          resists more, so $R \propto \rho$.
+
+          **Common mistakes:**
+          - $\rho A / L$ — length and area are swapped; thicker wires conduct *better*.
+          - $\rho L A$ — a bigger area would then *raise* the resistance.
+          - $L / (\rho A)$ — higher resistivity must mean *more* resistance, not less.
+
+          **Connects to:** the next question changes $L$ and $A$ and asks what happens to $R$.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          The heater element is nichrome wire ($\rho = 1.1 \times 10^{-6}$ Ω·m), {{L}} m long,
+          with a cross-section of {{A}} mm². What is its resistance?
+        answer: { expr: "rho * L / (A * 1e-6)", unit: "Ω" }
+        distractors:
+          - { expr: "rho * L / A", unit: "Ω", misconception: mm2-conversion }
+          - { expr: "rho * (A * 1e-6) / L", unit: "Ω", misconception: length-area-swap }
+          - { expr: "rho * L / (A * 1e-3)", unit: "Ω", misconception: area-conversion-factor }
+        hints:
+          nudge: "Before using $R = \\rho L/A$, check that every quantity is in SI units."
+          partial: "{{A}} mm² = {{A}} × 10⁻⁶ m². Now use $R = \\rho L / A$."
+        explanation: |
+          **Answer:** {{R}} Ω
+
+          **Why:** Convert the area: ${{A}} \text{ mm}^2 = {{A}} \times 10^{-6}$ m². Then
+          $R = \rho L / A = (1.1 \times 10^{-6} \times {{L}}) / ({{A}} \times 10^{-6}) = {{R}}$ Ω.
+
+          **Common mistakes:**
+          - {{rho*L/A}} Ω — used the area in mm² without converting to m².
+          - {{rho*(A*1e-6)/L}} Ω — length and area swapped.
+          - {{rho*L/(A*1e-3)}} Ω — 1 mm² is $10^{-6}$ m², not $10^{-3}$ m² (the length factor is squared).
+
+          **Connects to:** Q4 changes the wire's shape; Q5 puts the current from Q1 through it.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          A {{2*L}} m coil of nichrome wire ($\rho = 1.1 \times 10^{-6}$ Ω·m, cross-section {{A}} mm²)
+          is cut into two equal pieces. One piece becomes the heater element. What is its resistance?
+        answer: { expr: "rho * L / (A * 1e-6)", unit: "Ω" }
+        distractors:
+          - { expr: "rho * 2 * L / (A * 1e-6)", unit: "Ω", misconception: length-ignored }
+          - { expr: "rho * L / (2 * A * 1e-6)", unit: "Ω", misconception: cut-halves-area }
+          - { expr: "rho * L / A", unit: "Ω", misconception: mm2-conversion }
+        hints:
+          nudge: "Cutting the coil in half changes one dimension of the wire. Which one?"
+          partial: "Each piece is {{L}} m long; the cross-section is still {{A}} mm² = {{A}} × 10⁻⁶ m²."
+        explanation: |
+          **Answer:** {{R}} Ω
+
+          **Why:** Each piece is {{L}} m long with the same {{A}} mm² cross-section, so
+          $R = \rho L/A = (1.1 \times 10^{-6} \times {{L}})/({{A}} \times 10^{-6}) = {{R}}$ Ω —
+          half the resistance of the whole coil.
+
+          **Common mistakes:**
+          - {{rho*2*L/(A*1e-6)}} Ω — that's the whole {{2*L}} m coil, before cutting.
+          - {{rho*L/(2*A*1e-6)}} Ω — cutting shortens the wire; it doesn't change its thickness.
+          - {{rho*L/A}} Ω — the area has to be in m² ($\times 10^{-6}$).
+
+          **Connects to:** Q4 changes the wire's length and area together.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: resistivity
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "R ∝ L/A: doubling L doubles R; doubling A halves it."
+    standaloneContext: "A nichrome heater wire, {{L}} m long with a {{A}} mm² cross-section, has a resistance of {{R}} Ω."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          The {{R}} Ω heater wire is replaced by the same nichrome wire, **twice as long**, with the
+          same cross-section. What is the new resistance?
+        answer: { expr: "2 * R", unit: "Ω" }
+        distractors:
+          - { expr: "R / 2", unit: "Ω", misconception: longer-lower-R }
+          - { expr: "4 * R", unit: "Ω", misconception: square-law-length }
+          - { expr: "R", unit: "Ω", misconception: length-ignored }
+        hints:
+          nudge: "In $R = \\rho L/A$, what happens to $R$ when only $L$ doubles?"
+          partial: "$R$ is proportional to $L$ — to the first power."
+        explanation: |
+          **Answer:** {{2*R}} Ω
+
+          **Why:** $R = \rho L/A$ with $\rho$ and $A$ unchanged, so $R \propto L$. Twice the
+          length means twice the resistance: $2 \times {{R}} = {{2*R}}$ Ω.
+
+          **Common mistakes:**
+          - {{R/2}} Ω — a longer path resists *more*, not less.
+          - {{4*R}} Ω — $L$ appears to the first power, not squared.
+          - {{R}} Ω — the length matters; it's in the formula.
+
+          **Connects to:** the last question uses how $R$ depends on $L$ and $A$.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          The {{R}} Ω heater wire is replaced by nichrome wire that is **twice as long** and has
+          **twice the cross-sectional area**. What is the new resistance?
+        answer: { expr: "R", unit: "Ω" }
+        distractors:
+          - { expr: "2 * R", unit: "Ω", misconception: area-ignored }
+          - { expr: "4 * R", unit: "Ω", misconception: area-raises-R }
+          - { expr: "R / 2", unit: "Ω", misconception: length-ignored }
+        hints:
+          nudge: "Take the two changes one at a time. What does each do to $R$?"
+          buildsOn: "From Q3: the original wire has R = {{R}} Ω, and $R = \\rho L/A$."
+          partial: "Doubling $L$ doubles $R$; doubling $A$ halves it."
+        explanation: |
+          **Answer:** {{R}} Ω — unchanged.
+
+          **Why:** $R = \rho L/A$. Doubling $L$ multiplies $R$ by 2; doubling $A$ divides it by 2.
+          The effects cancel: $R_{new} = \rho (2L)/(2A) = {{R}}$ Ω.
+
+          **Common mistakes:**
+          - {{2*R}} Ω — counted the longer length but forgot the thicker wire.
+          - {{4*R}} Ω — a bigger area *lowers* resistance; it doesn't raise it.
+          - {{R/2}} Ω — counted the thicker wire but forgot the extra length.
+
+          **Connects to:** the last question runs this new wire from the same supply.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          The {{R}} Ω heater wire is drawn out (stretched) to **twice its length**. Its volume stays
+          the same. What is its new resistance?
+        answer: { expr: "4 * R", unit: "Ω" }
+        distractors:
+          - { expr: "2 * R", unit: "Ω", misconception: stretch-area-unchanged }
+          - { expr: "R", unit: "Ω", misconception: stretch-cancels }
+          - { expr: "R / 4", unit: "Ω", misconception: longer-lower-R }
+        hints:
+          nudge: "If the volume $L \\times A$ stays fixed and $L$ doubles, what happens to $A$?"
+          buildsOn: "From Q3: the original wire has R = {{R}} Ω, and $R = \\rho L/A$."
+          partial: "$L \\to 2L$ and $A \\to A/2$. Put both into $R = \\rho L/A$."
+        explanation: |
+          **Answer:** {{4*R}} Ω
+
+          **Why:** Volume $= LA$ is fixed, so doubling $L$ halves $A$. Then
+          $R_{new} = \rho(2L)/(A/2) = 4\rho L/A = 4 \times {{R}} = {{4*R}}$ Ω.
+
+          **Common mistakes:**
+          - {{2*R}} Ω — stretching also makes the wire thinner.
+          - {{R}} Ω — the changes don't cancel: both the longer length and the smaller area raise $R$.
+          - {{R/4}} Ω — a longer, thinner wire resists *more*.
+
+          **Connects to:** the last question applies the same proportional reasoning.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: resistivity
+    uses: [s1, s3]
+    clueFor: [s6]
+    establishes: "Across the heater: V = IR = {{I}} A × {{R}} Ω = {{V}} V."
+    standaloneContext: "A heater element of resistance {{R}} Ω carries a current of {{I}} A."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          The heater wire has resistance {{R}} Ω and carries {{I}} A. Which calculation gives the
+          voltage across it?
+        options:
+          - { text: "V = {{I}} × {{R}}", correct: true }
+          - { text: "V = {{I}} ÷ {{R}}", misconception: v-equals-i-over-r }
+          - { text: "V = {{R}} ÷ {{I}}", misconception: v-equals-r-over-i }
+          - { text: "V = {{I}} (voltage equals current)", misconception: voltage-equals-current }
+        hints:
+          nudge: "Resistance is voltage per ampere. So voltage is resistance times what?"
+          partial: "$R = V/I$, so $V = IR$."
+        explanation: |
+          **Answer:** $V = {{I}} \times {{R}}$
+
+          **Why:** Resistance is defined as $R = V/I$ (volts per ampere), so $V = IR$. More current
+          through the same resistance needs more voltage.
+
+          **Common mistakes:**
+          - ${{I}} \div {{R}}$ — then a bigger resistance would need *less* voltage.
+          - ${{R}} \div {{I}}$ — that's not a voltage at all (units Ω/A).
+          - "$V = I$" — volts and amperes are different quantities.
+
+          **Connects to:** the last question keeps this voltage and changes the wire.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The heater wire from Q3 carries the current found in Q1. What is the voltage across the
+          heater?
+        answer: { expr: "I * R", unit: "V" }
+        distractors:
+          - { expr: "I / R", unit: "V", misconception: v-equals-i-over-r }
+          - { expr: "R / I", unit: "V", misconception: v-equals-r-over-i }
+          - { expr: "I", unit: "V", misconception: voltage-equals-current }
+        hints:
+          nudge: "You know the current through the wire and its resistance. Which relation links them to voltage?"
+          buildsOn: "Q1: I = {{I}} A. Q3: R = {{R}} Ω."
+          partial: "$V = IR = {{I}} \\times {{R}}$"
+        explanation: |
+          **Answer:** {{V}} V
+
+          **Why:** $V = IR = {{I}} \times {{R}} = {{V}}$ V, using the current from Q1 and the
+          resistance from Q3.
+
+          **Common mistakes:**
+          - {{I/R}} V — divided instead of multiplying.
+          - {{R/I}} V — upside down; that has units Ω/A, not volts.
+          - {{I}} V — copied the current.
+
+          **Connects to:** the last question applies this same voltage to a different wire.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The heater wire from Q3 carries the current found in Q1. A voltmeter is connected across
+          just the **first half** of the wire's length. What does it read?
+        answer: { expr: "I * R / 2", unit: "V" }
+        distractors:
+          - { expr: "I * R", unit: "V", misconception: voltmeter-reads-total }
+          - { expr: "I * R / 4", unit: "V", misconception: square-law-length }
+          - { expr: "I / (R / 2)", unit: "V", misconception: v-equals-i-over-r }
+        hints:
+          nudge: "What is the resistance of half the wire? Then use $V = IR$."
+          buildsOn: "Q1: I = {{I}} A. Q3: R = {{R}} Ω for the whole length."
+          partial: "Half the length has resistance {{R/2}} Ω and carries the full {{I}} A."
+        explanation: |
+          **Answer:** {{I*R/2}} V
+
+          **Why:** Half the length has half the resistance, {{R/2}} Ω, and the same current
+          {{I}} A flows through it. So $V = IR = {{I}} \times {{R/2}} = {{I*R/2}}$ V — half of the
+          {{V}} V across the whole wire.
+
+          **Common mistakes:**
+          - {{I*R}} V — that's across the whole wire.
+          - {{I*R/4}} V — resistance is proportional to length, not length squared.
+          - {{I/(R/2)}} V — voltage is $IR$, not $I/R$.
+
+          **Connects to:** the last question keeps the full {{V}} V and changes the wire.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: resistivity
+    uses: [s2, s4, s5]
+    establishes: "The 2L, 2A wire on the same {{V}} V supply draws the same {{I}} A."
+    standaloneContext: |
+      A heater wire of resistance {{R}} Ω has {{V}} V across it and carries {{I}} A. A replacement
+      wire of the same metal is twice as long with twice the cross-sectional area.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The replacement wire (twice as long, twice the area) has the same resistance, {{R}} Ω.
+          It is connected to the same {{V}} V supply. What current flows through it?
+        answer: { expr: "V / R", unit: "A" }
+        distractors:
+          - { expr: "V * R", unit: "A", misconception: ohm-multiply }
+          - { expr: "R / V", unit: "A", misconception: ohm-inverted }
+          - { expr: "V", unit: "A", misconception: current-equals-voltage }
+        hints:
+          nudge: "Rearrange $V = IR$ to find the current."
+          partial: "$I = V/R = {{V}} / {{R}}$"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** $I = V/R = {{V}}/{{R}} = {{I}}$ A — exactly the original current, because the
+          resistance didn't change.
+
+          **Common mistakes:**
+          - {{V*R}} A — multiplied instead of dividing.
+          - {{R/V}} A — the fraction is upside down.
+          - {{V}} A — copied the voltage.
+
+          **Connects to:** the challenge builds heaters out of pieces of wire.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          The heater wire is replaced by nichrome wire **twice as long with twice the cross-sectional
+          area**, on the same {{V}} V supply. What current flows through the new wire?
+        answer: { expr: "V / R", unit: "A" }
+        distractors:
+          - { expr: "V / (2 * R)", unit: "A", misconception: area-ignored }
+          - { expr: "V / (4 * R)", unit: "A", misconception: area-raises-R }
+          - { expr: "2 * V / R", unit: "A", misconception: length-ignored }
+        hints:
+          nudge: "Find the new wire's resistance first, then use the supply voltage."
+          buildsOn: "Q4: twice the length and twice the area leaves R = {{R}} Ω. Q5: the supply gives {{V}} V."
+          partial: "Same voltage, same resistance — so what about the current?"
+        explanation: |
+          **Answer:** {{I}} A — the same as before.
+
+          **Why:** From Q4, doubling both $L$ and $A$ leaves $R = {{R}}$ Ω. With the same {{V}} V
+          across it, $I = V/R = {{I}}$ A. And because charge is conserved (Q2), that same {{I}} A
+          flows all the way round the loop.
+
+          **Common mistakes:**
+          - {{V/(2*R)}} A — that assumes $R$ doubled (ignoring the larger area).
+          - {{V/(4*R)}} A — that assumes a larger area raises $R$.
+          - {{2*V/R}} A — that assumes $R$ halved (ignoring the extra length).
+
+          **Connects to:** the challenge — make heaters by joining pieces of wire end to end or side by side.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          The heater wire is replaced by nichrome wire twice as long with twice the cross-sectional
+          area, and the supply is raised to {{2*V}} V. What current flows in the return wire?
+        answer: { expr: "2 * V / R", unit: "A" }
+        distractors:
+          - { expr: "V / R", unit: "A", misconception: area-ignored }
+          - { expr: "V / (2 * R)", unit: "A", misconception: area-raises-R }
+          - { expr: "4 * V / R", unit: "A", misconception: length-ignored }
+        hints:
+          nudge: "Two things matter: the new resistance, and where the return wire sits in the loop."
+          buildsOn: "Q4: twice the length and twice the area leaves R unchanged at {{R}} Ω. Q2: the current is the same all round a loop."
+          partial: "$I = {{2*V}} / {{R}}$ — and the return wire carries the same current as the heater."
+        explanation: |
+          **Answer:** {{2*V/R}} A
+
+          **Why:** The new wire still has $R = {{R}}$ Ω (Q4: the factors of 2 cancel). With
+          {{2*V}} V across it, $I = {{2*V}}/{{R}} = {{2*V/R}}$ A. Charge is conserved (Q2), so the
+          return wire carries the same {{2*V/R}} A.
+
+          **Common mistakes:**
+          - {{V/R}} A — that treats $R$ as doubled, cancelling the doubled voltage.
+          - {{V/(2*R)}} A — a larger area lowers $R$; it doesn't raise it.
+          - {{4*V/R}} A — that treats $R$ as halved, forgetting the extra length.
+
+          **Connects to:** the challenge builds heaters out of pieces of wire.
+
+  # ─────────────── remediation (after misses around s4) ───────────────
+  - id: r1
+    role: remediation
+    remediates: s4
+    concept: resistivity
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Which change makes a metal wire's resistance **smaller**?"
+        options:
+          - { text: "Using a thicker wire of the same metal and length", correct: true }
+          - { text: "Using a longer wire of the same metal and thickness", misconception: longer-lower-R }
+          - { text: "Using a metal with a higher resistivity", misconception: resistivity-backwards }
+          - { text: "Using a thinner wire of the same metal and length", misconception: area-raises-R }
+        hints:
+          nudge: "Picture charges squeezing through the wire. What gives them an easier path?"
+          partial: "$R = \\rho L / A$: smaller $\\rho$, shorter $L$ or bigger $A$ all lower $R$."
+        explanation: |
+          **Answer:** a thicker wire.
+
+          **Why:** $R = \rho L/A$. A bigger cross-section $A$ gives the charges more room, so the
+          resistance falls.
+
+          **Common mistakes:**
+          - "Longer" — a longer path has *more* resistance.
+          - "Higher resistivity" — resistivity measures how badly the material conducts; higher means more resistance.
+          - "Thinner" — a smaller area squeezes the flow and raises $R$.
+
+          **Connects to:** Q4 changes the length and the area at the same time.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l1.ch
+  type: circuit-builder
+  title: "Build a heater from wire pieces"
+  concept: resistivity
+  uses: [s4, s6]
+  params:
+    sets:
+      - { V: 6, Rp: 2 }
+      - { V: 12, Rp: 3 }
+      - { V: 9, Rp: 1.5 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "Each resistor is a 1 m piece of the same nichrome wire ({{Rp}} Ω). Join pieces to make a heater that draws exactly {{V/(2*Rp)}} A from the {{V}} V battery — a heater that behaves like a **2 m** wire."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "Rp", count: 4 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, V / (2*Rp))" }
+      feedback:
+        - { if: "near(I, V/Rp)", say: "One piece is a 1 m wire: {{Rp}} Ω. A 2 m wire needs more resistance." }
+        - { if: "I > V/Rp", say: "Pieces side by side make the wire *thicker*, which lowers R. Join them end to end.", misconception: series-parallel-confusion }
+        - { if: "near(I, V/(3*Rp))", say: "Three pieces end to end is a 3 m wire — too long." }
+      hints:
+        nudge: "Joining pieces end to end makes the wire longer. How long should it be?"
+        buildsOn: "From Q4: doubling the length doubles R."
+        partial: "You need $R = {{2*Rp}}$ Ω: two pieces, end to end."
+      solution: { netlist: ["B1 n1 0", "R1 n1 n2", "R2 n2 0"] }
+      explanation: |
+        A 2 m wire has twice the resistance of a 1 m piece: $R = 2 \times {{Rp}} = {{2*Rp}}$ Ω, so
+        $I = {{V}}/{{2*Rp}} = {{V/(2*Rp)}}$ A. Two pieces end to end (in series) do exactly that.
+    standard:
+      difficulty: 4
+      goal: "Each resistor is a 1 m piece of the same nichrome wire ({{Rp}} Ω). Make a heater that draws exactly {{2*V/Rp}} A from the {{V}} V battery — one that behaves like a 1 m wire with **twice the cross-sectional area**."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "Rp", count: 4 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, 2 * V / Rp)" }
+      feedback:
+        - { if: "near(I, V/(2*Rp))", say: "End to end makes the wire *longer* (2 m, {{2*Rp}} Ω). You want it thicker.", misconception: series-parallel-confusion }
+        - { if: "near(I, V/Rp)", say: "That's a single 1 m piece. A second piece alongside it doubles the area." }
+        - { if: "near(I, 3*V/Rp)", say: "Three pieces side by side is three times the area — one too many." }
+        - { if: "near(I, 4*V/Rp)", say: "Four side by side is four times the area — too much." }
+      hints:
+        nudge: "What arrangement of 1 m pieces behaves like one thicker 1 m wire?"
+        buildsOn: "From Q4: doubling the area halves R."
+        partial: "You need $R = {{Rp/2}}$ Ω: two pieces side by side, both connected across the battery."
+      solution: { netlist: ["B1 n1 0", "R1 n1 0", "R2 n1 0"] }
+      explanation: |
+        Twice the area means half the resistance: ${{Rp}}/2 = {{Rp/2}}$ Ω, so
+        $I = {{V}}/{{Rp/2}} = {{2*V/Rp}}$ A. Two pieces side by side (in parallel) give the
+        charge two lanes, like one wire of double cross-section.
+    harder:
+      difficulty: 5
+      goal: "Each resistor is a 1 m piece of nichrome wire ({{Rp}} Ω). Use **all four** pieces to make a heater that behaves like a wire twice as long **and** twice as thick — it should draw exactly {{V/Rp}} A from the {{V}} V battery."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "Rp", count: 4 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, V / Rp) and n == 4" }
+      feedback:
+        - { if: "n < 4", say: "Use all four pieces." }
+        - { if: "near(I, V/(4*Rp))", say: "All four end to end is a 4 m wire — four times the resistance." }
+        - { if: "near(I, 4*V/Rp)", say: "All four side by side is four times the area — a quarter of the resistance.", misconception: series-parallel-confusion }
+        - { if: "near(I, V/(2.5*Rp)) or near(I, V/(1.5*Rp)) or near(I, V/(4*Rp/3))", say: "Close, but not symmetric. Think of two identical 2 m wires, side by side." }
+      hints:
+        nudge: "Twice as long: what does that mean for pieces? Twice as thick: what then?"
+        buildsOn: "From Q4: twice the length and twice the area leaves R unchanged."
+        partial: "Make two 2 m wires (two pieces end to end, twice), then connect those two side by side."
+      solution: { netlist: ["B1 n1 0", "R1 n1 n2", "R2 n2 0", "R3 n1 n3", "R4 n3 0"] }
+      explanation: |
+        Two pieces end to end make a 2 m wire of ${{2*Rp}}$ Ω. Two of those side by side make a
+        2 m wire with twice the area: ${{2*Rp}}/2 = {{Rp}}$ Ω — the same as one piece, so
+        $I = {{V}}/{{Rp}} = {{V/Rp}}$ A. That's Q4 in hardware: doubling both $L$ and $A$ leaves $R$ unchanged.
+
+summary:
+  keyTakeaways:
+    - "$I = Q/t$: current is charge per second; 1 A = 1 C/s."
+    - "Charge is conserved: in one loop the current is the same everywhere; at a junction the branch currents add up to the current in."
+    - "$R = \\rho L/A$: longer wires resist more, thicker wires less; $\\rho$ depends only on the material."
+    - "Convert areas to m² before using $R = \\rho L/A$: 1 mm² = $10^{-6}$ m²."
+  next: phys2.u3.l2

@@ -1,0 +1,739 @@
+id: phys2.u3.l3
+title: "Series & parallel networks"
+version: 1
+concepts: [series-resistance, parallel-resistance, equivalent-resistance, voltage-current-division]
+estimatedMinutes: 25
+
+# One network throughout: battery V, resistor R1 in series with the parallel pair R2 ∥ R3.
+params:
+  sets:
+    - { V: 12, R1: 4, R2: 6, R3: 3 }
+    - { V: 18, R1: 2, R2: 12, R3: 4 }
+    - { V: 24, R1: 6, R2: 12, R3: 6 }
+derived:
+  Rp: "R2 * R3 / (R2 + R3)"
+  Rtot: "R1 + Rp"
+  I: "V / Rtot"
+  V1: "I * R1"
+  Vp: "V - V1"
+  I2: "Vp / R2"
+  I3: "Vp / R3"
+
+intro: |
+  Real circuits mix two basic arrangements.
+
+  **Series** — one after another, a single path. The same current flows through each
+  resistor, and the resistances add:
+
+  $$R_{series} = R_1 + R_2 + \dots$$
+
+  The battery's voltage is *shared*: each resistor takes $V_k = I R_k$, so the biggest
+  resistor gets the biggest share.
+
+  **Parallel** — side by side, between the same two points. Each branch has the *same*
+  voltage across it, the currents add, and
+
+  $$\frac{1}{R_{par}} = \frac{1}{R_1} + \frac{1}{R_2} + \dots \qquad \text{(two resistors: } R_{par} = \tfrac{R_1 R_2}{R_1 + R_2}\text{)}$$
+
+  Adding a branch gives the charge another route, so $R_{par}$ is **smaller than the smallest
+  branch**. The current divides in inverse proportion to resistance: the smaller resistor
+  carries more.
+
+  To analyse a network, **collapse it step by step**: replace each parallel group by its
+  equivalent, add series parts, find the battery current, then work back out to each part.
+
+workedExample: |
+  A 10 V battery drives $R_1 = 1$ Ω in series with $R_2 = 8$ Ω ∥ $R_3 = 8$ Ω.
+
+  - Parallel pair: $R_{par} = (8 \times 8)/(8 + 8) = 4$ Ω
+  - Total: $R_{tot} = 1 + 4 = 5$ Ω, so $I = 10/5 = 2$ A
+  - Voltages: $V_1 = 2 \times 1 = 2$ V, so the pair has $10 - 2 = 8$ V
+  - Branches: each 8 Ω carries $8/8 = 1$ A, and $1 + 1 = 2$ A ✓
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: parallel-resistance
+    clueFor: [s2]
+    establishes: "The pair R2 ∥ R3 = {{R2}} Ω ∥ {{R3}} Ω is equivalent to {{Rp}} Ω."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          In the network, $R_2 = {{R2}}$ Ω and $R_3 = {{R3}}$ Ω are connected in parallel.
+          Which relation gives their equivalent resistance $R_{p}$?
+        options:
+          - { text: '$\dfrac{1}{R_p} = \dfrac{1}{R_2} + \dfrac{1}{R_3}$', correct: true }
+          - { text: '$R_p = R_2 + R_3$', misconception: series-parallel-confusion }
+          - { text: '$R_p = \dfrac{R_2 + R_3}{2}$', misconception: parallel-average }
+          - { text: '$R_p = \dfrac{1}{R_2} + \dfrac{1}{R_3}$', misconception: parallel-forgot-reciprocal }
+        hints:
+          nudge: "In parallel, should the combination be bigger or smaller than each resistor?"
+          partial: "Each branch adds a route for the current, so *conductances* ($1/R$) add."
+        explanation: |
+          **Answer:** $1/R_p = 1/R_2 + 1/R_3$
+
+          **Why:** Each branch has the same voltage, and the branch currents add:
+          $V/R_p = V/R_2 + V/R_3$. Dividing by $V$ gives the rule. Here
+          $R_p = ({{R2}} \times {{R3}})/({{R2}} + {{R3}}) = {{Rp}}$ Ω — smaller than either.
+
+          **Common mistakes:**
+          - $R_2 + R_3$ — that's the *series* rule.
+          - The average — the combination is smaller than the *smallest* branch, not in between.
+          - $1/R_2 + 1/R_3$ — that's $1/R_p$; you still need to take the reciprocal.
+
+          **Connects to:** the next question adds $R_1$ to this pair.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          In the network, $R_2 = {{R2}}$ Ω and $R_3 = {{R3}}$ Ω are connected in parallel.
+          What is their equivalent resistance?
+        answer: { expr: "Rp", unit: "Ω" }
+        distractors:
+          - { expr: "R2 + R3", unit: "Ω", misconception: series-parallel-confusion }
+          - { expr: "(R2 + R3) / 2", unit: "Ω", misconception: parallel-average }
+          - { expr: "1/R2 + 1/R3", unit: "Ω", misconception: parallel-forgot-reciprocal }
+        hints:
+          nudge: "Should two resistors side by side be harder or easier to push current through than one?"
+          partial: "$R_p = \\dfrac{R_2 R_3}{R_2 + R_3}$"
+        explanation: |
+          **Answer:** {{Rp}} Ω
+
+          **Why:** $R_p = \dfrac{R_2 R_3}{R_2 + R_3} = \dfrac{{{R2}} \times {{R3}}}{{{R2}} + {{R3}}} = {{Rp}}$ Ω,
+          smaller than the smaller resistor ({{R3}} Ω), as it must be.
+
+          **Common mistakes:**
+          - {{R2+R3}} Ω — added them as if in series.
+          - {{(R2+R3)/2}} Ω — averaged; parallel gives *less* than either branch.
+          - {{1/R2+1/R3}} Ω — that's $1/R_p$ (in Ω⁻¹); take the reciprocal.
+
+          **Connects to:** Q2 puts $R_1$ in series with this pair.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          $R_2 = {{R2}}$ Ω is connected in parallel with an unknown resistor $R_3$. The pair is
+          equivalent to {{Rp}} Ω. What is $R_3$?
+        answer: { expr: "R2 * Rp / (R2 - Rp)", unit: "Ω" }
+        distractors:
+          - { expr: "R2 - Rp", unit: "Ω", misconception: parallel-subtract }
+          - { expr: "R2 + Rp", unit: "Ω", misconception: series-parallel-confusion }
+          - { expr: "Rp * R2 / (R2 + Rp)", unit: "Ω", misconception: parallel-forgot-reciprocal }
+        hints:
+          nudge: "Write the parallel rule with $1/R_3$ as the unknown."
+          partial: "$\\dfrac{1}{R_3} = \\dfrac{1}{{{Rp}}} - \\dfrac{1}{{{R2}}}$"
+        explanation: |
+          **Answer:** {{R2*Rp/(R2-Rp)}} Ω
+
+          **Why:** $\frac{1}{R_3} = \frac{1}{R_p} - \frac{1}{R_2} = \frac{1}{{{Rp}}} - \frac{1}{{{R2}}}$,
+          so $R_3 = \frac{R_2 R_p}{R_2 - R_p} = {{R2*Rp/(R2-Rp)}}$ Ω.
+
+          **Common mistakes:**
+          - {{R2-Rp}} Ω — resistances in parallel don't subtract; their reciprocals do.
+          - {{R2+Rp}} Ω — that treats the pair as if it were in series.
+          - {{Rp*R2/(R2+Rp)}} Ω — that's $R_2 \parallel R_p$; you added the reciprocals instead of subtracting.
+
+          **Connects to:** Q2 puts $R_1$ in series with this pair.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: equivalent-resistance
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "Whole network: R_tot = R1 + R_p = {{R1}} + {{Rp}} = {{Rtot}} Ω."
+    standaloneContext: "A battery drives $R_1 = {{R1}}$ Ω in series with a parallel pair ($R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω) whose equivalent is {{Rp}} Ω."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          The parallel pair is equivalent to {{Rp}} Ω, and it sits in series with $R_1 = {{R1}}$ Ω.
+          What is the total resistance of the network?
+        answer: { expr: "R1 + Rp", unit: "Ω" }
+        distractors:
+          - { expr: "R1 * Rp / (R1 + Rp)", unit: "Ω", misconception: series-as-parallel }
+          - { expr: "R1", unit: "Ω", misconception: series-resistor-ignored }
+          - { expr: "R1 + R2 + R3", unit: "Ω", misconception: network-all-series }
+        hints:
+          nudge: "Replace the pair by a single {{Rp}} Ω resistor. How is it connected to $R_1$?"
+          partial: "Series resistances add."
+        explanation: |
+          **Answer:** {{Rtot}} Ω
+
+          **Why:** The pair behaves like one {{Rp}} Ω resistor in series with $R_1$, and series
+          resistances add: ${{R1}} + {{Rp}} = {{Rtot}}$ Ω.
+
+          **Common mistakes:**
+          - {{R1*Rp/(R1+Rp)}} Ω — used the parallel rule for a series connection.
+          - {{R1}} Ω — the pair still has resistance; it adds on.
+          - {{R1+R2+R3}} Ω — $R_2$ and $R_3$ are side by side, not one after the other.
+
+          **Connects to:** Q3 uses this total to find the battery current.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          What is the total resistance of the whole network: $R_1 = {{R1}}$ Ω in series with
+          the parallel pair from Q1?
+        answer: { expr: "Rtot", unit: "Ω" }
+        distractors:
+          - { expr: "R1 + R2 + R3", unit: "Ω", misconception: network-all-series }
+          - { expr: "Rp", unit: "Ω", misconception: series-resistor-ignored }
+          - { expr: "R1 * Rp / (R1 + Rp)", unit: "Ω", misconception: series-as-parallel }
+        hints:
+          nudge: "Collapse the network: what is the pair worth, and how does it join $R_1$?"
+          buildsOn: "From Q1: the pair is equivalent to {{Rp}} Ω."
+          partial: "$R_{tot} = R_1 + R_p$"
+        explanation: |
+          **Answer:** {{Rtot}} Ω
+
+          **Why:** Replace the pair by its {{Rp}} Ω equivalent (Q1). That's in series with
+          $R_1$, so $R_{tot} = {{R1}} + {{Rp}} = {{Rtot}}$ Ω.
+
+          **Common mistakes:**
+          - {{R1+R2+R3}} Ω — added everything as if all three were in series.
+          - {{Rp}} Ω — forgot $R_1$.
+          - {{R1*Rp/(R1+Rp)}} Ω — $R_1$ is in series with the pair, not in parallel.
+
+          **Connects to:** Q3 uses this total to find the battery current.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          For the network ($R_1 = {{R1}}$ Ω in series with $R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω),
+          which single change would lower the total resistance the most?
+        options:
+          - { text: "Replace $R_1$ with a plain wire", correct: true }
+          - { text: "Remove $R_3$, leaving $R_2$ alone", misconception: parallel-removal-lowers-R }
+          - { text: "Add a second {{R3}} Ω resistor in parallel with the pair", misconception: parallel-branch-dominates }
+          - { text: "All three lower it by the same amount", misconception: changes-equal-effect }
+        hints:
+          nudge: "Work out the total resistance after each change."
+          buildsOn: "From Q1: the pair is equivalent to {{Rp}} Ω."
+          partial: "Wire for $R_1$: total {{Rp}} Ω. Remove $R_3$: total {{R1+R2}} Ω. Extra branch: total {{R1 + 1/(1/R2 + 2/R3)}} Ω."
+        explanation: |
+          **Answer:** replace $R_1$ with a wire.
+
+          **Why:** The network is $R_{tot} = {{R1}} + {{Rp}} = {{Rtot}}$ Ω. Without $R_1$ the total
+          is {{Rp}} Ω. Removing $R_3$ *raises* it to {{R1+R2}} Ω. Another {{R3}} Ω branch only
+          lowers the pair to {{1/(1/R2 + 2/R3)}} Ω, giving {{R1 + 1/(1/R2 + 2/R3)}} Ω.
+
+          **Common mistakes:**
+          - "Remove $R_3$" — removing a parallel branch takes away a route, so resistance goes *up*.
+          - "Add a branch" — it helps, but the series $R_1$ still dominates.
+          - "Same effect" — the totals are {{Rp}}, {{R1+R2}} and {{R1 + 1/(1/R2 + 2/R3)}} Ω.
+
+          **Connects to:** Q3 finds the current for the original {{Rtot}} Ω network.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: equivalent-resistance
+    uses: [s2]
+    clueFor: [s4]
+    establishes: "Battery current I = V/R_tot = {{I}} A — all of it flows through R1."
+    standaloneContext: "A {{V}} V battery drives a network with total resistance {{Rtot}} Ω: $R_1 = {{R1}}$ Ω in series with $R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          The network's total resistance is {{Rtot}} Ω and the battery provides {{V}} V.
+          What current leaves the battery?
+        answer: { expr: "V / Rtot", unit: "A" }
+        distractors:
+          - { expr: "V * Rtot", unit: "A", misconception: ohm-multiply }
+          - { expr: "Rtot / V", unit: "A", misconception: ohm-inverted }
+          - { expr: "V", unit: "A", misconception: current-equals-voltage }
+        hints:
+          nudge: "Treat the whole network as one resistor."
+          partial: "$I = V / R_{tot}$"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** As far as the battery is concerned, the network is one {{Rtot}} Ω resistor:
+          $I = {{V}}/{{Rtot}} = {{I}}$ A.
+
+          **Common mistakes:**
+          - {{V*Rtot}} A — multiplied instead of dividing.
+          - {{Rtot/V}} A — the fraction is upside down.
+          - {{V}} A — copied the voltage.
+
+          **Connects to:** Q4 splits the battery voltage between $R_1$ and the pair.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          The battery provides {{V}} V. What current leaves the battery and flows into the network?
+        answer: { expr: "V / Rtot", unit: "A" }
+        distractors:
+          - { expr: "V / (R1 + R2 + R3)", unit: "A", misconception: network-all-series }
+          - { expr: "V / Rp", unit: "A", misconception: series-resistor-ignored }
+          - { expr: "V / R1", unit: "A", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "Which single resistance does the battery see?"
+          buildsOn: "From Q2: the whole network is equivalent to {{Rtot}} Ω."
+          partial: "$I = {{V}} / {{Rtot}}$"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** The battery sees the total resistance from Q2: $I = V/R_{tot} = {{V}}/{{Rtot}} = {{I}}$ A.
+          Because $R_1$ is in series with everything, all {{I}} A flows through it.
+
+          **Common mistakes:**
+          - {{V/(R1+R2+R3)}} A — used the all-series total.
+          - {{V/Rp}} A — ignored $R_1$.
+          - {{V/R1}} A — that assumes $R_1$ has the full {{V}} V across it.
+
+          **Connects to:** Q4 uses this current to find the voltage across $R_1$.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          The battery provides {{V}} V. What current flows through $R_1$?
+        answer: { expr: "V / Rtot", unit: "A" }
+        distractors:
+          - { expr: "V / R1", unit: "A", misconception: each-gets-full-voltage }
+          - { expr: "V / Rtot / 2", unit: "A", misconception: series-current-splits }
+          - { expr: "V / (R1 + R2 + R3)", unit: "A", misconception: network-all-series }
+        hints:
+          nudge: "Is there any route from the battery that avoids $R_1$?"
+          buildsOn: "From Q2: the whole network is equivalent to {{Rtot}} Ω."
+          partial: "All the battery current passes through $R_1$: find $I = V/R_{tot}$."
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** $R_1$ is in series with the rest, so every charge passes through it: its current
+          is the battery current, $I = {{V}}/{{Rtot}} = {{I}}$ A.
+
+          **Common mistakes:**
+          - {{V/R1}} A — $R_1$ doesn't have the whole {{V}} V; it shares it with the pair.
+          - {{V/Rtot/2}} A — current doesn't split in series; it splits only at the junction after $R_1$.
+          - {{V/(R1+R2+R3)}} A — $R_2$ and $R_3$ are in parallel, not series.
+
+          **Connects to:** Q4 uses this current to share out the voltage.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: voltage-current-division
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "Voltage divides: {{V1}} V across R1 and {{Vp}} V across the pair (total {{V}} V)."
+    standaloneContext: "A {{V}} V battery drives {{I}} A through $R_1 = {{R1}}$ Ω, which is in series with $R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          {{I}} A flows through $R_1 = {{R1}}$ Ω. What is the voltage across $R_1$?
+        answer: { expr: "I * R1", unit: "V" }
+        distractors:
+          - { expr: "I / R1", unit: "V", misconception: v-equals-i-over-r }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "V / 2", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "Ohm's law, for this one resistor."
+          partial: "$V_1 = I R_1$"
+        explanation: |
+          **Answer:** {{V1}} V
+
+          **Why:** $V_1 = I R_1 = {{I}} \times {{R1}} = {{V1}}$ V. The remaining
+          ${{V}} - {{V1}} = {{Vp}}$ V is across the parallel pair.
+
+          **Common mistakes:**
+          - {{I/R1}} V — voltage is $IR$, not $I/R$.
+          - {{V}} V — in series the battery voltage is shared.
+          - {{V/2}} V — the shares are equal only if the resistances are.
+
+          **Connects to:** Q5 uses the voltage across the pair.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          What is the voltage across the parallel pair ($R_2$ ∥ $R_3$)?
+        answer: { expr: "V - I * R1", unit: "V" }
+        distractors:
+          - { expr: "I * R1", unit: "V", misconception: wrong-resistor-drop }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "V / 2", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "The battery's voltage is shared between $R_1$ and the pair. How much does $R_1$ take?"
+          buildsOn: "From Q3: {{I}} A flows through $R_1$."
+          partial: "$V_1 = {{I}} \\times {{R1}} = {{V1}}$ V. The pair gets the rest."
+        explanation: |
+          **Answer:** {{Vp}} V
+
+          **Why:** $R_1$ takes $V_1 = IR_1 = {{I}} \times {{R1}} = {{V1}}$ V. The drops around the loop add to
+          the battery voltage, so the pair has ${{V}} - {{V1}} = {{Vp}}$ V.
+          Check: $I R_p = {{I}} \times {{Rp}} = {{Vp}}$ V ✓.
+
+          **Common mistakes:**
+          - {{V1}} V — that's the voltage across $R_1$.
+          - {{V}} V — the pair shares the battery voltage with $R_1$.
+          - {{V/2}} V — the split is in proportion to resistance ({{R1}} Ω vs {{Rp}} Ω), not 50/50.
+
+          **Connects to:** Q5 uses this voltage to find the current in $R_2$.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          What is the voltage across $R_3$?
+        answer: { expr: "V - I * R1", unit: "V" }
+        distractors:
+          - { expr: "(V - I * R1) / 2", unit: "V", misconception: voltage-splits-in-parallel }
+          - { expr: "I * R3", unit: "V", misconception: series-current-through-parallel }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "$R_3$ is one branch of the parallel pair. How does its voltage compare with the pair's?"
+          buildsOn: "From Q3: {{I}} A flows through $R_1 = {{R1}}$ Ω."
+          partial: "The pair has ${{V}} - {{I}} \\times {{R1}}$ V across it, and each branch has the full pair voltage."
+        explanation: |
+          **Answer:** {{Vp}} V
+
+          **Why:** $R_1$ takes ${{I}} \times {{R1}} = {{V1}}$ V, leaving {{Vp}} V across the pair. Both
+          branches connect the same two points, so $R_3$ has the full {{Vp}} V.
+
+          **Common mistakes:**
+          - {{Vp/2}} V — parallel branches don't split the voltage; they each get all of it.
+          - {{I*R3}} V — the full {{I}} A doesn't flow through $R_3$; it splits at the junction.
+          - {{V}} V — $R_1$ takes some of the battery's voltage first.
+
+          **Connects to:** Q5 uses this voltage to find the branch currents.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: voltage-current-division
+    uses: [s4, s1]
+    clueFor: [s6]
+    establishes: "Current divides: R2 carries {{I2}} A and R3 carries {{I3}} A — the smaller resistor carries more."
+    standaloneContext: "The parallel pair $R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω has {{Vp}} V across it and receives {{I}} A in total."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          The parallel pair has {{Vp}} V across it. What current flows through $R_2 = {{R2}}$ Ω?
+        answer: { expr: "Vp / R2", unit: "A" }
+        distractors:
+          - { expr: "Vp * R2", unit: "A", misconception: ohm-multiply }
+          - { expr: "R2 / Vp", unit: "A", misconception: ohm-inverted }
+          - { expr: "Vp / R3", unit: "A", misconception: wrong-branch }
+        hints:
+          nudge: "$R_2$ has the pair's voltage across it. Use Ohm's law on $R_2$ alone."
+          partial: "$I_2 = V_p / R_2$"
+        explanation: |
+          **Answer:** {{I2}} A
+
+          **Why:** $I_2 = V_p/R_2 = {{Vp}}/{{R2}} = {{I2}}$ A. The other branch carries
+          ${{Vp}}/{{R3}} = {{I3}}$ A, and together they make the {{I}} A from the battery.
+
+          **Common mistakes:**
+          - {{Vp*R2}} A — multiplied instead of dividing.
+          - {{R2/Vp}} A — the fraction is upside down.
+          - {{Vp/R3}} A — that's the current in $R_3$.
+
+          **Connects to:** Q6 breaks one branch and asks what happens to this current.
+      standard:
+        id: s5-s
+        difficulty: 4
+        prompt: |
+          What current flows through $R_2 = {{R2}}$ Ω?
+        answer: { expr: "Vp / R2", unit: "A" }
+        distractors:
+          - { expr: "I / 2", unit: "A", misconception: branches-equal }
+          - { expr: "V / R2", unit: "A", misconception: each-gets-full-voltage }
+          - { expr: "I * R2 / (R2 + R3)", unit: "A", misconception: current-divider-swap }
+        hints:
+          nudge: "What voltage does $R_2$ have across it?"
+          buildsOn: "From Q4: the pair has {{Vp}} V across it. From Q1: $R_2 = {{R2}}$ Ω is one branch."
+          partial: "$I_2 = {{Vp}} / {{R2}}$"
+        explanation: |
+          **Answer:** {{I2}} A
+
+          **Why:** $R_2$ has the pair's {{Vp}} V across it (Q4), so $I_2 = {{Vp}}/{{R2}} = {{I2}}$ A.
+          The rest, ${{I}} - {{I2}} = {{I3}}$ A, goes through the smaller {{R3}} Ω resistor.
+
+          **Common mistakes:**
+          - {{I/2}} A — the current splits equally only between equal resistors.
+          - {{V/R2}} A — $R_2$ doesn't have the whole {{V}} V; $R_1$ takes {{V1}} V first.
+          - {{I*R2/(R2+R3)}} A — current divides *inversely*: the larger resistor gets the smaller share.
+
+          **Connects to:** Q6 breaks the other branch.
+      harder:
+        id: s5-h
+        difficulty: 5
+        prompt: |
+          What current flows through $R_3 = {{R3}}$ Ω?
+        answer: { expr: "Vp / R3", unit: "A" }
+        distractors:
+          - { expr: "Vp / R2", unit: "A", misconception: current-divider-swap }
+          - { expr: "I", unit: "A", misconception: junction-full-current }
+          - { expr: "I / 2", unit: "A", misconception: branches-equal }
+        hints:
+          nudge: "Find the voltage across the pair first; then use Ohm's law on $R_3$."
+          buildsOn: "From Q4: the pair has {{Vp}} V across it. From Q1: $R_3 = {{R3}}$ Ω is one branch."
+          partial: "$I_3 = {{Vp}} / {{R3}}$ — check that $I_2 + I_3 = {{I}}$ A."
+        explanation: |
+          **Answer:** {{I3}} A
+
+          **Why:** $R_3$ has {{Vp}} V across it, so $I_3 = {{Vp}}/{{R3}} = {{I3}}$ A. Check:
+          $I_2 = {{Vp}}/{{R2}} = {{I2}}$ A and ${{I2}} + {{I3}} = {{I}}$ A ✓.
+
+          **Common mistakes:**
+          - {{I2}} A — that's the larger resistor's current; the smaller one carries more.
+          - {{I}} A — the battery current splits at the junction.
+          - {{I/2}} A — the split is equal only when the branches are equal.
+
+          **Connects to:** Q6 asks what changes if a branch breaks.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: parallel-resistance
+    uses: [s1, s3, s5]
+    establishes: "If R3's branch opens, R2 carries more: {{V/(R1+R2)}} A instead of {{I2}} A."
+    standaloneContext: |
+      A {{V}} V battery drives $R_1 = {{R1}}$ Ω in series with $R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω.
+      The battery current is {{I}} A and $R_2$ carries {{I2}} A.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The wire to $R_3$ breaks, so its branch carries no current. Now only $R_1$ and $R_2$ are
+          left, in series. What current flows through $R_2$?
+        answer: { expr: "V / (R1 + R2)", unit: "A" }
+        distractors:
+          - { expr: "V / R2", unit: "A", misconception: each-gets-full-voltage }
+          - { expr: "Vp / R2", unit: "A", misconception: parallel-independent }
+          - { expr: "V / (R1 + R2 + R3)", unit: "A", misconception: network-all-series }
+        hints:
+          nudge: "With $R_3$ gone, what is the total resistance?"
+          partial: "$R_{tot} = R_1 + R_2 = {{R1+R2}}$ Ω, and $R_2$ carries the whole current."
+        explanation: |
+          **Answer:** {{V/(R1+R2)}} A
+
+          **Why:** Now $R_1$ and $R_2$ are simply in series: $I = {{V}}/({{R1}} + {{R2}}) = {{V/(R1+R2)}}$ A,
+          and all of it flows through $R_2$ — more than the {{I2}} A it carried before.
+
+          **Common mistakes:**
+          - {{V/R2}} A — $R_1$ still takes part of the voltage.
+          - {{I2}} A — the voltage across $R_2$ changed when $R_3$ was removed.
+          - {{V/(R1+R2+R3)}} A — the broken branch carries nothing; don't add it in series.
+
+          **Connects to:** the challenge — arrange bulbs to control which glows brightest.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          The wire to $R_3$ breaks, so its branch carries no current. What happens to the current
+          through $R_2$?
+        options:
+          - { text: "It increases", correct: true }
+          - { text: "It stays at {{I2}} A — the $R_2$ branch itself didn't change", misconception: parallel-independent }
+          - { text: "It drops to zero — the parallel section is broken", misconception: open-branch-kills-all }
+          - { text: "It decreases — the total resistance went up, so there's less current", misconception: total-current-only }
+        hints:
+          nudge: "Two things change: the battery current, and how it is shared. Follow both."
+          buildsOn: "From Q1, Q3 and Q5: the pair was {{Rp}} Ω, the battery gave {{I}} A, and $R_2$ took {{I2}} A of it."
+          partial: "New total: {{R1}} + {{R2}} = {{R1+R2}} Ω, so {{V/(R1+R2)}} A — and *all* of it now goes through $R_2$."
+        explanation: |
+          **Answer:** it increases — from {{I2}} A to {{V/(R1+R2)}} A.
+
+          **Why:** Losing a branch raises the total to ${{R1}} + {{R2}} = {{R1+R2}}$ Ω, so the battery
+          current falls from {{I}} A to {{V/(R1+R2)}} A. But $R_2$ no longer shares: it gets all of it.
+          Equivalently, $R_2$'s voltage rises from {{Vp}} V to {{V*R2/(R1+R2)}} V.
+
+          **Common mistakes:**
+          - "Stays the same" — that's only true if the pair sits directly across the battery. Here $R_1$ is in series, so the pair's voltage changes.
+          - "Zero" — only $R_3$'s branch is broken; $R_2$ still completes the loop.
+          - "Decreases" — the *total* current drops, but $R_2$'s share rises from {{I2}} A to all of it.
+
+          **Connects to:** the challenge — arrange bulbs so one glows brightest.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          The wire to $R_3$ breaks, so its branch carries no current. What is the new voltage across
+          $R_2$?
+        answer: { expr: "V * R2 / (R1 + R2)", unit: "V" }
+        distractors:
+          - { expr: "Vp", unit: "V", misconception: parallel-independent }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "V * R1 / (R1 + R2)", unit: "V", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "What's left is a simple series circuit. How does it share the {{V}} V?"
+          buildsOn: "From Q1, Q3 and Q5: before the break the pair had {{Vp}} V across it and $R_2$ carried {{I2}} A."
+          partial: "$I = {{V}}/({{R1}} + {{R2}}) = {{V/(R1+R2)}}$ A; then $V_2 = I R_2$."
+        explanation: |
+          **Answer:** {{V*R2/(R1+R2)}} V
+
+          **Why:** With $R_3$ gone, $R_1$ and $R_2$ are in series: $I = {{V}}/{{R1+R2}} = {{V/(R1+R2)}}$ A and
+          $V_2 = I R_2 = {{V*R2/(R1+R2)}}$ V — up from {{Vp}} V. A larger share of resistance
+          takes a larger share of the voltage.
+
+          **Common mistakes:**
+          - {{Vp}} V — the old value; the pair's equivalent resistance went up, so it takes more voltage.
+          - {{V}} V — $R_1$ still takes some.
+          - {{V*R1/(R1+R2)}} V — that's $R_1$'s share.
+
+          **Connects to:** the challenge — arrange bulbs so one glows brightest.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s1
+    concept: parallel-resistance
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Two resistors are connected in parallel. How does their equivalent resistance compare with each of them?"
+        options:
+          - { text: "It is smaller than either one", correct: true }
+          - { text: "It is larger than either one", misconception: series-parallel-confusion }
+          - { text: "It lies between them, at their average", misconception: parallel-average }
+          - { text: "It equals the smaller one", misconception: parallel-smaller-only }
+        hints:
+          nudge: "Opening a second route for the current: does that make the flow easier or harder?"
+          partial: "Each branch adds conductance ($1/R$), so the total conductance goes up and the resistance goes down."
+        explanation: |
+          **Answer:** smaller than either one.
+
+          **Why:** A second branch gives the charge another route, so more current flows for the same
+          voltage. More current per volt means less resistance: $1/R_p = 1/R_1 + 1/R_2 > 1/R_1$.
+
+          **Common mistakes:**
+          - "Larger" — that's series.
+          - "Average" — even two equal resistors give *half*, not the average.
+          - "The smaller one" — the larger branch still carries some current, lowering the total further.
+
+          **Connects to:** Q1 — the equivalent of the {{R2}} Ω and {{R3}} Ω pair.
+  - id: r2
+    role: remediation
+    remediates: s4
+    concept: voltage-current-division
+    variants:
+      standard:
+        id: r2-s
+        difficulty: 2
+        prompt: "Two resistors are in series across a battery. Which one has the larger voltage across it?"
+        options:
+          - { text: "The one with the larger resistance", correct: true }
+          - { text: "The one with the smaller resistance", misconception: voltage-share-inverse }
+          - { text: "Neither — they always share it equally", misconception: voltage-splits-equally }
+          - { text: "Both get the full battery voltage", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "Both carry the same current. Use $V = IR$ for each."
+          partial: "Same $I$, so $V \\propto R$."
+        explanation: |
+          **Answer:** the larger resistance.
+
+          **Why:** In series both carry the same current $I$, and each takes $V = IR$. So the
+          voltage divides in proportion to resistance, and the shares add up to the battery voltage.
+
+          **Common mistakes:**
+          - "Smaller" — that's how *current* divides in parallel, not voltage in series.
+          - "Equally" — only for equal resistors.
+          - "Full voltage each" — that's parallel.
+
+          **Connects to:** Q4 — sharing {{V}} V between $R_1$ and the pair.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l3.ch
+  type: circuit-builder
+  title: "Make bulb L1 the brightest"
+  concept: voltage-current-division
+  uses: [s3, s5]
+  params:
+    sets:
+      - { V: 6, Rb: 3 }
+      - { V: 12, Rb: 6 }
+      - { V: 9, Rb: 4 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "Wire all three identical bulbs to the {{V}} V battery so that every bulb lights and **L1** (the first bulb you place) glows brighter than both of the others."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: bulb, resistance: "Rb", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "P_L1 > 1.01 * P_L2 and P_L1 > 1.01 * P_L3 and P_L2 > 0 and P_L3 > 0" }
+      feedback:
+        - { if: "P_L2 == 0 or P_L3 == 0", say: "Every bulb has to light. Check that each one is part of a complete loop." }
+        - { if: "near(P_L1, P_L2) and near(P_L2, P_L3)", say: "All three are equally bright — in pure series or pure parallel, identical bulbs share equally." }
+        - { if: "P_L1 < P_L2 or P_L1 < P_L3", say: "Another bulb outshines L1. The brightest bulb is the one that carries the *whole* current.", misconception: current-used-up }
+      hints:
+        nudge: "Which position in a circuit carries all of the battery's current?"
+        buildsOn: "From Q3: a resistor in series with a parallel pair carries the full current, and the pair splits it."
+        partial: "Put L1 in series with L2 and L3, which are in parallel with each other."
+      solution: { netlist: ["B1 n1 0", "L1 n1 n2", "L2 n2 0", "L3 n2 0"] }
+      explanation: |
+        With L1 in series and L2 ∥ L3 after it, L1 carries the whole current $I$ and each of the
+        others carries $I/2$. Brightness goes with power $P = I^2 R$, so L1 is four times as
+        bright as each of the others.
+    standard:
+      difficulty: 4
+      goal: "Wire all three identical bulbs to the {{V}} V battery so that **L1 is exactly four times as bright** (four times the power) as L2, with L3 lit too."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: bulb, resistance: "Rb", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(P_L1, 4 * P_L2) and P_L3 > 0" }
+      feedback:
+        - { if: "P_L2 == 0 or P_L3 == 0", say: "Every bulb has to light." }
+        - { if: "near(P_L1, P_L2)", say: "L1 and L2 are equally bright. They carry the same current — L1 needs twice L2's current." }
+        - { if: "near(P_L2, 4 * P_L1)", say: "That's the other way round: L2 is four times as bright as L1. Swap roles." }
+        - { if: "near(P_L1, P_L2 / 4) or near(P_L1, 0.25 * P_L3)", say: "L1 is in a branch that only gets part of the current. Move it to where *all* the current flows.", misconception: current-used-up }
+      hints:
+        nudge: "Power goes as $I^2$. What current ratio gives a power ratio of 4?"
+        buildsOn: "From Q5: in a parallel pair of equal resistors, each takes half the current."
+        partial: "L1 needs twice L2's current: put L1 in series with the pair L2 ∥ L3."
+      solution: { netlist: ["B1 n1 0", "L1 n1 n2", "L2 n2 0", "L3 n2 0"] }
+      explanation: |
+        L1 carries the whole current $I$; L2 and L3 split it, $I/2$ each. Since $P = I^2 R$ and
+        the bulbs are identical, $P_{L1}/P_{L2} = I^2 / (I/2)^2 = 4$.
+    harder:
+      difficulty: 5
+      goal: "Use all three bulbs and the {{Rb}} Ω resistor so that every bulb lights, with **L1 brightest, then L2, then L3 dimmest**."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: bulb, resistance: "Rb", count: 3 }
+          - { kind: resistor, resistance: "Rb", count: 1 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "P_L1 > 1.01 * P_L2 and P_L2 > 1.01 * P_L3 and P_L3 > 0" }
+      feedback:
+        - { if: "P_L2 == 0 or P_L3 == 0", say: "Every bulb has to light." }
+        - { if: "near(P_L2, P_L3)", say: "L2 and L3 are equally bright. Make their branches different — the resistor can help." }
+        - { if: "P_L3 > P_L2", say: "L3 is brighter than L2. The branch with *more* resistance gets *less* current.", misconception: current-divider-swap }
+        - { if: "P_L1 <= P_L2", say: "L1 should carry the most current: put it where all the current flows." }
+      hints:
+        nudge: "L1 needs the full current. Then L2 and L3 must share unevenly."
+        buildsOn: "From Q5: in a parallel pair, the branch with more resistance carries less current."
+        partial: "L1 in series with a parallel pair: one branch is L2 alone, the other is L3 plus the resistor."
+      solution: { netlist: ["B1 n1 0", "L1 n1 n2", "L2 n2 0", "L3 n2 n3", "R1 n3 0"] }
+      explanation: |
+        L1 in series carries the whole current. The current then divides between L2 ({{Rb}} Ω) and
+        the branch L3 + resistor ({{2*Rb}} Ω). The branch with twice the resistance gets half the
+        current, so $I_{L2} = \tfrac{2}{3} I$ and $I_{L3} = \tfrac{1}{3} I$: L1 > L2 > L3.
+
+summary:
+  keyTakeaways:
+    - "Series: same current, resistances add, voltage shared in proportion to resistance."
+    - "Parallel: same voltage, currents add, and $1/R_p = 1/R_1 + 1/R_2$ — smaller than the smallest branch."
+    - "Collapse the network to find the battery current, then work back out to each part."
+    - "Removing a parallel branch raises the total resistance — but can *increase* the current in the branch that remains."
+  next: phys2.u3.l4

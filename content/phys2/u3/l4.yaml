@@ -1,0 +1,713 @@
+id: phys2.u3.l4
+title: "EMF & internal resistance"
+version: 1
+concepts: [emf-internal-resistance, max-power-transfer]
+estimatedMinutes: 25
+
+# A real battery: EMF E, internal resistance r, driving an external load R.
+params:
+  sets:
+    - { E: 12, r: 2, R: 6 }
+    - { E: 9, r: 0.5, R: 4 }
+    - { E: 15, r: 1.5, R: 3.5 }
+derived:
+  I: "E / (R + r)"
+  Vt: "E - I * r"
+  P: "I^2 * R"
+  Pmax: "E^2 / (4 * r)"
+
+intro: |
+  A battery's **EMF** $\varepsilon$ (volts) is the energy its chemistry gives each coulomb of
+  charge. An ideal battery would deliver all of it to the circuit. A real one has an
+  **internal resistance** $r$: the charges lose some energy getting through the battery itself.
+
+  Model a real battery as an ideal EMF in series with $r$. With an external load $R$, the
+  total resistance is $R + r$, so
+
+  $$I = \frac{\varepsilon}{R + r}$$
+
+  The voltage you can measure across the battery's terminals is less than the EMF by the
+  "lost volts" $Ir$:
+
+  $$V_{terminal} = \varepsilon - Ir = IR$$
+
+  With no current flowing, $V_{terminal} = \varepsilon$; the more current you draw, the
+  further it sags.
+
+  Power follows: the EMF produces $\varepsilon I$, the load receives $I^2 R$ and the battery
+  wastes $I^2 r$ as heat. The **efficiency** is $R/(R + r)$.
+
+  **Maximum power transfer:** for a given battery, the load receives the most power when
+  $R = r$. Then $P_{max} = \varepsilon^2 / 4r$ — but only half of the battery's output reaches
+  the load.
+
+workedExample: |
+  A battery with $\varepsilon = 6$ V and $r = 0.5$ Ω drives a 2.5 Ω lamp.
+
+  - Current: $I = 6/(2.5 + 0.5) = 2$ A
+  - Terminal voltage: $6 - 2 \times 0.5 = 5$ V (check: $IR = 2 \times 2.5 = 5$ V ✓)
+  - Lamp power: $I^2 R = 4 \times 2.5 = 10$ W; wasted in the battery: $I^2 r = 2$ W
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: emf-internal-resistance
+    clueFor: [s2]
+    establishes: "Battery (ε = {{E}} V, r = {{r}} Ω) with R = {{R}} Ω: I = ε/(R + r) = {{I}} A."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A battery of EMF $\varepsilon$ and internal resistance $r$ drives a load $R$. Which
+          expression gives the current?
+        options:
+          - { text: '$I = \dfrac{\varepsilon}{R + r}$', correct: true }
+          - { text: '$I = \dfrac{\varepsilon}{R}$', misconception: internal-r-ignored }
+          - { text: '$I = \dfrac{\varepsilon}{r}$', misconception: load-ignored }
+          - { text: '$I = \dfrac{\varepsilon - r}{R}$', misconception: emf-minus-r }
+        hints:
+          nudge: "The current passes through the load *and* through the battery itself."
+          partial: "The internal resistance is in series with the load, so the resistances add."
+        explanation: |
+          **Answer:** $I = \varepsilon / (R + r)$
+
+          **Why:** Model the battery as an ideal EMF in series with $r$. The current flows through
+          $r$ and $R$ in series, so the total resistance is $R + r$.
+
+          **Common mistakes:**
+          - $\varepsilon/R$ — that ignores the battery's own resistance.
+          - $\varepsilon/r$ — that's the current with a wire across the terminals (no load).
+          - $(\varepsilon - r)/R$ — you can't subtract ohms from volts.
+
+          **Connects to:** the next question finds the voltage at the terminals.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A battery with EMF {{E}} V and internal resistance {{r}} Ω drives a {{R}} Ω load. What
+          current flows?
+        answer: { expr: "E / (R + r)", unit: "A" }
+        distractors:
+          - { expr: "E / R", unit: "A", misconception: internal-r-ignored }
+          - { expr: "E / r", unit: "A", misconception: load-ignored }
+          - { expr: "E / (R - r)", unit: "A", misconception: internal-r-subtract }
+        hints:
+          nudge: "What total resistance does the current pass through?"
+          partial: "$R_{tot} = R + r = {{R+r}}$ Ω"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** The internal resistance is in series with the load:
+          $I = \varepsilon/(R + r) = {{E}}/({{R}} + {{r}}) = {{I}}$ A.
+
+          **Common mistakes:**
+          - {{E/R}} A — ignores the internal resistance.
+          - {{E/r}} A — that's the short-circuit current, with no load at all.
+          - {{E/(R-r)}} A — the internal resistance adds; it doesn't subtract.
+
+          **Connects to:** Q2 finds how much voltage reaches the load.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A battery with EMF {{E}} V drives a {{R}} Ω load, and {{I}} A flows. What is the battery's
+          internal resistance?
+        answer: { expr: "E / I - R", unit: "Ω" }
+        distractors:
+          - { expr: "E / I", unit: "Ω", misconception: total-as-internal }
+          - { expr: "E / I + R", unit: "Ω", misconception: internal-r-sign }
+          - { expr: "I * R / E", unit: "Ω", misconception: r-formula-inverted }
+        hints:
+          nudge: "First find the total resistance of the circuit from $\\varepsilon$ and $I$."
+          partial: "$R + r = \\varepsilon / I = {{E/I}}$ Ω. Subtract the load."
+        explanation: |
+          **Answer:** {{r}} Ω
+
+          **Why:** $\varepsilon/I$ is the total resistance: ${{E}}/{{I}} = {{E/I}}$ Ω $= R + r$. So
+          $r = {{E/I}} - {{R}} = {{r}}$ Ω.
+
+          **Common mistakes:**
+          - {{E/I}} Ω — that's the total, load included.
+          - {{E/I+R}} Ω — subtract the load; don't add it.
+          - {{I*R/E}} — that's a pure number (the terminal fraction), not a resistance.
+
+          **Connects to:** Q2 finds how much voltage reaches the load.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: emf-internal-resistance
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "Terminal voltage V = ε − Ir = {{Vt}} V; {{I*r}} V is lost inside the battery."
+    standaloneContext: "A battery with EMF {{E}} V and internal resistance {{r}} Ω drives {{I}} A through a {{R}} Ω load."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          {{I}} A flows through the {{R}} Ω load. What is the voltage across the load (and so across
+          the battery's terminals)?
+        answer: { expr: "I * R", unit: "V" }
+        distractors:
+          - { expr: "I / R", unit: "V", misconception: v-equals-i-over-r }
+          - { expr: "I * r", unit: "V", misconception: lost-volts-as-terminal }
+          - { expr: "E", unit: "V", misconception: terminal-equals-emf }
+        hints:
+          nudge: "Use Ohm's law on the load alone."
+          partial: "$V = IR$ for the {{R}} Ω load."
+        explanation: |
+          **Answer:** {{Vt}} V
+
+          **Why:** $V = IR = {{I}} \times {{R}} = {{Vt}}$ V. That's less than the {{E}} V EMF:
+          the other {{I*r}} V is used up inside the battery.
+
+          **Common mistakes:**
+          - {{I/R}} V — voltage is $IR$, not $I/R$.
+          - {{I*r}} V — that's the voltage lost *inside* the battery.
+          - {{E}} V — only an unloaded (or ideal) battery shows its full EMF.
+
+          **Connects to:** Q3 uses this voltage to find the power in the load.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          What is the voltage across the battery's terminals while the {{R}} Ω load is connected?
+        answer: { expr: "E - I * r", unit: "V" }
+        distractors:
+          - { expr: "E", unit: "V", misconception: terminal-equals-emf }
+          - { expr: "I * r", unit: "V", misconception: lost-volts-as-terminal }
+          - { expr: "E + I * r", unit: "V", misconception: lost-volts-added }
+        hints:
+          nudge: "Some of the EMF is used pushing current through the battery's own resistance."
+          buildsOn: "From Q1: I = {{I}} A."
+          partial: "Lost volts: $Ir = {{I}} \\times {{r}}$. Subtract them from the EMF."
+        explanation: |
+          **Answer:** {{Vt}} V
+
+          **Why:** $V = \varepsilon - Ir = {{E}} - {{I}} \times {{r}} = {{Vt}}$ V. Check: $IR = {{I}} \times {{R}} = {{Vt}}$ V ✓.
+
+          **Common mistakes:**
+          - {{E}} V — the terminals show the full EMF only when no current flows.
+          - {{I*r}} V — those are the lost volts, not what's left.
+          - {{E+I*r}} V — a battery delivering current can't exceed its EMF.
+
+          **Connects to:** Q3 finds the power delivered to the load.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A voltmeter across the battery reads {{E}} V with the switch open. The switch is closed,
+          connecting the {{R}} Ω load. By how much does the reading drop?
+        answer: { expr: "I * r", unit: "V" }
+        distractors:
+          - { expr: "E - I * r", unit: "V", misconception: terminal-for-drop }
+          - { expr: "0", unit: "V", misconception: ideal-battery-assumption }
+          - { expr: "E", unit: "V", misconception: drop-equals-emf }
+        hints:
+          nudge: "With the switch open, no current flows. What changes when it closes?"
+          buildsOn: "From Q1: I = {{I}} A with the load connected."
+          partial: "The drop is the voltage across the internal resistance: $Ir$."
+        explanation: |
+          **Answer:** {{I*r}} V
+
+          **Why:** Open switch: no current, so no lost volts — the meter reads the EMF. Closed: the
+          meter reads $\varepsilon - Ir$, so it drops by $Ir = {{I}} \times {{r}} = {{I*r}}$ V, to {{Vt}} V.
+
+          **Common mistakes:**
+          - {{Vt}} V — that's the new reading, not the drop.
+          - 0 V — only an ideal battery keeps its full voltage under load.
+          - {{E}} V — the reading falls to {{Vt}} V, not to zero.
+
+          **Connects to:** Q3 uses the terminal voltage to find the load's power.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: emf-internal-resistance
+    uses: [s2]
+    clueFor: [s6]
+    establishes: "The load gets P = I²R = {{P}} W of the {{E*I}} W the EMF produces; {{I^2*r}} W heats the battery."
+    standaloneContext: "A battery with EMF {{E}} V and internal resistance {{r}} Ω drives {{I}} A through a {{R}} Ω load; the terminal voltage is {{Vt}} V."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          The load has {{Vt}} V across it and {{I}} A through it. What power does it receive?
+        answer: { expr: "Vt * I", unit: "W" }
+        distractors:
+          - { expr: "Vt / I", unit: "W", misconception: power-divide }
+          - { expr: "E * I", unit: "W", misconception: emf-power-as-load }
+          - { expr: "Vt + I", unit: "W", misconception: power-add }
+        hints:
+          nudge: "Power is voltage times current — for the load, use the load's voltage."
+          partial: "$P = V I = {{Vt}} \\times {{I}}$"
+        explanation: |
+          **Answer:** {{P}} W
+
+          **Why:** $P = VI = {{Vt}} \times {{I}} = {{P}}$ W. The EMF produces $\varepsilon I = {{E*I}}$ W;
+          the difference, {{I^2*r}} W, heats the battery.
+
+          **Common mistakes:**
+          - {{Vt/I}} — $V/I$ is the load's resistance, not its power.
+          - {{E*I}} W — that's everything the EMF produces, including what's wasted inside.
+          - {{Vt+I}} — volts and amperes can't be added.
+
+          **Connects to:** Q6 compares this with the matched load.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          How much power does the {{R}} Ω load receive?
+        answer: { expr: "I^2 * R", unit: "W" }
+        distractors:
+          - { expr: "E * I", unit: "W", misconception: emf-power-as-load }
+          - { expr: "I^2 * r", unit: "W", misconception: internal-power-as-load }
+          - { expr: "E^2 / R", unit: "W", misconception: internal-r-ignored }
+        hints:
+          nudge: "Use a power formula with quantities that belong to the load."
+          buildsOn: "From Q2: the load has {{Vt}} V across it and carries {{I}} A."
+          partial: "$P = I^2 R = {{I}}^2 \\times {{R}}$ — or $V_{terminal} \\times I$."
+        explanation: |
+          **Answer:** {{P}} W
+
+          **Why:** $P = I^2 R = {{I}}^2 \times {{R}} = {{P}}$ W. Check: $V I = {{Vt}} \times {{I}} = {{P}}$ W ✓.
+
+          **Common mistakes:**
+          - {{E*I}} W — total power from the EMF; {{I^2*r}} W of it is wasted inside.
+          - {{I^2*r}} W — that's the power heating the battery.
+          - {{E^2/R}} W — that treats the battery as ideal (full EMF across the load).
+
+          **Connects to:** Q4 asks which load would get even more.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          What is the efficiency of this circuit — the percentage of the EMF's power that reaches
+          the {{R}} Ω load?
+        answer: { expr: "100 * R / (R + r)", unit: "%" }
+        distractors:
+          - { expr: "100 * r / (R + r)", unit: "%", misconception: efficiency-inverted }
+          - { expr: "100", unit: "%", misconception: ideal-battery-assumption }
+          - { expr: "50", unit: "%", misconception: max-power-means-max-efficiency }
+        hints:
+          nudge: "Load power is $I^2 R$; total power is $I^2(R + r)$. What's the ratio?"
+          buildsOn: "From Q2: the terminal voltage is {{Vt}} V out of an EMF of {{E}} V."
+          partial: "Efficiency $= \\dfrac{I^2 R}{I^2(R + r)} = \\dfrac{R}{R + r}$ — equivalently $V_{terminal}/\\varepsilon$."
+        explanation: |
+          **Answer:** {{100*R/(R+r)}} %
+
+          **Why:** The same current flows through $r$ and $R$, so power divides like resistance:
+          $\eta = R/(R + r) = {{R}}/{{R+r}}$, i.e. {{100*R/(R+r)}} %. Equivalently $V/\varepsilon = {{Vt}}/{{E}}$.
+          The load gets {{P}} W of {{E*I}} W.
+
+          **Common mistakes:**
+          - {{100*r/(R+r)}} % — that's the share wasted inside the battery.
+          - 100 % — only an ideal battery wastes nothing.
+          - 50 % — that's the efficiency at the *matched* load, $R = r$.
+
+          **Connects to:** Q6 looks at efficiency at maximum power.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: max-power-transfer
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "For this battery, a load R = r = {{r}} Ω receives the most power."
+    standaloneContext: "A battery has EMF {{E}} V and internal resistance {{r}} Ω. You may choose the load resistance."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          For this battery, the load power is {{E^2*(r/2)/(1.5*r)^2}} W with a {{r/2}} Ω load,
+          {{E^2/(4*r)}} W with a {{r}} Ω load and {{E^2*(2*r)/(3*r)^2}} W with a {{2*r}} Ω load.
+          Which load receives the most power?
+        options:
+          - { text: "The {{r}} Ω load", correct: true }
+          - { text: "The {{r/2}} Ω load — it draws the most current", misconception: max-current-max-power }
+          - { text: "The {{2*r}} Ω load — it gets the most voltage", misconception: max-voltage-max-power }
+          - { text: "All three get the same power", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "Just compare the three numbers."
+          partial: "The middle value of $R$ — equal to the internal resistance — gives the largest power."
+        explanation: |
+          **Answer:** the {{r}} Ω load, which equals the internal resistance.
+
+          **Why:** {{E^2/(4*r)}} W beats both {{E^2*(r/2)/(1.5*r)^2}} W and {{E^2*(2*r)/(3*r)^2}} W.
+          A small load draws lots of current but most power is wasted inside the battery; a large
+          load gets most of the voltage but little current. The best compromise is $R = r$.
+
+          **Common mistakes:**
+          - "{{r/2}} Ω" — more current, but more of the power heats the battery.
+          - "{{2*r}} Ω" — more voltage, but less current.
+          - "Same" — the numbers differ.
+
+          **Connects to:** Q5 finds this maximum power in general.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          You may replace the {{R}} Ω load with any resistor. Which load resistance receives the
+          most power from this battery?
+        options:
+          - { text: "$R = r = {{r}}$ Ω", correct: true }
+          - { text: "As small as possible — it draws the most current", misconception: max-current-max-power }
+          - { text: "As large as possible — it gets the most voltage", misconception: max-voltage-max-power }
+          - { text: "It makes no difference — the battery's power is fixed", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "What goes wrong at each extreme — $R \\to 0$ and $R \\to \\infty$?"
+          buildsOn: "From Q3: with R = {{R}} Ω the load gets {{P}} W."
+          partial: "$P = \\varepsilon^2 R/(R + r)^2$ is zero at both extremes, so it peaks in between — at $R = r$."
+        explanation: |
+          **Answer:** $R = r = {{r}}$ Ω.
+
+          **Why:** $P = I^2 R = \varepsilon^2 R/(R + r)^2$. As $R \to 0$ the current is large but no
+          voltage is left for the load; as $R \to \infty$ the voltage is all there but no current flows.
+          Setting $dP/dR = 0$ gives $R = r$ (maximum power transfer).
+
+          **Common mistakes:**
+          - "As small as possible" — at $R = 0$ the load gets no voltage, so no power.
+          - "As large as possible" — at very large $R$ almost no current flows.
+          - "No difference" — the battery fixes its EMF, not its power output.
+
+          **Connects to:** Q5 works out that maximum power.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          Two loads are tried on this battery: $R_a = {{r/2}}$ Ω and $R_b = {{2*r}}$ Ω. Which receives more power?
+        options:
+          - { text: "They receive the same power", correct: true }
+          - { text: "$R_a$ — it draws more current", misconception: max-current-max-power }
+          - { text: "$R_b$ — power is $I^2R$, and $R_b$ is bigger", misconception: power-proportional-R }
+          - { text: "$R_b$ — it gets more of the battery's voltage", misconception: max-voltage-max-power }
+        hints:
+          nudge: "Use $P = \\varepsilon^2 R / (R + r)^2$ for each load."
+          buildsOn: "From Q3: with R = {{R}} Ω the load gets {{P}} W."
+          partial: "$P_a = \\varepsilon^2 (r/2)/(1.5r)^2 = \\tfrac{2}{9}\\varepsilon^2/r$. Now do $P_b$."
+        explanation: |
+          **Answer:** the same — {{E^2*(r/2)/(1.5*r)^2}} W each.
+
+          **Why:** $P_a = \varepsilon^2 (r/2)/(1.5r)^2 = \tfrac{2}{9}\,\varepsilon^2/r$ and
+          $P_b = \varepsilon^2 (2r)/(3r)^2 = \tfrac{2}{9}\,\varepsilon^2/r$. The power curve is symmetric
+          (on a log scale) about its peak at $R = r = {{r}}$ Ω, and both are below the peak.
+
+          **Common mistakes:**
+          - "$R_a$" — its larger current mostly heats the battery.
+          - "$R_b$ because $P = I^2R$" — $I$ is smaller for $R_b$, and $I$ is squared.
+          - "$R_b$ because of voltage" — more voltage but less current; the products tie.
+
+          **Connects to:** Q5 finds the peak power at $R = r$.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: max-power-transfer
+    uses: [s4, s1]
+    clueFor: [s6]
+    establishes: "Maximum load power from this battery: ε²/4r = {{Pmax}} W, at R = {{r}} Ω."
+    standaloneContext: "A battery has EMF {{E}} V and internal resistance {{r}} Ω. The load that gets the most power is $R = r$."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 3
+        prompt: |
+          With a matched load $R = r = {{r}}$ Ω, the current is {{E/(2*r)}} A. What power does the
+          load receive?
+        answer: { expr: "(E / (2*r))^2 * r", unit: "W" }
+        distractors:
+          - { expr: "(E / (2*r)) * r", unit: "W", misconception: power-equals-voltage }
+          - { expr: "E * E / (2*r)", unit: "W", misconception: emf-power-as-load }
+          - { expr: "(E / (2*r))^2 / r", unit: "W", misconception: power-divide }
+        hints:
+          nudge: "Which power formula uses the current and the load resistance?"
+          partial: "$P = I^2 R = {{E/(2*r)}}^2 \\times {{r}}$"
+        explanation: |
+          **Answer:** {{Pmax}} W
+
+          **Why:** $P = I^2 R = ({{E/(2*r)}})^2 \times {{r}} = {{Pmax}}$ W, which equals $\varepsilon^2/4r$.
+
+          **Common mistakes:**
+          - {{(E/(2*r))*r}} — $IR$ is the load's voltage, not its power.
+          - {{E*E/(2*r)}} W — that's the EMF's total output, half of which is wasted.
+          - {{(E/(2*r))^2/r}} — power is $I^2 R$, not $I^2/R$.
+
+          **Connects to:** Q6 asks where the other half of the power goes.
+      standard:
+        id: s5-s
+        difficulty: 4
+        prompt: |
+          What is the greatest power this battery can deliver to any load?
+        answer: { expr: "E^2 / (4 * r)", unit: "W" }
+        distractors:
+          - { expr: "E^2 / r", unit: "W", misconception: short-circuit-power }
+          - { expr: "E^2 / (2 * r)", unit: "W", misconception: emf-power-as-load }
+          - { expr: "E^2 / (4 * R)", unit: "W", misconception: matching-wrong-resistor }
+        hints:
+          nudge: "Use the best load from Q4, then find the current and the power."
+          buildsOn: "From Q4: the best load is R = r = {{r}} Ω. From Q1: $I = \\varepsilon/(R + r)$."
+          partial: "$I = \\varepsilon/2r = {{E/(2*r)}}$ A; then $P = I^2 r$."
+        explanation: |
+          **Answer:** {{Pmax}} W
+
+          **Why:** With $R = r$, $I = \varepsilon/(2r) = {{E/(2*r)}}$ A and
+          $P = I^2 r = \varepsilon^2/4r = {{E}}^2/(4 \times {{r}}) = {{Pmax}}$ W — more than the
+          {{P}} W the {{R}} Ω load gets.
+
+          **Common mistakes:**
+          - {{E^2/r}} W — that's $\varepsilon \times$ the short-circuit current, all of it wasted inside.
+          - {{E^2/(2*r)}} W — that's the EMF's total output at the matched load; half heats the battery.
+          - {{E^2/(4*R)}} W — the formula needs the internal resistance, not the old load.
+
+          **Connects to:** Q6 — where does the rest of the power go?
+      harder:
+        id: s5-h
+        difficulty: 5
+        prompt: |
+          Now the load is fixed at $R = {{R}}$ Ω, but you can choose between batteries with the same
+          EMF ({{E}} V) and different internal resistances. Which gives the load the most power?
+        options:
+          - { text: "The battery with the smallest internal resistance", correct: true }
+          - { text: "The one whose internal resistance equals {{R}} Ω", misconception: matching-misapplied }
+          - { text: "The one with the largest internal resistance", misconception: max-voltage-max-power }
+          - { text: "They all give the same power", misconception: power-fixed-by-battery }
+        hints:
+          nudge: "Maximum power transfer chooses the *load* for a given battery. Here the load is fixed."
+          buildsOn: "From Q4: for a fixed battery, R = r is best. From Q1: $I = \\varepsilon/(R + r)$."
+          partial: "With $R$ fixed, $P = \\varepsilon^2 R/(R + r)^2$ only gets bigger as $r$ shrinks."
+        explanation: |
+          **Answer:** the smallest internal resistance.
+
+          **Why:** $P = \varepsilon^2 R/(R + r)^2$. With $R$ fixed, every bit of $r$ only steals
+          current, so $r = 0$ would be best, giving $\varepsilon^2/R = {{E^2/R}}$ W. "Match $R$ to $r$"
+          answers a different question: the best *load* for a given battery, which peaks at
+          $\varepsilon^2/4r$ ({{Pmax}} W for this battery).
+
+          **Common mistakes:**
+          - "Equal to {{R}} Ω" — matching applies when you choose the load, not the source.
+          - "Largest" — more internal resistance means less current and less load power.
+          - "Same" — $r$ appears in the formula for $P$.
+
+          **Connects to:** Q6 — efficiency at the matched load.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: max-power-transfer
+    uses: [s2, s5]
+    establishes: "At the matched load, {{Pmax}} W heats the battery as well — efficiency 50%."
+    standaloneContext: |
+      A battery with EMF {{E}} V and internal resistance {{r}} Ω drives a matched load $R = r$,
+      which receives the maximum power, {{Pmax}} W.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          With the matched load, {{E/(2*r)}} A flows through the battery's {{r}} Ω internal
+          resistance. How much power is wasted inside the battery?
+        answer: { expr: "(E / (2*r))^2 * r", unit: "W" }
+        distractors:
+          - { expr: "(E / (2*r)) * r", unit: "W", misconception: power-equals-voltage }
+          - { expr: "0", unit: "W", misconception: ideal-battery-assumption }
+          - { expr: "E * E / (2*r)", unit: "W", misconception: emf-power-as-load }
+        hints:
+          nudge: "The internal resistance heats up just like any resistor."
+          partial: "$P = I^2 r = {{E/(2*r)}}^2 \\times {{r}}$"
+        explanation: |
+          **Answer:** {{Pmax}} W
+
+          **Why:** $I^2 r = ({{E/(2*r)}})^2 \times {{r}} = {{Pmax}}$ W — exactly as much as the load
+          gets, because $r = R$ and they carry the same current.
+
+          **Common mistakes:**
+          - {{(E/(2*r))*r}} — that's the lost volts, not a power.
+          - 0 W — a real battery's internal resistance always wastes some power.
+          - {{E*E/(2*r)}} W — that's the EMF's whole output (load + battery).
+
+          **Connects to:** the challenge — build the load that gets the most power.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          With the matched load ($R = r$) receiving its maximum power, how much power is wasted as
+          heat inside the battery?
+        answer: { expr: "E^2 / (4 * r)", unit: "W" }
+        distractors:
+          - { expr: "0", unit: "W", misconception: ideal-battery-assumption }
+          - { expr: "E^2 / (8 * r)", unit: "W", misconception: waste-half-of-load }
+          - { expr: "E^2 / (2 * r)", unit: "W", misconception: total-as-waste }
+        hints:
+          nudge: "The load and the internal resistance carry the same current. How do their resistances compare?"
+          buildsOn: "From Q2: lost volts $Ir$ appear across the internal resistance. From Q5: the load gets {{Pmax}} W."
+          partial: "Same $I$, same resistance — so the same $I^2 R$."
+        explanation: |
+          **Answer:** {{Pmax}} W — as much as the load receives.
+
+          **Why:** At $R = r$ the lost volts equal the terminal voltage ($Ir = IR$, both
+          {{E/2}} V), and the same current flows through both, so they dissipate equal power: the
+          efficiency is only 50 %. That's why power stations don't "match": they want efficiency.
+
+          **Common mistakes:**
+          - 0 W — the internal resistance always takes its share.
+          - {{E^2/(8*r)}} W — the split is equal, not 2 : 1.
+          - {{E^2/(2*r)}} W — that's the total; the battery wastes half of it.
+
+          **Connects to:** the challenge — build the load that gets the most power.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          With the matched load, what is the circuit's efficiency (the share of the EMF's power that
+          reaches the load)? For comparison, the {{R}} Ω load had {{100*R/(R+r)}} %.
+        options:
+          - { text: "50 %", correct: true }
+          - { text: "100 % — the load is matched", misconception: ideal-battery-assumption }
+          - { text: "25 %", misconception: max-power-quarter }
+          - { text: "{{100*R/(R+r)}} % — the battery hasn't changed", misconception: efficiency-unchanged }
+        hints:
+          nudge: "Efficiency is $R/(R + r)$. What is that when $R = r$?"
+          buildsOn: "From Q2: lost volts $Ir$ appear across the internal resistance. From Q5: the matched load gets {{Pmax}} W."
+          partial: "$R/(R + r)$ with $R = r$ is $r/2r$."
+        explanation: |
+          **Answer:** 50 %.
+
+          **Why:** Efficiency $= R/(R + r) = r/2r = 50$ %: the load gets {{Pmax}} W and the battery
+          wastes another {{Pmax}} W. Maximum *power* is not maximum *efficiency* — the {{R}} Ω load
+          was more efficient ({{100*R/(R+r)}} %) but received less power.
+
+          **Common mistakes:**
+          - "100 %" — matching maximises power, not efficiency.
+          - "25 %" — $P_{max} = \varepsilon^2/4r$ is a quarter of $\varepsilon^2/r$, but that's not the efficiency.
+          - "Unchanged" — efficiency depends on the load: $R/(R + r)$.
+
+          **Connects to:** the challenge — build the load that gets the most power.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: emf-internal-resistance
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "A real battery is supplying current to a lamp. How does the voltage across its terminals compare with its EMF?"
+        options:
+          - { text: "It is less than the EMF", correct: true }
+          - { text: "It equals the EMF", misconception: terminal-equals-emf }
+          - { text: "It is more than the EMF", misconception: lost-volts-added }
+          - { text: "It is zero — all the EMF is used inside", misconception: drop-equals-emf }
+        hints:
+          nudge: "Does the current have to get through anything inside the battery?"
+          partial: "Some voltage — $Ir$ — is used up driving the current through the internal resistance."
+        explanation: |
+          **Answer:** less than the EMF.
+
+          **Why:** $V_{terminal} = \varepsilon - Ir$. Whenever current flows, the internal resistance
+          takes $Ir$, so the terminals show less than $\varepsilon$.
+
+          **Common mistakes:**
+          - "Equals" — true only with no current (or an ideal battery).
+          - "More" — a battery that's supplying current can't exceed its EMF.
+          - "Zero" — only with a short circuit across the terminals.
+
+          **Connects to:** Q2 — the terminal voltage with the {{R}} Ω load.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l4.ch
+  type: circuit-builder
+  title: "Get the most power out of a real battery"
+  concept: max-power-transfer
+  uses: [s4, s5]
+  params:
+    sets:
+      - { E: 12, r: 2 }
+      - { E: 9, r: 1.5 }
+      - { E: 6, r: 1 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "This battery has EMF {{E}} V and internal resistance {{r}} Ω. Connect **one** of the resistors as the load so that it receives the maximum possible power, {{E^2/(4*r)}} W."
+      config:
+        battery: { voltage: "E", internalResistance: "r" }
+        palette:
+          - { kind: resistor, resistance: "r/2", count: 1 }
+          - { kind: resistor, resistance: "r", count: 1 }
+          - { kind: resistor, resistance: "2*r", count: 1 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, E / (2*r)) and n == 1" }
+      feedback:
+        - { if: "n > 1", say: "Use just one resistor as the load." }
+        - { if: "I > E/(2*r)", say: "Your load is smaller than r: lots of current, but most of the power heats the battery.", misconception: max-current-max-power }
+        - { if: "I < E/(2*r)", say: "Your load is bigger than r: plenty of voltage, but too little current.", misconception: max-voltage-max-power }
+      hints:
+        nudge: "Which load resistance gives maximum power transfer?"
+        buildsOn: "From Q4: the load gets the most power when R = r."
+        partial: "Use the {{r}} Ω resistor."
+      solution: { netlist: ["B1 n1 0", "R1 n1 0 r"] }
+      explanation: |
+        The load gets the most power when it matches the internal resistance: $R = r = {{r}}$ Ω. Then
+        $I = {{E}}/(2 \times {{r}}) = {{E/(2*r)}}$ A and $P = I^2 R = {{E^2/(4*r)}}$ W.
+    standard:
+      difficulty: 4
+      goal: "Battery: EMF {{E}} V, internal resistance {{r}} Ω. Using the {{2*r}} Ω resistors, build a load that receives the maximum possible power, {{E^2/(4*r)}} W."
+      config:
+        battery: { voltage: "E", internalResistance: "r" }
+        palette:
+          - { kind: resistor, resistance: "2*r", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, E / (2*r))" }
+      feedback:
+        - { if: "near(I, E/(3*r))", say: "One {{2*r}} Ω resistor is twice the internal resistance — too much." }
+        - { if: "near(I, E/(5*r))", say: "Two in series make {{4*r}} Ω. You need *less* resistance than one resistor.", misconception: series-parallel-confusion }
+        - { if: "I > E/(2*r)", say: "Your load is below r = {{r}} Ω: more current, but more of the power is wasted in the battery.", misconception: max-current-max-power }
+      hints:
+        nudge: "What load resistance do you need? How can {{2*r}} Ω resistors make it?"
+        buildsOn: "From Q4: the load gets the most power when R = r = {{r}} Ω."
+        partial: "Two {{2*r}} Ω resistors in parallel give {{r}} Ω."
+      solution: { netlist: ["B1 n1 0", "R1 n1 0", "R2 n1 0"] }
+      explanation: |
+        You need $R = r = {{r}}$ Ω. Two {{2*r}} Ω resistors in parallel give $\tfrac{2r}{2} = {{r}}$ Ω, so
+        $I = {{E/(2*r)}}$ A and the load gets $\varepsilon^2/4r = {{E^2/(4*r)}}$ W.
+    harder:
+      difficulty: 5
+      goal: "Battery: EMF {{E}} V, internal resistance {{r}} Ω. Use **all three** {{3*r}} Ω resistors to build a load that receives the maximum possible power, {{E^2/(4*r)}} W."
+      config:
+        battery: { voltage: "E", internalResistance: "r" }
+        palette:
+          - { kind: resistor, resistance: "3*r", count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I, E / (2*r)) and n == 3" }
+      feedback:
+        - { if: "n < 3", say: "Use all three resistors." }
+        - { if: "near(I, E/(10*r))", say: "All three in series give {{9*r}} Ω — far above r." }
+        - { if: "near(I, E/(3*r))", say: "That's {{2*r}} Ω (a series pair in parallel with the third) — still twice r." }
+        - { if: "near(I, E/(5.5*r))", say: "That's {{4.5*r}} Ω (a parallel pair in series with the third) — far above r." }
+        - { if: "I < E/(2*r)", say: "Your load is bigger than r: you need less resistance.", misconception: max-voltage-max-power }
+      hints:
+        nudge: "What arrangement of three equal resistors gives a third of one?"
+        buildsOn: "From Q4: the load gets the most power when R = r = {{r}} Ω."
+        partial: "Three {{3*r}} Ω resistors in parallel give {{r}} Ω."
+      solution: { netlist: ["B1 n1 0", "R1 n1 0", "R2 n1 0", "R3 n1 0"] }
+      explanation: |
+        Three {{3*r}} Ω resistors in parallel give $3r/3 = {{r}}$ Ω — a matched load. Then
+        $I = {{E/(2*r)}}$ A and the load receives $\varepsilon^2/4r = {{E^2/(4*r)}}$ W, while another
+        {{E^2/(4*r)}} W heats the battery.
+
+summary:
+  keyTakeaways:
+    - "A real battery = EMF $\\varepsilon$ in series with internal resistance $r$: $I = \\varepsilon/(R + r)$."
+    - "Terminal voltage $V = \\varepsilon - Ir$ sags as you draw more current."
+    - "Load power $I^2R$; wasted power $I^2r$; efficiency $R/(R + r)$."
+    - "For a given battery, the load gets maximum power $\\varepsilon^2/4r$ when $R = r$ — at only 50 % efficiency."
+  next: phys2.u3.l5

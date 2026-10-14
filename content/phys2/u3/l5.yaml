@@ -1,0 +1,716 @@
+id: phys2.u3.l5
+title: "Kirchhoff's rules"
+version: 1
+concepts: [junction-rule, loop-rule]
+estimatedMinutes: 25
+
+# Two batteries feeding one junction:
+#   E1 —R1→ A ←R2— E2, and R3 from A down to the common wire B.
+# Built from chosen currents so every set is exact: V_A = I3·R3, E1 = V_A + I1·R1, E2 = V_A + I2·R2.
+params:
+  sets:
+    - { E1: 12, E2: 9, R1: 3, R2: 3, R3: 6 }
+    - { E1: 10, E2: 8, R1: 2, R2: 4, R3: 4 }
+    - { E1: 14, E2: 8, R1: 4, R2: 2, R3: 2 }
+derived:
+  VA: "(E1/R1 + E2/R2) / (1/R1 + 1/R2 + 1/R3)"
+  I1: "(E1 - VA) / R1"
+  I2: "(E2 - VA) / R2"
+  I3: "VA / R3"
+
+intro: |
+  When a circuit has more than one battery, or loops that can't be collapsed into series and
+  parallel pieces, use **Kirchhoff's rules**.
+
+  **Junction rule** (conservation of charge): at any junction, the currents flowing in add up
+  to the currents flowing out.
+
+  **Loop rule** (conservation of energy): around any closed loop, the EMFs add up to the
+  $IR$ drops:
+
+  $$\sum \varepsilon = \sum IR$$
+
+  Going round a loop *with* a current through a resistor, the potential drops by $IR$; going
+  through a battery from − to +, it rises by $\varepsilon$. Back where you started, the
+  potential is what it was.
+
+  The circuit in this lesson (both + terminals face the top wire):
+
+  ```
+     ┌─── R1 ───┬─── R2 ───┐
+     │+         │A        +│
+     E1         R3         E2
+     │          │B         │
+     └──────────┴──────────┘
+  ```
+
+  Currents $I_1$ (through $R_1$, from $E_1$ toward A) and $I_2$ (through $R_2$, from $E_2$
+  toward A) meet at junction A, and $I_3$ flows down through $R_3$.
+
+  **Method:** label each current with an arrow (guess the direction — a negative answer just
+  means it flows the other way), write one junction equation and enough loop equations, then solve.
+
+workedExample: |
+  One battery, $\varepsilon = 10$ V, drives $R = 2$ Ω and then splits into two branches of 4 Ω and 4 Ω.
+
+  - Junction: $I = I_a + I_b$, and by symmetry $I_a = I_b$
+  - Loop through the 2 Ω and one 4 Ω branch: $10 = 2I + 4I_a$
+  - With $I = 2I_a$: $10 = 4I_a + 4I_a$, so $I_a = 1.25$ A and $I = 2.5$ A
+  - Check the loop: $2 \times 2.5 + 4 \times 1.25 = 5 + 5 = 10$ V ✓
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: junction-rule
+    clueFor: [s5]
+    establishes: "Junction A: I₁ + I₂ = I₃ (current in = current out)."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          At junction A, 2 A arrives through $R_1$ and 0.5 A arrives through $R_2$. All of it
+          leaves through $R_3$. What current flows through $R_3$?
+        answer: { expr: "2 + 0.5", unit: "A" }
+        distractors:
+          - { expr: "2 - 0.5", unit: "A", misconception: junction-subtract-wrong }
+          - { expr: "2", unit: "A", misconception: junction-ignores-branch }
+          - { expr: "(2 + 0.5) / 2", unit: "A", misconception: junction-average }
+        hints:
+          nudge: "Can charge pile up at a junction?"
+          partial: "Everything that flows in must flow out."
+        explanation: |
+          **Answer:** 2.5 A
+
+          **Why:** Charge is conserved and can't pile up at A, so the current out equals the total
+          current in: $2 + 0.5 = 2.5$ A.
+
+          **Common mistakes:**
+          - 1.5 A — both currents flow *in*; they add.
+          - 2 A — the 0.5 A from $R_2$ has to go somewhere.
+          - 1.25 A — currents add; they aren't averaged.
+
+          **Connects to:** Q5 applies this to the real currents in the circuit.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          With the arrows as drawn ($I_1$ and $I_2$ toward A, $I_3$ down through $R_3$), which
+          equation does the junction rule give at A?
+        options:
+          - { text: '$I_1 + I_2 = I_3$', correct: true }
+          - { text: '$I_1 = I_2 = I_3$', misconception: series-current-everywhere }
+          - { text: '$I_3 = I_1 - I_2$', misconception: junction-subtract-wrong }
+          - { text: '$I_1 + I_2 + I_3 = 0$, with all three as drawn', misconception: junction-sign-all-in }
+        hints:
+          nudge: "Which currents flow into A, and which flow out?"
+          partial: "Two arrows point into A; one points out."
+        explanation: |
+          **Answer:** $I_1 + I_2 = I_3$
+
+          **Why:** $I_1$ and $I_2$ flow into A and $I_3$ flows out. Charge is conserved, so in = out.
+
+          **Common mistakes:**
+          - All equal — that's true for a single loop, not at a junction.
+          - $I_1 - I_2$ — both flow *in*; neither is subtracted.
+          - Sum $= 0$ as drawn — that form only works if you count currents *out* as negative.
+
+          **Connects to:** Q5 uses this equation with the real currents.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          At junction A, 3 A flows in through $R_1$ and 5 A flows out through $R_3$. What does
+          the $R_2$ wire carry?
+        options:
+          - { text: "2 A, flowing *into* A", correct: true }
+          - { text: "2 A, flowing *out of* A", misconception: junction-sign-error }
+          - { text: "8 A, flowing into A", misconception: junction-adds }
+          - { text: "Nothing — the junction can't have three wires", misconception: junction-ignores-branch }
+        hints:
+          nudge: "More flows out than in through the two known wires. Where does the extra come from?"
+          partial: "In = out: $3 + I_2 = 5$."
+        explanation: |
+          **Answer:** 2 A, flowing into A.
+
+          **Why:** Out of A: 5 A. Into A through $R_1$: only 3 A. The other 2 A must arrive through
+          $R_2$: $3 + 2 = 5$ ✓.
+
+          **Common mistakes:**
+          - "2 A out" — then 3 A in and 7 A out: charge would be created.
+          - "8 A in" — that's adding the in and out currents.
+          - "Nothing" — then 3 A in but 5 A out, which breaks conservation.
+
+          **Connects to:** Q5 applies the junction rule to the real currents.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: loop-rule
+    clueFor: [s3]
+    establishes: "Left loop: E₁ = I₁R₁ + I₃R₃, i.e. {{E1}} = {{R1}}·I₁ + {{R3}}·I₃."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Start at any point of a circuit, add up every rise and drop in potential around a
+          closed loop, and come back to the start. What is the total?
+        options:
+          - { text: "Zero", correct: true }
+          - { text: "The battery's EMF", misconception: loop-sums-to-emf }
+          - { text: "It depends on which way you go round", misconception: loop-path-dependent }
+          - { text: "The total current times the total resistance", misconception: loop-current-confusion }
+        hints:
+          nudge: "Potential is like height. Walk round a loop back to where you started: what's your net climb?"
+          partial: "You end at the same point, so the same potential."
+        explanation: |
+          **Answer:** zero.
+
+          **Why:** Potential has one value at each point. Ending where you began means the rises
+          (through batteries) exactly cancel the drops (across resistors): $\sum \varepsilon = \sum IR$.
+
+          **Common mistakes:**
+          - "The EMF" — the EMF is one of the rises; the total change is still zero.
+          - "Depends on the direction" — going the other way flips every sign; the total is still zero.
+          - "Total current × total resistance" — that mixes up the loop rule with Ohm's law for one resistor.
+
+          **Connects to:** Q3 uses the left loop to find $I_1$.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          Apply the loop rule to the **left loop** ($E_1$, $R_1$, $R_3$). Which equation is correct?
+        options:
+          - { text: '${{E1}} = {{R1}} I_1 + {{R3}} I_3$', correct: true }
+          - { text: '${{E1}} = {{R1}} I_1$', misconception: loop-misses-shared }
+          - { text: '${{E1}} = {{R1}} I_1 + {{R2}} I_2$', misconception: loop-wrong-path }
+          - { text: '${{E1}} + {{E2}} = {{R1}} I_1 + {{R3}} I_3$', misconception: loop-extra-emf }
+        hints:
+          nudge: "List exactly which components the left loop passes through."
+          partial: "The left loop goes through $E_1$, $R_1$ and $R_3$ — not $R_2$ or $E_2$."
+        explanation: |
+          **Answer:** ${{E1}} = {{R1}} I_1 + {{R3}} I_3$
+
+          **Why:** Going round the left loop you rise by $E_1 = {{E1}}$ V and drop by $I_1 R_1$ and
+          $I_3 R_3$. Rises equal drops.
+
+          **Common mistakes:**
+          - Missing $R_3$ — the shared middle resistor is part of the left loop too.
+          - $R_2 I_2$ — $R_2$ isn't in the left loop.
+          - Adding $E_2$ — $E_2$ is in the right loop, not this one.
+
+          **Connects to:** Q3 uses this equation to find $I_1$.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Apply the loop rule to the **outer loop** ($E_1$, $R_1$, $R_2$, $E_2$), going clockwise
+          from $E_1$. Which equation is correct?
+        options:
+          - { text: '${{E1}} - {{E2}} = {{R1}} I_1 - {{R2}} I_2$', correct: true }
+          - { text: '${{E1}} + {{E2}} = {{R1}} I_1 + {{R2}} I_2$', misconception: loop-sign-ignored }
+          - { text: '${{E1}} - {{E2}} = {{R1}} I_1 + {{R2}} I_2$', misconception: loop-current-sign }
+          - { text: '${{E1}} = {{R1}} I_1 + {{R2}} I_2$', misconception: loop-missing-emf }
+        hints:
+          nudge: "Going clockwise, you pass through $E_2$ from + to − and through $R_2$ *against* the arrow for $I_2$."
+          partial: "Against the current, a resistor is a rise of $IR$; through a battery from + to −, a drop of $\\varepsilon$."
+        explanation: |
+          **Answer:** ${{E1}} - {{E2}} = {{R1}} I_1 - {{R2}} I_2$
+
+          **Why:** Clockwise from $E_1$: rise ${{E1}}$, drop $I_1 R_1$ (with the current), rise $I_2 R_2$
+          (against the current), then through $E_2$ from + to −, a drop of ${{E2}}$. Total zero:
+          ${{E1}} - {{R1}} I_1 + {{R2}} I_2 - {{E2}} = 0$.
+
+          **Common mistakes:**
+          - All plus signs — the batteries face each other around this loop, so they oppose.
+          - $+ R_2 I_2$ — you cross $R_2$ against its current arrow.
+          - Missing $E_2$ — every EMF on the loop counts.
+
+          **Connects to:** Q3 uses the simpler left loop to find $I_1$.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: loop-rule
+    uses: [s2]
+    clueFor: [s4]
+    establishes: "With V_A = {{VA}} V, the left loop gives I₁ = (E₁ − V_A)/R₁ = {{I1}} A."
+    standaloneContext: "In a two-battery circuit, $E_1 = {{E1}}$ V drives $I_1$ through $R_1 = {{R1}}$ Ω to junction A, which is {{VA}} V above the common bottom wire."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          A voltmeter shows that A is {{VA}} V above B (that's $I_3 R_3$). The left loop gives
+          ${{E1}} = {{R1}} I_1 + {{VA}}$. What is $I_1$?
+        answer: { expr: "(E1 - VA) / R1", unit: "A" }
+        distractors:
+          - { expr: "E1 / R1", unit: "A", misconception: loop-misses-shared }
+          - { expr: "VA / R1", unit: "A", misconception: wrong-resistor-drop }
+          - { expr: "(E1 + VA) / R1", unit: "A", misconception: loop-sign-ignored }
+        hints:
+          nudge: "Rearrange the equation for $I_1$."
+          partial: "${{R1}} I_1 = {{E1}} - {{VA}}$"
+        explanation: |
+          **Answer:** {{I1}} A
+
+          **Why:** ${{R1}} I_1 = {{E1}} - {{VA}} = {{E1-VA}}$, so $I_1 = {{E1-VA}}/{{R1}} = {{I1}}$ A.
+
+          **Common mistakes:**
+          - {{E1/R1}} A — that puts all of $E_1$ across $R_1$, ignoring $R_3$'s share.
+          - {{VA/R1}} A — {{VA}} V is across $R_3$, not $R_1$.
+          - {{(E1+VA)/R1}} A — $R_3$'s voltage is subtracted, not added.
+
+          **Connects to:** Q4 does the same for the right loop.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          A voltmeter shows that junction A is {{VA}} V above the bottom wire B, so $I_3 R_3 = {{VA}}$ V.
+          Use the left-loop equation to find $I_1$.
+        answer: { expr: "(E1 - VA) / R1", unit: "A" }
+        distractors:
+          - { expr: "E1 / R1", unit: "A", misconception: loop-misses-shared }
+          - { expr: "VA / R1", unit: "A", misconception: wrong-resistor-drop }
+          - { expr: "(E1 + VA) / R1", unit: "A", misconception: loop-sign-ignored }
+        hints:
+          nudge: "In the left-loop equation, replace $I_3 R_3$ by the measured voltage."
+          buildsOn: "From Q2: ${{E1}} = {{R1}} I_1 + {{R3}} I_3$."
+          partial: "${{E1}} = {{R1}} I_1 + {{VA}}$"
+        explanation: |
+          **Answer:** {{I1}} A
+
+          **Why:** From Q2, ${{E1}} = {{R1}} I_1 + I_3 R_3 = {{R1}} I_1 + {{VA}}$. So
+          $I_1 = ({{E1}} - {{VA}})/{{R1}} = {{I1}}$ A. Of $E_1$'s {{E1}} V, {{E1-VA}} V is across $R_1$.
+
+          **Common mistakes:**
+          - {{E1/R1}} A — ignores the {{VA}} V across $R_3$.
+          - {{VA/R1}} A — that's $R_3$'s voltage put across $R_1$.
+          - {{(E1+VA)/R1}} A — the drops add up *to* $E_1$; subtract $R_3$'s share.
+
+          **Connects to:** Q4 finds $I_2$ from the right loop.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          Junction A is {{VA}} V above B. Which way does current flow through $R_1$, and how much?
+        options:
+          - { text: "{{I1}} A, from $E_1$ toward A", correct: true }
+          - { text: "{{I1}} A, from A toward $E_1$", misconception: current-uphill }
+          - { text: "{{E1/R1}} A, from $E_1$ toward A", misconception: loop-misses-shared }
+          - { text: "{{VA/R1}} A, from $E_1$ toward A", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "What are the potentials at the two ends of $R_1$? Current flows from high to low."
+          buildsOn: "From Q2: ${{E1}} = {{R1}} I_1 + {{R3}} I_3$."
+          partial: "The left end of $R_1$ is at {{E1}} V (top of $E_1$), the right end at {{VA}} V."
+        explanation: |
+          **Answer:** {{I1}} A, from $E_1$ toward A.
+
+          **Why:** Taking B as 0 V, the top of $E_1$ is at {{E1}} V and A is at {{VA}} V. Current flows from
+          high to low potential through $R_1$: $I_1 = ({{E1}} - {{VA}})/{{R1}} = {{I1}}$ A, toward A.
+
+          **Common mistakes:**
+          - "Toward $E_1$" — current in a resistor flows from higher to lower potential.
+          - {{E1/R1}} A — only {{E1-VA}} V is across $R_1$.
+          - {{VA/R1}} A — {{VA}} V is A's potential, not the voltage across $R_1$.
+
+          **Connects to:** Q4 does the same for $R_2$.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: loop-rule
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "Right loop: I₂ = (E₂ − V_A)/R₂ = {{I2}} A."
+    standaloneContext: "In a two-battery circuit, junction A is {{VA}} V above the bottom wire. $E_2 = {{E2}}$ V drives $I_2$ through $R_2 = {{R2}}$ Ω toward A."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          The right loop gives ${{E2}} = {{R2}} I_2 + {{VA}}$. What is $I_2$?
+        answer: { expr: "(E2 - VA) / R2", unit: "A" }
+        distractors:
+          - { expr: "E2 / R2", unit: "A", misconception: loop-misses-shared }
+          - { expr: "VA / R2", unit: "A", misconception: wrong-resistor-drop }
+          - { expr: "(E2 + VA) / R2", unit: "A", misconception: loop-sign-ignored }
+        hints:
+          nudge: "Same steps as for $I_1$, on the other side."
+          partial: "${{R2}} I_2 = {{E2}} - {{VA}}$"
+        explanation: |
+          **Answer:** {{I2}} A
+
+          **Why:** ${{R2}} I_2 = {{E2}} - {{VA}} = {{E2-VA}}$, so $I_2 = {{I2}}$ A.
+
+          **Common mistakes:**
+          - {{E2/R2}} A — part of $E_2$ is across $R_3$.
+          - {{VA/R2}} A — {{VA}} V is across $R_3$, not $R_2$.
+          - {{(E2+VA)/R2}} A — subtract $R_3$'s share.
+
+          **Connects to:** Q5 checks the junction rule with $I_1$ and $I_2$.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          Write the loop rule for the **right loop** ($E_2$, $R_2$, $R_3$) and use $I_3 R_3 = {{VA}}$ V
+          to find $I_2$.
+        answer: { expr: "(E2 - VA) / R2", unit: "A" }
+        distractors:
+          - { expr: "E2 / R2", unit: "A", misconception: loop-misses-shared }
+          - { expr: "VA / R2", unit: "A", misconception: wrong-resistor-drop }
+          - { expr: "(E2 + VA) / R2", unit: "A", misconception: loop-sign-ignored }
+        hints:
+          nudge: "Mirror the left loop from Q3."
+          buildsOn: "From Q3: on the left, ${{E1}} = {{R1}} I_1 + {{VA}}$ gave $I_1 = {{I1}}$ A."
+          partial: "${{E2}} = {{R2}} I_2 + {{VA}}$"
+        explanation: |
+          **Answer:** {{I2}} A
+
+          **Why:** Right loop: $E_2 = I_2 R_2 + I_3 R_3$, i.e. ${{E2}} = {{R2}} I_2 + {{VA}}$. So
+          $I_2 = ({{E2}} - {{VA}})/{{R2}} = {{I2}}$ A.
+
+          **Common mistakes:**
+          - {{E2/R2}} A — ignores the shared resistor's {{VA}} V.
+          - {{VA/R2}} A — that's $R_3$'s voltage across the wrong resistor.
+          - {{(E2+VA)/R2}} A — sign error.
+
+          **Connects to:** Q5 checks these currents at the junction.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          Junction A is {{VA}} V above B. Which way does current flow through $R_2$, and how much?
+        options:
+          - { text: "{{I2}} A, from $E_2$ toward A", correct: true }
+          - { text: "{{I2}} A, from A toward $E_2$", misconception: current-uphill }
+          - { text: "{{E2/R2}} A, from $E_2$ toward A", misconception: loop-misses-shared }
+          - { text: "{{VA/R2}} A, from $E_2$ toward A", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "Compare the potential at the top of $E_2$ with A's."
+          buildsOn: "From Q3: the same reasoning gave {{I1}} A through $R_1$."
+          partial: "The top of $E_2$ is at {{E2}} V and A at {{VA}} V."
+        explanation: |
+          **Answer:** {{I2}} A, from $E_2$ toward A.
+
+          **Why:** The top of $E_2$ is at {{E2}} V and A at {{VA}} V, so {{E2-VA}} V across $R_2$ drives
+          $I_2 = {{E2-VA}}/{{R2}} = {{I2}}$ A toward A. (If $E_2$ were below {{VA}} V, the current would
+          flow *into* $E_2$ and charge it.)
+
+          **Common mistakes:**
+          - "Toward $E_2$" — current runs downhill in potential through a resistor.
+          - {{E2/R2}} A — only {{E2-VA}} V is across $R_2$.
+          - {{VA/R2}} A — that's A's potential, not $R_2$'s voltage.
+
+          **Connects to:** Q5 checks the junction rule.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: junction-rule
+    uses: [s1, s3, s4]
+    clueFor: [s6]
+    establishes: "I₃ = I₁ + I₂ = {{I1}} + {{I2}} = {{I3}} A, and I₃R₃ = {{VA}} V checks out."
+    standaloneContext: "In a two-battery circuit, $I_1 = {{I1}}$ A and $I_2 = {{I2}}$ A both flow into junction A; $I_3$ flows from A through $R_3 = {{R3}}$ Ω."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          $I_1 = {{I1}}$ A and $I_2 = {{I2}}$ A both flow into junction A. What current $I_3$ flows
+          out through $R_3$?
+        answer: { expr: "I1 + I2", unit: "A" }
+        distractors:
+          - { expr: "I1 - I2", unit: "A", misconception: junction-subtract-wrong }
+          - { expr: "(I1 + I2) / 2", unit: "A", misconception: junction-average }
+          - { expr: "I1", unit: "A", misconception: junction-ignores-branch }
+        hints:
+          nudge: "In = out."
+          partial: "$I_3 = I_1 + I_2$"
+        explanation: |
+          **Answer:** {{I3}} A
+
+          **Why:** $I_3 = {{I1}} + {{I2}} = {{I3}}$ A.
+
+          **Common mistakes:**
+          - {{I1-I2}} A — both flow in, so they add.
+          - {{(I1+I2)/2}} A — currents add; they don't average.
+          - {{I1}} A — $I_2$ arrives at A too.
+
+          **Connects to:** Q6 uses all three currents to check energy conservation.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          Using the currents you found for $R_1$ and $R_2$, what current flows down through $R_3$?
+        answer: { expr: "I1 + I2", unit: "A" }
+        distractors:
+          - { expr: "I1 - I2", unit: "A", misconception: junction-subtract-wrong }
+          - { expr: "(I1 + I2) / 2", unit: "A", misconception: junction-average }
+          - { expr: "I1", unit: "A", misconception: junction-ignores-branch }
+        hints:
+          nudge: "Which rule relates the three currents at A?"
+          buildsOn: "Q1: $I_1 + I_2 = I_3$. Q3: $I_1 = {{I1}}$ A. Q4: $I_2 = {{I2}}$ A."
+          partial: "$I_3 = {{I1}} + {{I2}}$"
+        explanation: |
+          **Answer:** {{I3}} A
+
+          **Why:** By the junction rule (Q1), $I_3 = I_1 + I_2 = {{I1}} + {{I2}} = {{I3}}$ A. Check:
+          $I_3 R_3 = {{I3}} \times {{R3}} = {{VA}}$ V — exactly the voltmeter reading ✓.
+
+          **Common mistakes:**
+          - {{I1-I2}} A — both currents flow into A.
+          - {{(I1+I2)/2}} A — currents add.
+          - {{I1}} A — $I_2$ joins at A.
+
+          **Connects to:** Q6 checks energy conservation for the whole circuit.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          Using the currents you found for $R_1$ and $R_2$, what voltage should appear across
+          $R_3 = {{R3}}$ Ω? (A good check of your work.)
+        answer: { expr: "(I1 + I2) * R3", unit: "V" }
+        distractors:
+          - { expr: "I1 * R3", unit: "V", misconception: junction-ignores-branch }
+          - { expr: "(I1 - I2) * R3", unit: "V", misconception: junction-subtract-wrong }
+          - { expr: "(I1 + I2) / 2 * R3", unit: "V", misconception: junction-average }
+        hints:
+          nudge: "First find $I_3$ from the junction rule."
+          buildsOn: "Q1: $I_1 + I_2 = I_3$. Q3: $I_1 = {{I1}}$ A. Q4: $I_2 = {{I2}}$ A."
+          partial: "$I_3 = {{I3}}$ A; then $V = I_3 R_3$."
+        explanation: |
+          **Answer:** {{VA}} V
+
+          **Why:** $I_3 = I_1 + I_2 = {{I3}}$ A, so $V_3 = I_3 R_3 = {{I3}} \times {{R3}} = {{VA}}$ V — matching
+          the voltmeter. Everything is consistent.
+
+          **Common mistakes:**
+          - {{I1*R3}} V — missing $I_2$'s contribution.
+          - {{(I1-I2)*R3}} V — both currents flow into A.
+          - {{(I1+I2)/2*R3}} V — currents add, not average.
+
+          **Connects to:** Q6 checks energy conservation.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: loop-rule
+    uses: [s3, s4, s5]
+    establishes: "Energy balance: E₁I₁ + E₂I₂ = {{E1*I1 + E2*I2}} W = ΣI²R."
+    standaloneContext: |
+      In a two-battery circuit: $E_1 = {{E1}}$ V drives $I_1 = {{I1}}$ A through $R_1 = {{R1}}$ Ω;
+      $E_2 = {{E2}}$ V drives $I_2 = {{I2}}$ A through $R_2 = {{R2}}$ Ω; $I_3 = {{I3}}$ A flows through $R_3 = {{R3}}$ Ω.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The currents are $I_1 = {{I1}}$ A, $I_2 = {{I2}}$ A and $I_3 = {{I3}}$ A through $R_1 = {{R1}}$ Ω,
+          $R_2 = {{R2}}$ Ω and $R_3 = {{R3}}$ Ω. What total power do the three resistors dissipate?
+        answer: { expr: "I1^2*R1 + I2^2*R2 + I3^2*R3", unit: "W" }
+        distractors:
+          - { expr: "I1^2*R1 + I2^2*R2", unit: "W", misconception: shared-resistor-ignored }
+          - { expr: "I1*R1 + I2*R2 + I3*R3", unit: "W", misconception: power-equals-voltage }
+          - { expr: "I3^2*(R1 + R2 + R3)", unit: "W", misconception: total-current-everywhere }
+        hints:
+          nudge: "Each resistor dissipates $I^2R$ with its *own* current."
+          partial: "${{I1}}^2 \\times {{R1}} + {{I2}}^2 \\times {{R2}} + {{I3}}^2 \\times {{R3}}$"
+        explanation: |
+          **Answer:** {{I1^2*R1 + I2^2*R2 + I3^2*R3}} W
+
+          **Why:** ${{I1^2*R1}} + {{I2^2*R2}} + {{I3^2*R3}} = {{I1^2*R1 + I2^2*R2 + I3^2*R3}}$ W. It equals the
+          power the batteries supply, $E_1 I_1 + E_2 I_2$ — energy is conserved.
+
+          **Common mistakes:**
+          - {{I1^2*R1 + I2^2*R2}} W — $R_3$ dissipates power too (the most, in fact).
+          - {{I1*R1 + I2*R2 + I3*R3}} — those are voltages, not powers.
+          - {{I3^2*(R1+R2+R3)}} W — each resistor has its own current.
+
+          **Connects to:** the challenge — see the junction rule on real meters.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          How much power do the two batteries supply in total?
+        answer: { expr: "E1*I1 + E2*I2", unit: "W" }
+        distractors:
+          - { expr: "E1*I1", unit: "W", misconception: second-source-ignored }
+          - { expr: "(E1 + E2) * I3", unit: "W", misconception: total-current-everywhere }
+          - { expr: "E1*I1 - E2*I2", unit: "W", misconception: source-power-subtract }
+        hints:
+          nudge: "Each battery supplies $\\varepsilon I$ with the current through *that* battery."
+          buildsOn: "Q3: $I_1 = {{I1}}$ A. Q4: $I_2 = {{I2}}$ A. Q5: $I_3 = {{I3}}$ A."
+          partial: "${{E1}} \\times {{I1}} + {{E2}} \\times {{I2}}$"
+        explanation: |
+          **Answer:** {{E1*I1 + E2*I2}} W
+
+          **Why:** $E_1 I_1 + E_2 I_2 = {{E1*I1}} + {{E2*I2}} = {{E1*I1 + E2*I2}}$ W. Check against the
+          resistors: $\sum I^2 R = {{I1^2*R1}} + {{I2^2*R2}} + {{I3^2*R3}} = {{I1^2*R1 + I2^2*R2 + I3^2*R3}}$ W ✓.
+
+          **Common mistakes:**
+          - {{E1*I1}} W — $E_2$ also delivers current, so it supplies power too.
+          - {{(E1+E2)*I3}} W — each battery carries its own branch current, not $I_3$.
+          - {{E1*I1 - E2*I2}} W — both batteries push current *out* of their + terminals, so both supply power.
+
+          **Connects to:** the challenge — see the junction rule on real meters.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          $E_1$, $R_1$, $R_2$ and $R_3$ stay the same, but $E_2$ is adjusted. At what EMF does
+          $E_2$ carry **no current** at all?
+        answer: { expr: "E1 * R3 / (R1 + R3)", unit: "V" }
+        distractors:
+          - { expr: "E1", unit: "V", misconception: loop-misses-shared }
+          - { expr: "VA", unit: "V", misconception: junction-potential-fixed }
+          - { expr: "E1 / 2", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "If $I_2 = 0$, what must A's potential equal? And what is A's potential with only $E_1$ driving current?"
+          buildsOn: "Q4: $I_2 = (E_2 - V_A)/R_2$. Q3 and Q5: with $I_2 = 0$, $I_1 = I_3$ flows through $R_1$ and $R_3$ in series."
+          partial: "$I_2 = 0$ needs $E_2 = V_A$. With $I_2 = 0$, $V_A = E_1 R_3/(R_1 + R_3)$."
+        explanation: |
+          **Answer:** {{E1*R3/(R1+R3)}} V
+
+          **Why:** $I_2 = (E_2 - V_A)/R_2 = 0$ requires $E_2 = V_A$. With no current in $R_2$, $E_1$ drives
+          $R_1$ and $R_3$ in series, so $V_A = E_1 R_3/(R_1 + R_3) = {{E1}} \times {{R3}}/{{R1+R3}} = {{E1*R3/(R1+R3)}}$ V.
+          $E_2$ then exactly balances A, like a battery being "floated".
+
+          **Common mistakes:**
+          - {{E1}} V — $R_1$ drops some of $E_1$, so A sits below {{E1}} V.
+          - {{VA}} V — that's A's potential *now*, while $E_2$ is helping; it changes when $E_2$ changes.
+          - {{E1/2}} V — $E_1$ splits in proportion to $R_1$ and $R_3$, not half-and-half.
+
+          **Connects to:** the challenge — see the junction rule on real meters.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: loop-rule
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: |
+          A 9 V battery drives current around a loop through a 2 Ω resistor and then a 1 Ω resistor.
+          The 1 Ω resistor has 3 V across it. What is the voltage across the 2 Ω resistor?
+        answer: { expr: "9 - 3", unit: "V" }
+        distractors:
+          - { expr: "9", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "9 + 3", unit: "V", misconception: loop-sign-ignored }
+          - { expr: "3", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "Around the loop, the drops add up to the EMF."
+          partial: "$9 = V_{2\\Omega} + 3$"
+        explanation: |
+          **Answer:** 6 V
+
+          **Why:** Loop rule: the drops add up to the EMF, $9 = V_{2\Omega} + 3$, so $V_{2\Omega} = 6$ V.
+          (Check: 3 V across 1 Ω means 3 A, and $3 \times 2 = 6$ V ✓.)
+
+          **Common mistakes:**
+          - 9 V — the battery's voltage is shared around the loop.
+          - 12 V — the drops add up *to* 9 V; they can't exceed it.
+          - 3 V — the 2 Ω resistor takes twice the 1 Ω's share.
+
+          **Connects to:** Q3 — subtracting $R_3$'s share of $E_1$.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l5.ch
+  type: circuit-builder
+  title: "See the junction rule on the meters"
+  concept: junction-rule
+  uses: [s1, s5]
+  params:
+    sets:
+      - { V: 6, R: 3 }
+      - { V: 12, R: 4 }
+      - { V: 9, R: 6 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "Build two parallel branches, each with a resistor, across the {{V}} V battery. Place ammeter **A1** in the main wire (carrying the battery's current) and **A2**, **A3** one in each branch, so that A1 = A2 + A3."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 2 }
+          - { kind: ammeter, count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I_A1, I) and near(I_A1, I_A2 + I_A3) and I_A2 > 0 and I_A3 > 0" }
+      feedback:
+        - { if: "I_A1 == 0", say: "A1 reads nothing. It must sit in the main wire, in series with the battery." }
+        - { if: "not near(I_A1, I)", say: "A1 should carry the battery's whole current — put it before the junction." }
+        - { if: "I_A2 == 0 or I_A3 == 0", say: "Each branch needs its own ammeter, in series with that branch's resistor." }
+        - { if: "near(I_A2, I_A1) or near(I_A3, I_A1)", say: "A branch meter reads the full current — is that branch really in parallel with the other?", misconception: junction-full-current }
+      hints:
+        nudge: "Where does the battery's current split? Put A1 before that point."
+        buildsOn: "From Q1: the currents into a junction equal the currents out."
+        partial: "Battery → A1 → junction → (A2 → R) and (A3 → R) → back to the battery."
+      solution: { netlist: ["B1 n1 0", "A1 n1 n2", "A2 n2 n3", "R1 n3 0", "A3 n2 n4", "R2 n4 0"] }
+      explanation: |
+        A1 carries the battery current $I = {{V}}/{{R/2}} = {{2*V/R}}$ A. At the junction it splits
+        into two equal branches of ${{V/R}}$ A each (A2 and A3), and ${{V/R}} + {{V/R}} = {{2*V/R}}$ A ✓.
+    standard:
+      difficulty: 4
+      goal: "Same idea, with uneven branches: A1 in the main wire, A2 and A3 in the two branches, A1 = A2 + A3 — and **A2 must read exactly twice A3**."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 1 }
+          - { kind: resistor, resistance: "2*R", count: 1 }
+          - { kind: ammeter, count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I_A1, I) and near(I_A1, I_A2 + I_A3) and near(I_A2, 2 * I_A3)" }
+      feedback:
+        - { if: "not near(I_A1, I)", say: "A1 should carry the battery's whole current — put it before the junction." }
+        - { if: "I_A2 == 0 or I_A3 == 0", say: "Each branch needs its own ammeter." }
+        - { if: "near(I_A3, 2 * I_A2)", say: "A3 reads twice A2 — swap which branch each meter is in.", misconception: current-divider-swap }
+        - { if: "near(I_A2, I_A3)", say: "The branches carry equal currents. One branch needs twice the resistance." }
+      hints:
+        nudge: "In parallel, which branch carries more current — the larger or the smaller resistance?"
+        buildsOn: "From Q1: currents into a junction equal currents out."
+        partial: "Put A2 in series with the {{R}} Ω resistor and A3 with the {{2*R}} Ω one."
+      solution: { netlist: ["B1 n1 0", "A1 n1 n2", "A2 n2 n3", "R1 n3 0 R", "A3 n2 n4", "R2 n4 0 2*R"] }
+      explanation: |
+        Each branch has {{V}} V across it, so $I_{A2} = {{V}}/{{R}} = {{V/R}}$ A and
+        $I_{A3} = {{V}}/{{2*R}} = {{V/(2*R)}}$ A — half as much. A1 reads their sum,
+        {{1.5*V/R}} A: the junction rule on real meters.
+    harder:
+      difficulty: 5
+      goal: "Using **exactly three** {{R}} Ω resistors (and as many ammeters as you need), build a circuit where A1 reads the battery's current and **A2 reads exactly ⅔ of it**."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: resistor, resistance: "R", count: 3 }
+          - { kind: ammeter, count: 3 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+      check: { expr: "near(I_A1, I) and near(I_A2, 2/3 * I_A1) and n == 3" }
+      feedback:
+        - { if: "n < 3", say: "Use all three resistors." }
+        - { if: "not near(I_A1, I)", say: "A1 should carry the battery's whole current." }
+        - { if: "near(I_A2, I_A1 / 2)", say: "That's an even split. Make one branch twice the resistance of the other." }
+        - { if: "near(I_A2, I_A1 / 3)", say: "A2 is in the branch that gets ⅓. Move it to the other branch.", misconception: current-divider-swap }
+      hints:
+        nudge: "What branch resistances split a current 2 : 1?"
+        buildsOn: "From Q1: currents into a junction equal currents out."
+        partial: "One branch: one resistor (with A2). Other branch: two resistors in series."
+      solution: { netlist: ["B1 n1 0", "A1 n1 n2", "A2 n2 n3", "R1 n3 0", "R2 n2 n4", "R3 n4 0"] }
+      explanation: |
+        Branches of $R$ and $2R$ have the same voltage, so they carry currents in the ratio 2 : 1:
+        the single-resistor branch takes ⅔ of the total. With {{V}} V, that's {{V/R}} A of
+        {{1.5*V/R}} A.
+
+summary:
+  keyTakeaways:
+    - "Junction rule (charge conservation): currents in = currents out."
+    - "Loop rule (energy conservation): around any loop, the EMFs equal the IR drops."
+    - "Guess current directions; a negative result means the current flows the other way."
+    - "Check your answer: battery power $\\sum \\varepsilon I$ must equal resistor power $\\sum I^2R$."
+  next: phys2.u3.l6

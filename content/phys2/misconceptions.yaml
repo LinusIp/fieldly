@@ -187,3 +187,575 @@
     "Current takes the easiest path" is only meaningful at a junction, and even there current
     splits between all paths in inverse proportion to their resistance; it does not all go one way.
   lessons: [phys2.u3.l2, phys2.u3.l3]
+
+# ── phys2.u3.l1: current, charge conservation, resistivity ──
+- id: charge-rate-multiply
+  short: "Current is charge *per second* — divide by the time, don't multiply."
+  explain: |
+    $I = Q/t$. The same charge spread over a longer time is a *smaller* current, so time divides.
+  lessons: [phys2.u3.l1]
+
+- id: charge-rate-inverted
+  short: "That's upside down — seconds per coulomb instead of coulombs per second."
+  explain: |
+    Current is coulombs per second: $I = Q/t$. Check the units of your answer: A = C/s.
+  lessons: [phys2.u3.l1]
+
+- id: charge-equals-current
+  short: "That's the total charge, not the charge per second."
+  explain: |
+    Charge (C) is an amount; current (A = C/s) is a rate. You need to divide by the time.
+  lessons: [phys2.u3.l1]
+
+- id: electron-count-multiply
+  short: "To count electrons, divide by the charge of one electron."
+  explain: |
+    If each electron carries $1.6 \times 10^{-19}$ C, the number of electrons in a charge $Q$ is
+    $Q / (1.6 \times 10^{-19})$ — a huge number, not a tiny one.
+  lessons: [phys2.u3.l1]
+
+- id: current-converted-to-heat
+  short: "A heater or lamp converts *energy* into heat and light, not charge."
+  explain: |
+    Every coulomb that enters a component leaves it. The charges lose energy (their potential
+    drops), and that energy becomes heat or light.
+  lessons: [phys2.u3.l1]
+
+- id: heating-adds-charge
+  short: "Nothing in the loop creates charge, so the current can't increase."
+  explain: |
+    Charge is conserved: in a single loop the same current flows through every part.
+  lessons: [phys2.u3.l1]
+
+- id: junction-full-current
+  short: "At a junction the current is shared — each branch doesn't get all of it."
+  explain: |
+    Kirchhoff's junction rule: the currents leaving a junction add up to the current arriving.
+  lessons: [phys2.u3.l1, phys2.u3.l5]
+
+- id: branches-equal
+  short: "Branch currents are only equal when the branches are identical."
+  explain: |
+    At a junction the current divides according to the branches' resistances. Use conservation:
+    $I_{in} = I_1 + I_2$.
+  lessons: [phys2.u3.l1, phys2.u3.l3]
+
+- id: junction-adds
+  short: "Adding would create charge at the junction — subtract instead."
+  explain: |
+    The branch currents add up *to* the incoming current: $I_2 = I_{in} - I_1$.
+  lessons: [phys2.u3.l1, phys2.u3.l5]
+
+- id: length-area-swap
+  short: "Length and area are swapped: longer wires resist more, thicker wires less."
+  explain: |
+    $R = \rho L / A$ — length on top, cross-sectional area underneath.
+  lessons: [phys2.u3.l1]
+
+- id: area-raises-R
+  short: "A bigger cross-section *lowers* the resistance."
+  explain: |
+    A thicker wire gives the charges more room to flow. $R = \rho L/A$, so $R \propto 1/A$.
+  lessons: [phys2.u3.l1]
+
+- id: resistivity-backwards
+  short: "Higher resistivity means *more* resistance."
+  explain: |
+    Resistivity $\rho$ measures how strongly a material opposes current. $R = \rho L / A$.
+  lessons: [phys2.u3.l1]
+
+- id: mm2-conversion
+  short: "The area must be in m² — 1 mm² = 10⁻⁶ m²."
+  explain: |
+    $R = \rho L/A$ needs SI units throughout. A millimetre is $10^{-3}$ m, so a square millimetre is
+    $(10^{-3})^2 = 10^{-6}$ m².
+  lessons: [phys2.u3.l1]
+
+- id: area-conversion-factor
+  short: "1 mm² is 10⁻⁶ m², not 10⁻³ m² — the length factor gets squared."
+  explain: |
+    Converting an area converts *two* lengths: $1 \text{ mm}^2 = (10^{-3} \text{ m})^2 = 10^{-6}$ m².
+  lessons: [phys2.u3.l1]
+
+- id: length-ignored
+  short: "The length changed too — and R is proportional to length."
+  explain: |
+    $R = \rho L/A$: if $L$ changes, $R$ changes in proportion.
+  lessons: [phys2.u3.l1]
+
+- id: cut-halves-area
+  short: "Cutting a wire shortens it; it doesn't make it thinner."
+  explain: |
+    Each piece keeps the original cross-section; only its length is halved, so its resistance is halved.
+  lessons: [phys2.u3.l1]
+
+- id: longer-lower-R
+  short: "A longer wire has *more* resistance, not less."
+  explain: |
+    The charges have a longer obstacle course: $R \propto L$.
+  lessons: [phys2.u3.l1]
+
+- id: square-law-length
+  short: "Resistance is proportional to length — to the first power, not squared."
+  explain: |
+    $R = \rho L/A$: doubling $L$ doubles $R$. (Stretching a wire is different: it also thins it.)
+  lessons: [phys2.u3.l1]
+
+- id: area-ignored
+  short: "The cross-section changed too — a thicker wire has less resistance."
+  explain: |
+    $R = \rho L/A$: doubling the area halves the resistance.
+  lessons: [phys2.u3.l1]
+
+- id: stretch-area-unchanged
+  short: "Stretching keeps the volume fixed, so the wire also gets thinner."
+  explain: |
+    Volume $= L A$. Doubling $L$ at fixed volume halves $A$, so $R = \rho L/A$ goes up by $2 \times 2 = 4$.
+  lessons: [phys2.u3.l1]
+
+- id: stretch-cancels
+  short: "Longer *and* thinner both raise R — the effects multiply, they don't cancel."
+  explain: |
+    $L \to 2L$ doubles $R$; $A \to A/2$ doubles it again. Net factor: 4.
+  lessons: [phys2.u3.l1]
+
+- id: v-equals-i-over-r
+  short: "Voltage is I × R, not I ÷ R."
+  explain: |
+    $R = V/I$ (volts per ampere), so $V = IR$. Pushing a current through more resistance takes *more* voltage.
+  lessons: [phys2.u3.l1, phys2.u3.l2]
+
+- id: v-equals-r-over-i
+  short: "R ÷ I isn't a voltage — voltage is I × R."
+  explain: |
+    Check units: Ω/A is not V. Since $R = V/I$, $V = IR$.
+  lessons: [phys2.u3.l1]
+
+- id: voltage-equals-current
+  short: "That copies the current — volts and amperes are different quantities."
+  explain: |
+    Voltage and current are linked through resistance: $V = IR$.
+  lessons: [phys2.u3.l1]
+
+- id: voltmeter-reads-total
+  short: "The voltmeter only spans part of the wire, so it reads only that part's share."
+  explain: |
+    A voltmeter reads the potential difference between the two points it touches. Across half a
+    uniform wire, that's half the total voltage.
+  lessons: [phys2.u3.l1, phys2.u3.l6]
+
+# ── phys2.u3.l3: series & parallel networks ──
+- id: parallel-average
+  short: "Parallel resistance isn't the average — it's smaller than the smallest branch."
+  explain: |
+    $1/R_p = 1/R_1 + 1/R_2$. Even two equal resistors give *half* of one, not their average.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-forgot-reciprocal
+  short: "That's 1/R_p — take the reciprocal to get R_p."
+  explain: |
+    Adding $1/R_1 + 1/R_2$ gives the equivalent *conductance*. Flip it to get the resistance.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-subtract
+  short: "In parallel, the reciprocals combine — the resistances themselves don't subtract."
+  explain: |
+    To find a missing branch: $1/R_3 = 1/R_p - 1/R_2$, then take the reciprocal.
+  lessons: [phys2.u3.l3]
+
+- id: series-as-parallel
+  short: "These two are in series (one path), so their resistances add."
+  explain: |
+    Series means the same current passes through both one after the other: $R = R_1 + R_2$.
+  lessons: [phys2.u3.l3]
+
+- id: series-resistor-ignored
+  short: "A resistor in series still adds its resistance — don't leave it out."
+  explain: |
+    Collapse the network step by step and keep every part: the parallel pair's equivalent *plus* the series resistor.
+  lessons: [phys2.u3.l3]
+
+- id: network-all-series
+  short: "Not everything is in series — two of these resistors sit side by side."
+  explain: |
+    Resistors are in series only if the same current must pass through both with no junction between.
+    Resistors connected between the same two points are in parallel.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-removal-lowers-R
+  short: "Removing a parallel branch takes away a route, so the resistance goes *up*."
+  explain: |
+    Every extra parallel branch lowers the total resistance; removing one raises it.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-branch-dominates
+  short: "An extra parallel branch helps, but the series resistor still sets most of the total."
+  explain: |
+    Work the totals out: a parallel group can never drop below zero, so a large series resistor limits how low the total can go.
+  lessons: [phys2.u3.l3]
+
+- id: changes-equal-effect
+  short: "Different changes have different effects — compute each total."
+  explain: |
+    Compare the totals numerically rather than guessing; series and parallel changes act very differently.
+  lessons: [phys2.u3.l3]
+
+- id: series-current-splits
+  short: "Current only splits at a junction; a series resistor carries all of it."
+  explain: |
+    In a single path there's nowhere else for the charge to go, so the same current flows through every series part.
+  lessons: [phys2.u3.l3]
+
+- id: wrong-resistor-drop
+  short: "That's the voltage across the *other* part of the circuit."
+  explain: |
+    In series the drops add up to the battery voltage. Check which part the question asks about.
+  lessons: [phys2.u3.l3]
+
+- id: voltage-splits-equally
+  short: "Series resistors share the voltage in proportion to resistance, not 50/50."
+  explain: |
+    The same current flows through each, so $V_k = I R_k$: a bigger resistance takes a bigger share.
+  lessons: [phys2.u3.l3]
+
+- id: voltage-splits-in-parallel
+  short: "Parallel branches don't split the voltage — each gets all of it."
+  explain: |
+    Branches connected between the same two points have the same voltage. It's the *current* that splits.
+  lessons: [phys2.u3.l3]
+
+- id: series-current-through-parallel
+  short: "The full current doesn't go through one branch — it splits at the junction."
+  explain: |
+    Only part of the current flows through each parallel branch. Use the branch's voltage: $I_k = V_p/R_k$.
+  lessons: [phys2.u3.l3]
+
+- id: wrong-branch
+  short: "That's the current in the other branch."
+  explain: |
+    Each branch has the same voltage but its own resistance, so each has its own current $V_p/R_k$.
+  lessons: [phys2.u3.l3]
+
+- id: current-divider-swap
+  short: "Current divides *inversely* — the bigger resistance carries the smaller current."
+  explain: |
+    Each branch has the same voltage, so $I_k = V/R_k$. Twice the resistance means half the current.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-independent
+  short: "The branch didn't change, but the voltage across it did."
+  explain: |
+    Parallel branches are independent only when they sit directly across an ideal battery. With a
+    resistor in series, removing a branch changes the pair's voltage.
+  lessons: [phys2.u3.l3]
+
+- id: open-branch-kills-all
+  short: "Only the broken branch stops — the other branch still completes the loop."
+  explain: |
+    A break in one parallel branch removes that route only. Current still flows through the others.
+  lessons: [phys2.u3.l3]
+
+- id: total-current-only
+  short: "The *total* current falls, but this branch's share rises."
+  explain: |
+    Follow both effects: the battery current changes, and so does how it is shared between branches.
+  lessons: [phys2.u3.l3]
+
+- id: parallel-smaller-only
+  short: "The larger branch still carries some current, so the total is below even the smaller resistor."
+  explain: |
+    $1/R_p = 1/R_1 + 1/R_2$ is bigger than $1/R_1$ alone, so $R_p < R_1$.
+  lessons: [phys2.u3.l3]
+
+- id: voltage-share-inverse
+  short: "In series, the *larger* resistance takes the larger voltage."
+  explain: |
+    Same current through both, so $V = IR$: voltage share is proportional to resistance.
+    (In parallel it's the current that divides inversely.)
+  lessons: [phys2.u3.l3]
+
+# ── phys2.u3.l4: EMF & internal resistance ──
+- id: internal-r-ignored
+  short: "That treats the battery as ideal — its internal resistance is in series too."
+  explain: |
+    A real battery behaves like an ideal EMF in series with $r$: $I = \varepsilon/(R + r)$, and the
+    load sees only $\varepsilon - Ir$.
+  lessons: [phys2.u3.l4]
+
+- id: load-ignored
+  short: "That's the short-circuit current — the load is in the circuit too."
+  explain: |
+    $\varepsilon/r$ is the current with a wire across the terminals. With a load, $I = \varepsilon/(R + r)$.
+  lessons: [phys2.u3.l4]
+
+- id: emf-minus-r
+  short: "You can't subtract ohms from volts — add r to the load's resistance."
+  explain: |
+    The internal resistance is a resistance in series with the load: $I = \varepsilon/(R + r)$.
+  lessons: [phys2.u3.l4]
+
+- id: internal-r-subtract
+  short: "Internal resistance adds to the load, it doesn't subtract."
+  explain: |
+    The current passes through $r$ and $R$ one after the other, so they add: $R + r$.
+  lessons: [phys2.u3.l4]
+
+- id: total-as-internal
+  short: "ε/I is the *total* resistance — subtract the load to get r."
+  explain: |
+    $\varepsilon / I = R + r$, so $r = \varepsilon/I - R$.
+  lessons: [phys2.u3.l4]
+
+- id: internal-r-sign
+  short: "Subtract the load from the total, don't add it."
+  explain: |
+    $R + r = \varepsilon/I$, so $r = \varepsilon/I - R$.
+  lessons: [phys2.u3.l4]
+
+- id: r-formula-inverted
+  short: "That ratio has no units of resistance — check the algebra."
+  explain: |
+    Start from $\varepsilon = I(R + r)$ and solve for $r$: $r = \varepsilon/I - R$.
+  lessons: [phys2.u3.l4]
+
+- id: lost-volts-as-terminal
+  short: "Ir is the voltage lost *inside* the battery, not what reaches the terminals."
+  explain: |
+    $V_{terminal} = \varepsilon - Ir$. The lost volts $Ir$ are subtracted from the EMF.
+  lessons: [phys2.u3.l4]
+
+- id: terminal-equals-emf
+  short: "The terminals show the full EMF only when no current flows."
+  explain: |
+    While current flows, $Ir$ is lost inside the battery: $V_{terminal} = \varepsilon - Ir < \varepsilon$.
+  lessons: [phys2.u3.l4]
+
+- id: lost-volts-added
+  short: "The lost volts are subtracted from the EMF, not added."
+  explain: |
+    A battery supplying current can't show more than its EMF: $V = \varepsilon - Ir$.
+  lessons: [phys2.u3.l4]
+
+- id: terminal-for-drop
+  short: "That's the new reading — the question asks how much it *drops*."
+  explain: |
+    The drop from $\varepsilon$ to $\varepsilon - Ir$ is $Ir$, the lost volts.
+  lessons: [phys2.u3.l4]
+
+- id: ideal-battery-assumption
+  short: "A real battery has internal resistance, so it always loses some voltage and power."
+  explain: |
+    Only an ideal battery ($r = 0$) keeps its full EMF under load and wastes nothing.
+  lessons: [phys2.u3.l4]
+
+- id: drop-equals-emf
+  short: "The reading sags by Ir — it doesn't collapse to zero."
+  explain: |
+    Under load the terminal voltage is $\varepsilon - Ir$, which is zero only for a short circuit.
+  lessons: [phys2.u3.l4]
+
+- id: emf-power-as-load
+  short: "εI is everything the EMF produces — part of it heats the battery."
+  explain: |
+    $\varepsilon I = I^2 R + I^2 r$: the load gets $I^2 R$; the battery wastes $I^2 r$.
+  lessons: [phys2.u3.l4]
+
+- id: internal-power-as-load
+  short: "I²r is the power heating the battery, not the load's."
+  explain: |
+    Use the load's own resistance (or voltage) to find its power: $I^2 R$.
+  lessons: [phys2.u3.l4]
+
+- id: efficiency-inverted
+  short: "That's the share wasted inside the battery."
+  explain: |
+    Efficiency is the useful share: $R/(R + r)$. The rest, $r/(R + r)$, heats the battery.
+  lessons: [phys2.u3.l4]
+
+- id: max-power-means-max-efficiency
+  short: "50 % is the efficiency at the matched load, not in general."
+  explain: |
+    Efficiency is $R/(R + r)$, which is 50 % only when $R = r$. Larger loads are more efficient.
+  lessons: [phys2.u3.l4]
+
+- id: max-current-max-power
+  short: "More current, yes — but more of the power is wasted inside the battery."
+  explain: |
+    As $R \to 0$ the current is largest but almost no voltage reaches the load, so its power falls.
+  lessons: [phys2.u3.l4]
+
+- id: max-voltage-max-power
+  short: "More voltage, yes — but too little current."
+  explain: |
+    As $R \to \infty$ the load gets nearly the full EMF but almost no current, so its power falls.
+  lessons: [phys2.u3.l4]
+
+- id: short-circuit-power
+  short: "ε²/r is the power with a short circuit — and all of it heats the battery."
+  explain: |
+    With a load, $P = \varepsilon^2 R/(R + r)^2$, which peaks at $\varepsilon^2/4r$ when $R = r$.
+  lessons: [phys2.u3.l4]
+
+- id: matching-wrong-resistor
+  short: "The maximum depends on the battery's internal resistance, not the old load."
+  explain: |
+    $P_{max} = \varepsilon^2/4r$ uses the internal resistance $r$.
+  lessons: [phys2.u3.l4]
+
+- id: matching-misapplied
+  short: "Matching picks the best *load* for a given battery — not the best battery for a given load."
+  explain: |
+    With the load fixed, $P = \varepsilon^2 R/(R + r)^2$ increases as $r$ decreases. The smaller $r$, the better.
+  lessons: [phys2.u3.l4]
+
+- id: waste-half-of-load
+  short: "At the matched load the battery wastes as much as the load gets, not half."
+  explain: |
+    Same current, equal resistances ($R = r$), so equal power $I^2R = I^2r$.
+  lessons: [phys2.u3.l4]
+
+- id: total-as-waste
+  short: "That's the total from the EMF — the battery wastes half of it."
+  explain: |
+    At $R = r$ the EMF produces $\varepsilon^2/2r$; half reaches the load and half heats the battery.
+  lessons: [phys2.u3.l4]
+
+- id: max-power-quarter
+  short: "The quarter is in ε²/4r, but efficiency compares load power with total power."
+  explain: |
+    Efficiency $= R/(R + r)$; with $R = r$ that's ½.
+  lessons: [phys2.u3.l4]
+
+- id: efficiency-unchanged
+  short: "Efficiency depends on the load: R/(R + r)."
+  explain: |
+    Changing the load changes how the power divides between the load and the battery.
+  lessons: [phys2.u3.l4]
+
+# ── phys2.u3.l5: Kirchhoff's rules ──
+- id: junction-subtract-wrong
+  short: "Both currents flow *into* the junction, so they add."
+  explain: |
+    Junction rule: total in = total out. Subtract only when one current flows in and the other out.
+  lessons: [phys2.u3.l5]
+
+- id: junction-ignores-branch
+  short: "Every wire at the junction counts — don't drop one of the currents."
+  explain: |
+    Charge arriving through any wire must leave somewhere. Include all of them in the junction equation.
+  lessons: [phys2.u3.l5]
+
+- id: junction-average
+  short: "Currents meeting at a junction add; they don't average."
+  explain: |
+    The outgoing current carries all the charge from both incoming wires: $I_3 = I_1 + I_2$.
+  lessons: [phys2.u3.l5]
+
+- id: series-current-everywhere
+  short: "Equal currents everywhere is true for a single loop, not at a junction."
+  explain: |
+    At a junction the current divides or combines, so the branch currents differ. In = out still holds.
+  lessons: [phys2.u3.l5]
+
+- id: junction-sign-all-in
+  short: "A 'sum = 0' form only works if currents leaving count as negative."
+  explain: |
+    With arrows drawn two in and one out, write in = out: $I_1 + I_2 = I_3$.
+  lessons: [phys2.u3.l5]
+
+- id: junction-sign-error
+  short: "Then more would leave than arrive — charge would be created."
+  explain: |
+    Balance the junction: what flows in must equal what flows out, including the direction of each current.
+  lessons: [phys2.u3.l5]
+
+- id: loop-sums-to-emf
+  short: "The EMF is one of the rises; the *total* change round a loop is zero."
+  explain: |
+    Potential has one value at each point. Back at the start, the rises and drops have cancelled.
+  lessons: [phys2.u3.l5]
+
+- id: loop-path-dependent
+  short: "Going the other way flips every sign — the total is still zero."
+  explain: |
+    The loop rule holds in either direction because potential is single-valued.
+  lessons: [phys2.u3.l5]
+
+- id: loop-current-confusion
+  short: "That mixes the loop rule with Ohm's law for a single resistor."
+  explain: |
+    The loop rule sums each component's own rise or drop: $\sum \varepsilon = \sum I_k R_k$.
+  lessons: [phys2.u3.l5]
+
+- id: loop-misses-shared
+  short: "The shared resistor is part of this loop too — it takes some of the EMF."
+  explain: |
+    List every component the loop passes through. A resistor shared between two loops appears in both loop equations.
+  lessons: [phys2.u3.l5]
+
+- id: loop-wrong-path
+  short: "That resistor isn't on this loop."
+  explain: |
+    Trace the loop's path carefully; include only the components it passes through.
+  lessons: [phys2.u3.l5]
+
+- id: loop-extra-emf
+  short: "That battery isn't on this loop."
+  explain: |
+    Only EMFs the loop actually passes through appear in its equation.
+  lessons: [phys2.u3.l5]
+
+- id: loop-sign-ignored
+  short: "Watch the signs: drops are subtracted from rises, and opposing batteries subtract."
+  explain: |
+    Through a resistor *with* the current: drop $IR$. Against it: rise $IR$. Battery − to +: rise; + to −: drop.
+  lessons: [phys2.u3.l5]
+
+- id: loop-current-sign
+  short: "Crossing a resistor against its current arrow is a *rise* of IR."
+  explain: |
+    Potential falls in the direction of conventional current through a resistor, so going the other way it rises.
+  lessons: [phys2.u3.l5]
+
+- id: loop-missing-emf
+  short: "Every EMF on the loop counts, including the second battery."
+  explain: |
+    The outer loop passes through both batteries; both appear in its equation.
+  lessons: [phys2.u3.l5]
+
+- id: current-uphill
+  short: "Through a resistor, current flows from higher to lower potential."
+  explain: |
+    Conventional current runs "downhill" in potential through resistors; only inside a source is it pushed uphill.
+  lessons: [phys2.u3.l5]
+
+- id: shared-resistor-ignored
+  short: "The shared resistor dissipates power too — often the most."
+  explain: |
+    Every resistor with current through it dissipates $I^2R$. Include them all.
+  lessons: [phys2.u3.l5]
+
+- id: total-current-everywhere
+  short: "Each part carries its own current — not the junction total."
+  explain: |
+    Use the current through each component itself when computing its power or voltage.
+  lessons: [phys2.u3.l5]
+
+- id: second-source-ignored
+  short: "The second battery also pushes current out of its + terminal, so it supplies power too."
+  explain: |
+    Total power supplied is $\sum \varepsilon I$ over every source delivering current.
+  lessons: [phys2.u3.l5]
+
+- id: source-power-subtract
+  short: "Both batteries are discharging here, so both powers add."
+  explain: |
+    A battery supplies power $\varepsilon I$ when current leaves its + terminal. It only absorbs power
+    (is charged) when current is forced into its + terminal.
+  lessons: [phys2.u3.l5]
+
+- id: junction-potential-fixed
+  short: "A's potential depends on both batteries — change one and it moves."
+  explain: |
+    Node potentials come from solving the whole circuit; altering any EMF changes them.
+  lessons: [phys2.u3.l5]

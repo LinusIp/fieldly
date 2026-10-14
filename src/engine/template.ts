@@ -1,7 +1,8 @@
 import { evaluate, type Scope } from './expr';
 import { formatNumber } from './format';
 
-const TEMPLATE = /\{\{([\s\S]+?)\}\}/g;
+// `{{{x}}}` (a TeX brace around a template) matches the inner `{{x}}`.
+const TEMPLATE = /\{\{(?!\{)([\s\S]+?)\}\}/g;
 
 export function hasTemplates(src: string): boolean {
   TEMPLATE.lastIndex = 0;

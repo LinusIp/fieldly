@@ -17,10 +17,12 @@ import { solveCircuit, type ElementKind } from './solver';
 
 const CELL = 72;
 const PAD = 40;
+// Extra room on the left for the battery's labels.
+const PAD_LEFT = 96;
 
 type Tool = { type: 'select' } | { type: 'erase' } | { type: 'place'; palette: number };
 
-const px = (p: Point): [number, number] => [PAD + p[0] * CELL, PAD + p[1] * CELL];
+const px = (p: Point): [number, number] => [PAD_LEFT + p[0] * CELL, PAD + p[1] * CELL];
 
 function paletteLabel(kind: ElementKind, resistance?: number): string {
   const name = KIND_NAME[kind];
@@ -120,7 +122,7 @@ export function CircuitBuilder({
     setMessage(place(tool.palette, a, b) ?? '');
   };
 
-  const W = PAD * 2 + config.cols * CELL;
+  const W = PAD_LEFT + PAD + config.cols * CELL;
   const H = PAD * 2 + config.rows * CELL;
   const live = result.isShort ? 'Short circuit!' : result.isOpen ? 'No complete loop yet.' : '';
 
@@ -309,6 +311,11 @@ function Battery({ config }: { config: Config }) {
       <text x={x - 30} y={mid + 5} fontSize={13} textAnchor="end" fill="var(--c-muted)">
         {formatNumber(config.battery.voltage)} V
       </text>
+      {config.battery.internalResistance > 0 && (
+        <text x={x - 30} y={mid + 22} fontSize={12} textAnchor="end" fill="var(--c-muted)">
+          r = {formatNumber(config.battery.internalResistance)} Ω
+        </text>
+      )}
       <circle cx={x} cy={y0} r={6} fill="var(--c-accent)" />
       <circle cx={x} cy={y1} r={6} fill="var(--c-text)" />
     </g>

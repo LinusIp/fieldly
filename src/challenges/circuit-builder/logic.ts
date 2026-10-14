@@ -186,7 +186,7 @@ export function toNetlist(state: State, config: Config): Netlist {
   };
 }
 
-export function scopeFromResult(r: SolveResult): CheckScope {
+export function scopeFromResult(r: SolveResult, config?: Config): CheckScope {
   const s: CheckScope = {
     I: r.I,
     Req: r.Req,
@@ -195,6 +195,19 @@ export function scopeFromResult(r: SolveResult): CheckScope {
     isShort: r.isShort,
     isOpen: r.isOpen,
   };
+  // Parts that could be placed but aren't yet read 0, so rules like "P_L2 > 0" still evaluate.
+  if (config) {
+    const totals = new Map<ElementKind, number>();
+    for (const p of config.palette)
+      if (Number.isFinite(p.count)) totals.set(p.kind, (totals.get(p.kind) ?? 0) + p.count);
+    for (const [k, n] of totals)
+      for (let i = 1; i <= n; i++) {
+        const label = `${PREFIX[k]}${i}`;
+        s[`I_${label}`] = 0;
+        s[`V_${label}`] = 0;
+        s[`P_${label}`] = 0;
+      }
+  }
   for (const [label, el] of Object.entries(r.elements)) {
     s[`I_${label}`] = el.I;
     s[`V_${label}`] = el.V;
@@ -263,11 +276,11 @@ export function parseNetlist(lines: string[], config: Config): ParsedNetlist {
 }
 
 export function checkScope(state: State, config: Config): CheckScope {
-  return scopeFromResult(solveCircuit(toNetlist(state, config)));
+  return scopeFromResult(solveCircuit(toNetlist(state, config)), config);
 }
 
 export function solutionScope(solution: Solution, config: Config): CheckScope {
-  return scopeFromResult(solveCircuit(parseNetlist(solution.netlist, config).net));
+  return scopeFromResult(solveCircuit(parseNetlist(solution.netlist, config).net), config);
 }
 
 function permutations<T>(xs: T[]): T[][] {
