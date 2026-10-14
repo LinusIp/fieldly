@@ -12,6 +12,3 @@ export const DEFAULTS = {
   reducedMotion: false,
   codeLang: 'python' as 'python' | 'javascript',
 };
-
-// Debug hook (?debug=1) — only compiled into dev and e2e builds, never into the Pages build.
-export const DEBUG_HOOK_ENABLED: boolean = import.meta.env.DEV || import.meta.env.VITE_DEBUG_HOOK === 'true';

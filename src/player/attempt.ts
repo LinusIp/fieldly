@@ -312,3 +312,65 @@ export function resetStaleQuestions(lesson: Lesson, progress: Progress): Progres
     }
   return changed ? { ...progress, questions, review } : progress;
 }
+
+/** Choose the challenge variant once (§3.2, same rule as steps, using the challenge's concept). */
+export function ensureChallenge(
+  lesson: Lesson,
+  attempt: AttemptState,
+  progress: Progress,
+  initialState: (variant: VariantKey) => unknown,
+): AttemptState {
+  if (attempt.challenge) return attempt;
+  const ch = lesson.challenge;
+  const rating = conceptRating(progress, subjectOf(lesson.id), ch.concept).r;
+  const mode = modeFromHistory(scoreHistory(attempt));
+  const variant = chooseVariant(ch.variants, rating, targetP(mode));
+  return {
+    ...attempt,
+    challenge: {
+      variant,
+      state: initialState(variant),
+      hintsUsed: 0,
+      checks: 0,
+      solved: false,
+      misconceptions: [],
+    },
+  };
+}
+
+/** Apply a solved challenge (or a shown solution) to ratings. */
+export function applyChallengeScore(
+  lesson: Lesson,
+  progress: Progress,
+  difficulty: number,
+  score: number,
+  now: Date,
+): Progress {
+  const sid = subjectOf(lesson.id);
+  const concept = lesson.challenge.concept;
+  const upd = updateRatings(
+    { subject: subjectRating(progress, sid), concept: conceptRating(progress, sid, concept) },
+    difficulty,
+    score,
+  );
+  const day = localDay(now);
+  return {
+    ...progress,
+    ratings: {
+      subject: { ...progress.ratings.subject, [sid]: upd.subject },
+      concept: { ...progress.ratings.concept, [concept]: upd.concept },
+    },
+    activity: { ...progress.activity, [day]: (progress.activity[day] ?? 0) + 1 },
+  };
+}
+
+export function recordMisconception(progress: Progress, id: string, now: Date): Progress {
+  const m = progress.misconceptions[id];
+  return {
+    ...progress,
+    misconceptions: {
+      ...progress.misconceptions,
+      [id]: { count: (m?.count ?? 0) + 1, lastSeen: now.toISOString() },
+    },
+  };
+}

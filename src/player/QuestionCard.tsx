@@ -96,7 +96,7 @@ export function QuestionCard(p: QuestionCardProps) {
               key={o.index}
               className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent has-[:focus-visible]:outline-offset-2 ${cls} ${disabled ? 'cursor-default' : ''}`}
               data-option={pos}
-              data-correct={p.debug && o.correct ? 'true' : undefined}
+              data-correct={__DEBUG_HOOK__ && p.debug && o.correct ? 'true' : undefined}
             >
               <input
                 type="radio"
@@ -124,7 +124,7 @@ export function QuestionCard(p: QuestionCardProps) {
                     <CrossIcon /> Your answer
                   </span>
                 )}
-                {p.debug && o.correct && !p.done && (
+                {__DEBUG_HOOK__ && p.debug && o.correct && !p.done && (
                   <span className="ml-2 text-xs text-warn">[debug: correct]</span>
                 )}
               </span>

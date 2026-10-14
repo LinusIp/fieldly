@@ -38,7 +38,7 @@ export function Summary() {
       if (o && !o.correct && o.misconception) met.set(o.misconception, (met.get(o.misconception) ?? 0) + 1);
     }
   }
-  const chMis = (ch?.state as { misconceptions?: string[] } | undefined)?.misconceptions ?? [];
+  const chMis = ch?.misconceptions ?? [];
   for (const m of chMis) met.set(m, (met.get(m) ?? 0) + 1);
 
   const concepts = Object.keys(attempt.ratingsBefore).filter((c) => progress.ratings.concept[c]);

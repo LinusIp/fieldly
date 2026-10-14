@@ -25,4 +25,4 @@ One line each: date — decision — reason.
 - 2026-10-14 — Variant selection uses the spec's numbers unchanged: at the initial rating 1000, `easier` (p ≈ 0.70) is closest to 0.78, so new students start on easier variants and move up as ratings rise — §3.1/§3.2 are explicit.
 - 2026-10-14 — The challenge has its own seed derived from the attempt seed (`seed ^ 0x5bd1e995`) when it declares its own params — one stored seed reproduces both.
 - 2026-10-14 — Circuit builder: elements occupy one grid segment; the battery is fixed down column 0 (+ top, − bottom) — simplest snap-grid model; solution netlists are auto-laid-out on the grid and verified by re-solving.
-- 2026-10-14 — The `?debug=1` hook is compiled only when `import.meta.env.DEV` or `VITE_DEBUG_HOOK=true` (the `build:e2e` mode) — e2e runs against `vite preview` of that build; the Pages build has neither.
+- 2026-10-14 — The `?debug=1` hook is compiled only when `import.meta.env.DEV` or the build mode is not `production` (dev, test, and the `build:e2e` mode), via a `define` constant so the Pages bundle contains none of the hook code — e2e runs against `vite preview` of that build; the Pages build has neither.

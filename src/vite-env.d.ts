@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_DEBUG_HOOK?: string;
-}
+declare const __DEBUG_HOOK__: boolean;
+
+interface ImportMetaEnv {}
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;

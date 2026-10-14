@@ -22,10 +22,18 @@ export function SubjectPage() {
   if (!subject) return <NotFoundPage />;
 
   // Open by default: the first unit that still has something playable to do, else the first unit.
+  // Open by default: the unit with the next playable lesson to do; otherwise the unit of the
+  // most recently opened lesson; otherwise the first unit.
+  const recent = subject.units
+    .flatMap((u) => u.lessons.map((l) => ({ unit: u.id, at: progress.lessons[l.id]?.lastOpenedAt ?? '' })))
+    .filter((x) => x.at)
+    .sort((a, b) => b.at.localeCompare(a.at))[0]?.unit;
   const defaultOpen =
     subject.units.find((u) =>
       u.lessons.some((l) => l.available && progress.lessons[l.id]?.status !== 'completed'),
-    )?.id ?? subject.units[0].id;
+    )?.id ??
+    recent ??
+    subject.units[0].id;
   const isOpen = (id: string) => open[id] ?? id === defaultOpen;
 
   const lessons = allLessons(subject);

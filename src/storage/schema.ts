@@ -29,6 +29,8 @@ export const AttemptStateSchema = z.object({
       usedSolution: z.boolean().optional(),
       seed: z.number().optional(),
       score: z.number().optional(),
+      misconceptions: z.array(z.string()).optional(),
+      feedback: z.string().optional(),
     })
     .optional(),
   // Additions beyond §12 (see DECISIONS.md):

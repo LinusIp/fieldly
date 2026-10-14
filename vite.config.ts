@@ -6,8 +6,11 @@ import tailwindcss from '@tailwindcss/vite';
 // environment (set by the deploy workflow). Locally it defaults to "/".
 const base = process.env.BASE_PATH ?? '/';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
+  // The ?debug=1 test hook is compiled in only for dev, test and e2e builds; in the Pages
+  // build this is the literal `false` and the minifier removes the hook entirely.
+  define: { __DEBUG_HOOK__: JSON.stringify(mode !== 'production') },
   base,
   plugins: [react(), tailwindcss()],
   build: {
@@ -18,4 +21,4 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
     environment: 'node',
   },
-});
+}));
