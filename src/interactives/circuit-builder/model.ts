@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { evalNumber, type Scope } from '../../engine/expr';
 import { formatNumber } from '../../engine/format';
 import type { CheckScope, InteractiveModel, ResolveCtx } from '../types';
+import { topologyText } from './topology';
 import { solveCircuit, type ElementKind, type Netlist, type NetElement, type SolveResult } from './solver';
 
 /*
@@ -568,13 +569,17 @@ export function describeState(state: State, config: Config): string {
             ? `${e.label} reads ${formatNumber(x?.I ?? 0)} A`
             : `${e.label} reads ${formatNumber(x?.V ?? 0)} V`;
         });
+  // Sentences without their own full stops, joined once (no "1 A..").
   return [
     `Circuit: ${parts.map((e) => `${KIND_NAME[e.kind]} ${e.label}${valueText(e)}`).join('; ')}`,
+    topologyText(net),
     config.hideReadings ? '' : status,
     ...meters,
   ]
+    .map((x) => x.replace(/.+$/, ''))
     .filter(Boolean)
-    .join('. ');
+    .join('. ')
+    .concat('.');
 }
 
 export const circuitLogic: InteractiveModel<RawConfig, Config, State, Solution> = {

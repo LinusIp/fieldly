@@ -68,6 +68,8 @@ export interface InteractiveModule<
   Component: FC<InteractiveViewProps<Config, State>>;
   /** The view is a stand-in until the full one is built (§14 Phase 2); hosts offer "Do it for me". */
   placeholder?: boolean;
+  /** The view draws the Arcade interactive board itself (dot-grid canvas and controls bar, §10.5). */
+  board?: boolean;
   /** Optional async work before a check (e.g. running the student's code); returns the new state. */
   beforeCheck?(state: State, config: Config, ctx: { codeLang: 'python' | 'javascript' }): Promise<State>;
 }

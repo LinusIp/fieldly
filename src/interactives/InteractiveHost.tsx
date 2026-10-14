@@ -42,7 +42,7 @@ export function useResolvedConfig(
 /** Waits for the module, then renders `children(mod)`. */
 export function WithInteractive({ type, children }: { type: string; children(mod: AnyModule): ReactNode }) {
   const { mod, error } = useInteractiveModule(type);
-  if (error) return <p className="text-bad">Could not load the interactive: {error.message}</p>;
+  if (error) return <p className="text-ink">Could not load the interactive: {error.message}</p>;
   if (!mod) return <Loading what="Loading the interactive" />;
   return <>{children(mod)}</>;
 }
@@ -82,12 +82,12 @@ export function InteractiveFrame({
   }
   return (
     <div
-      className="rounded-2xl border border-border bg-surface p-3 sm:p-4"
+      className={`overflow-hidden rounded-xl border-2 border-outline shadow-s3 ${mod.board ? 'bg-board' : 'bg-surface p-3 sm:p-4'}`}
       data-testid="interactive"
       data-type={mod.type}
     >
       {mod.placeholder && (
-        <p className="mb-2 text-xs text-muted">
+        <p className="mb-2 text-small font-semibold text-ink-2">
           The hands-on view for this interactive is still being built; for now it shows a written description
           of the model.
         </p>
@@ -105,7 +105,7 @@ export function InteractiveFrame({
         onStateChange={(s: unknown) => onStateChange?.(s)}
       />
       {!mod.placeholder && (
-        <div className="sr-only" aria-live="polite">
+        <div className="sr-only" aria-live="polite" data-testid="interactive-description">
           {description}
         </div>
       )}
