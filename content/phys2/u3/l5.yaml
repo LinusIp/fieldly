@@ -666,7 +666,7 @@ challenge:
           - { kind: ammeter, count: 3 }
           - { kind: wire, count: unlimited }
         grid: { cols: 6, rows: 4 }
-      check: { expr: "near(I_A1, I) and near(I_A1, I_A2 + I_A3) and near(I_A2, 2 * I_A3)" }
+      check: { expr: "I > 0 and near(I_A1, I) and near(I_A1, I_A2 + I_A3) and near(I_A2, 2 * I_A3)" }
       feedback:
         - { if: "not near(I_A1, I)", say: "A1 should carry the battery's whole current — put it before the junction." }
         - { if: "I_A2 == 0 or I_A3 == 0", say: "Each branch needs its own ammeter." }

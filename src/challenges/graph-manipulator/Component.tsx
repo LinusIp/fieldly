@@ -35,8 +35,8 @@ export function GraphManipulator({
   const dragging = useRef<string | null>(null);
   const values = currentValues(state, config);
   const m = model(config, values);
-  const [x0v, x1v] = config.view.x;
-  const [y0v, y1v] = config.view.y;
+  const [x0v, x1v] = m.view.x;
+  const [y0v, y1v] = m.view.y;
   const sx = (x: number) => M.l + ((x - x0v) / (x1v - x0v)) * (W - M.l - M.r);
   const sy = (y: number) => H - M.b - ((y - y0v) / (y1v - y0v)) * (H - M.t - M.b);
   const yPad = (y1v - y0v) * 2;
@@ -58,7 +58,7 @@ export function GraphManipulator({
     }
     return d;
   };
-  const fnPath = (g: (x: number) => number) => pathOf((x) => [x, g(x)], config.view.x);
+  const fnPath = (g: (x: number) => number) => pathOf((x) => [x, g(x)], m.view.x);
 
   const update = (name: string, v: number) => onStateChange({ values: { ...values, [name]: v } });
 
@@ -74,6 +74,20 @@ export function GraphManipulator({
     if (!k || disabled) return;
     const x = toX(e.clientX, e.clientY);
     if (x !== null) update(k.name, snap(x, k));
+  };
+  // Pressing anywhere on the plot moves the nearest draggable control there and starts dragging —
+  // so a control that is outside a zoomed-in view can still be reached.
+  const draggable = config.controls.filter((k) => k.drag);
+  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (disabled || !draggable.length || (e.target as Element).closest('[data-handle]')) return;
+    const x = toX(e.clientX, e.clientY);
+    if (x === null) return;
+    const k = draggable.reduce((best, c) =>
+      Math.abs(values[c.name] - x) < Math.abs(values[best.name] - x) ? c : best,
+    );
+    dragging.current = k.name;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    update(k.name, snap(x, k));
   };
 
   const f = m.f;
@@ -123,6 +137,7 @@ export function GraphManipulator({
         role="img"
         aria-label="Graph"
         data-testid="graph-plot"
+        onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={() => (dragging.current = null)}
         onPointerLeave={() => (dragging.current = null)}
@@ -192,7 +207,7 @@ export function GraphManipulator({
           {areaPath && <path d={areaPath} fill="var(--c-accent)" opacity={0.25} />}
           {m.target && (
             <path
-              d={pathOf(m.target, domain(config))}
+              d={pathOf(m.target, domain(config, m))}
               fill="none"
               stroke="var(--c-warn)"
               strokeWidth={2.5}
@@ -212,7 +227,7 @@ export function GraphManipulator({
           {m.A && (
             <path d={fnPath(m.A)} fill="none" stroke="var(--c-ok)" strokeWidth={2} strokeDasharray="2 3" />
           )}
-          <path d={pathOf(m.main, domain(config))} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
+          <path d={pathOf(m.main, domain(config, m))} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
           {f &&
             fp &&
             config.tangents.map((n) => {
@@ -242,8 +257,8 @@ export function GraphManipulator({
           ))}
         </g>
         {f &&
-          config.controls
-            .filter((k) => k.drag)
+          draggable
+            .filter((k) => values[k.name] >= x0v && values[k.name] <= x1v)
             .map((k) => {
               const x = values[k.name];
               const y = f(x);
@@ -296,6 +311,7 @@ export function GraphManipulator({
               onChange={(e) => update(k.name, snap(Number(e.target.value), k))}
               className="accent-[var(--c-accent)]"
               data-slider={k.name}
+              aria-label={k.label}
             />
           </label>
         ))}

@@ -1,0 +1,650 @@
+id: calc1.u1.l2
+title: "The idea of a limit"
+version: 1
+concepts: [limit-graphs-tables, one-sided-limits, limit-nonexistence]
+estimatedMinutes: 25
+
+# Scenario: f(x) = (x² − a²)/(x − a), which equals x + a everywhere except x = a, where it is undefined.
+params:
+  sets:
+    - { a: 6 }
+    - { a: 3 }
+    - { a: 5 }
+
+intro: |
+  $\lim_{x \to a} f(x) = L$ means: $f(x)$ gets as close to $L$ as we like when $x$ is close enough
+  to $a$ — **without** $x$ ever equalling $a$. What happens *at* $a$ doesn't matter: $f(a)$ may be
+  different from $L$, or undefined.
+
+  - **Tables and graphs** suggest a limit: look at $f$ on both sides of $a$, closer and closer.
+  - **One-sided limits:** $\lim_{x \to a^-}$ uses only $x < a$; $\lim_{x \to a^+}$ only $x > a$.
+  - The (two-sided) limit exists **exactly when** both one-sided limits exist and are equal.
+
+  A limit fails to exist when the two sides disagree (a **jump**), when $f$ grows without bound,
+  or when $f$ **oscillates** without settling.
+
+workedExample: |
+  $g(x) = \dfrac{x^2 - 16}{x - 4}$ is undefined at $x = 4$.
+
+  - Table: $g(3.99) = 7.99$, $g(4.01) = 8.01$ — closing in on 8 from both sides.
+  - Algebra agrees: for $x \ne 4$, $g(x) = x + 4$, so $\lim_{x \to 4} g(x) = 8$.
+  - The limit exists even though $g(4)$ doesn't.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: limit-graphs-tables
+    clueFor: [s2]
+    establishes: "Near x = {{a}}, f(x) = (x² − {{a^2}})/(x − {{a}}) approaches {{2*a}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A table gives $f(1.9) = 3.9$, $f(1.99) = 3.99$, $f(2.01) = 4.01$, $f(2.1) = 4.1$. What does it suggest $\lim_{x \to 2} f(x)$ is?
+        answer: { expr: "4" }
+        distractors:
+          - { expr: "2", misconception: limit-is-input }
+          - { expr: "3.99", misconception: limit-nearest-value }
+          - { expr: "4.1", misconception: limit-nearest-value-far }
+        hints:
+          nudge: "What value do the outputs close in on from both sides?"
+          partial: "3.9, 3.99 … and 4.1, 4.01 …"
+        explanation: |
+          **Answer:** 4
+
+          **Why:** From both sides the outputs close in on 4.
+
+          **Common mistakes:**
+          - 2 — that's where $x$ goes, not where $f(x)$ goes.
+          - 3.99 — a table entry is an approximation; the limit is what they approach.
+          - 4.1 — that's farther from $x = 2$, not closer.
+
+          **Connects to:** Q2 — the limit vs the value.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          $f(x) = \dfrac{x^2 - {{a^2}}}{x - {{a}}}$. A table gives $f({{a-0.01}}) = {{2*a-0.01}}$ and $f({{a+0.01}}) = {{2*a+0.01}}$. What is
+          $\lim_{x \to {{a}}} f(x)$?
+        options:
+          - { text: '${{2*a}}$', correct: true }
+          - { text: 'It does not exist, because $f({{a}})$ is undefined', misconception: undefined-no-limit }
+          - { text: '${{a}}$', misconception: limit-is-input }
+          - { text: '$0$', misconception: zero-over-zero-zero }
+        hints:
+          nudge: "Ignore x = {{a}} itself. Where are the outputs heading?"
+          partial: "For x ≠ {{a}}, x² − {{a^2}} = (x − {{a}})(x + {{a}})."
+        explanation: |
+          **Answer:** ${{2*a}}$.
+
+          **Why:** For $x \ne {{a}}$, $f(x) = x + {{a}}$, which approaches ${{2*a}}$. The table agrees.
+
+          **Common mistakes:**
+          - "Undefined" — the limit never looks at $x = {{a}}$ itself.
+          - ${{a}}$ — that's the input.
+          - 0 — $\frac{0}{0}$ is not 0; it means "simplify first".
+
+          **Connects to:** Q2 — the limit vs the value.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          $h(x) = \sin(\pi/x)$ gives $h(0.1) = h(0.01) = h(0.001) = 0$. Is $\lim_{x \to 0} h(x) = 0$?
+        options:
+          - { text: 'No: between those points $h$ keeps swinging between −1 and 1', correct: true }
+          - { text: 'Yes: the table is constant at 0', misconception: table-proves-limit }
+          - { text: 'Yes: $\sin$ of anything is close to 0 near 0', misconception: sin-near-zero }
+          - { text: 'No: $h(0)$ is undefined', misconception: undefined-no-limit }
+        hints:
+          nudge: "Try x = 2/3 · 0.01 … or x = 1/(k + ½)."
+          partial: "h(1/(k + ½)) = sin(π(k + ½)) = ±1."
+        explanation: |
+          **Answer:** no — it oscillates.
+
+          **Why:** At $x = \frac{1}{k + 1/2}$, $h = \pm 1$, for every $k$. The table just sampled points where $\sin$ happens to be 0.
+
+          **Common mistakes:**
+          - "Table is constant" — tables only *suggest*; they can miss behaviour between samples.
+          - "Sin near 0" — the *input* $\pi/x$ is huge, not small.
+          - "Undefined at 0" — that alone never decides a limit.
+
+          **Connects to:** Q5 — ways a limit fails.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: limit-graphs-tables
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "Changing or removing f({{a}}) doesn't change the limit: it's still {{2*a}}."
+    standaloneContext: "The limit as x → a describes f near a, never at a."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          $f(x) = x + 1$ for $x \ne 2$, and $f(2) = 7$. What is $\lim_{x \to 2} f(x)$?
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "7", misconception: limit-equals-value }
+          - { expr: "5", misconception: limit-average }
+          - { expr: "2", misconception: limit-is-input }
+        hints:
+          nudge: "Near 2 — not at 2 — what is f?"
+          partial: "x + 1 → 3."
+        explanation: |
+          **Answer:** 3
+
+          **Why:** Near 2, $f(x) = x + 1 \to 3$; the single value $f(2) = 7$ doesn't affect the limit.
+
+          **Common mistakes:**
+          - 7 — that's $f(2)$, which the limit ignores.
+          - 5 — the limit isn't an average of anything.
+          - 2 — that's the input.
+
+          **Connects to:** Q6 — combining both sides.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          $g(x) = \dfrac{x^2 - {{a^2}}}{x - {{a}}}$ for $x \ne {{a}}$, and $g({{a}}) = 1$. What is $\lim_{x \to {{a}}} g(x)$?
+        options:
+          - { text: '${{2*a}}$', correct: true }
+          - { text: '$1$', misconception: limit-equals-value }
+          - { text: 'It does not exist: the limit and the value disagree', misconception: limit-must-match-value }
+          - { text: '$0$', misconception: zero-over-zero-zero }
+        hints:
+          nudge: "Does the value at {{a}} matter?"
+          buildsOn: "Q1: near {{a}}, the outputs approach {{2*a}}."
+          partial: "The limit only uses x ≠ {{a}}."
+        explanation: |
+          **Answer:** ${{2*a}}$.
+
+          **Why:** Near ${{a}}$ the outputs approach ${{2*a}}$ (Q1). Redefining $g({{a}}) = 1$ changes one point, not the trend.
+
+          **Common mistakes:**
+          - 1 — that's the value, not the limit.
+          - "Doesn't exist" — limit and value may differ; that's a discontinuity, not a missing limit.
+          - 0 — substituting gives $\frac{0}{0}$, which is a signal to simplify, not the answer 0.
+
+          **Connects to:** Q6 — one-sided agreement.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: "Which statement is true for **every** function $f$ and point $a$?"
+        options:
+          - { text: '$\lim_{x \to a} f(x)$ does not depend on the value $f(a)$', correct: true }
+          - { text: 'If $f(a)$ is defined, the limit equals $f(a)$', misconception: limit-equals-value }
+          - { text: 'If $f(a)$ is undefined, the limit does not exist', misconception: undefined-no-limit }
+          - { text: 'If the limit exists, $f(a)$ is defined', misconception: limit-needs-value }
+        hints:
+          nudge: "Which part of the definition says x ≠ a?"
+          buildsOn: "Q1: the limit {{2*a}} existed though f({{a}}) didn't."
+          partial: "Each wrong option has a counterexample in this lesson."
+        explanation: |
+          **Answer:** the limit doesn't depend on $f(a)$.
+
+          **Why:** The definition only uses $x \ne a$.
+
+          **Common mistakes:**
+          - "Equals $f(a)$" — only for continuous functions (L5).
+          - "Undefined → no limit" — Q1's $f$ had a limit at ${{a}}$.
+          - "Limit → defined" — same counterexample.
+
+          **Connects to:** Q6 — one-sided limits.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: one-sided-limits
+    clueFor: [s4, s6]
+    establishes: "For f(x) = x + 1 (x < {{a}}) and x² (x ≥ {{a}}): left limit {{a+1}}, right limit {{a^2}}."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          $f(x) = 0$ for $x < 0$ and $f(x) = 1$ for $x \ge 0$. What is $\lim_{x \to 0^-} f(x)$?
+        answer: { expr: "0" }
+        distractors:
+          - { expr: "1", misconception: one-sided-direction }
+          - { expr: "0.5", misconception: limit-average }
+          - { expr: "-1", misconception: one-sided-negates }
+        hints:
+          nudge: "0⁻ means approaching from the left: x < 0."
+          partial: "For x < 0, f(x) = 0."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** From the left, every value is 0.
+
+          **Common mistakes:**
+          - 1 — that's the right-hand limit (and $f(0)$).
+          - 0.5 — one-sided limits don't average the sides.
+          - −1 — the minus sign means "from the left", not a negative value.
+
+          **Connects to:** Q4 — when the sides disagree.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          $f(x) = x + 1$ for $x < {{a}}$ and $f(x) = x^2$ for $x \ge {{a}}$. What is $\lim_{x \to {{a}}^+} f(x)$?
+        answer: { expr: "a^2" }
+        distractors:
+          - { expr: "a + 1", misconception: one-sided-direction }
+          - { expr: "(a + 1 + a^2)/2", misconception: limit-average }
+          - { expr: "a", misconception: limit-is-input }
+        hints:
+          nudge: "Approaching from the right means x > {{a}}. Which piece applies?"
+          partial: "x² → {{a^2}}."
+        explanation: |
+          **Answer:** ${{a^2}}$
+
+          **Why:** For $x > {{a}}$ the rule is $x^2$, which approaches ${{a^2}}$.
+
+          **Common mistakes:**
+          - ${{a+1}}$ — that's the left piece.
+          - Averaging — each side is its own limit.
+          - ${{a}}$ — that's where $x$ goes.
+
+          **Connects to:** Q4 — do the sides agree?
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          $f(x) = \dfrac{|x - {{a}}|}{x - {{a}}}$. What are $\lim_{x \to {{a}}^-} f(x)$ and $\lim_{x \to {{a}}^+} f(x)$?
+        options:
+          - { text: '$-1$ and $1$', correct: true }
+          - { text: '$1$ and $1$', misconception: abs-ignored }
+          - { text: '$1$ and $-1$', misconception: one-sided-direction }
+          - { text: 'Both $0$', misconception: zero-over-zero-zero }
+        hints:
+          nudge: "For x < {{a}}, what is |x − {{a}}|?"
+          partial: "|x − {{a}}| = −(x − {{a}}) on the left."
+        explanation: |
+          **Answer:** $-1$ from the left, $1$ from the right.
+
+          **Why:** Left of ${{a}}$, $|x - {{a}}| = -(x - {{a}})$, so $f = -1$; right of it $f = 1$.
+
+          **Common mistakes:**
+          - Both 1 — the absolute value flips the sign on the left.
+          - Swapped — check a value such as $x = {{a-1}}$.
+          - Both 0 — $\frac{0}{0}$ is not 0.
+
+          **Connects to:** Q4 — when the sides disagree.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: limit-nonexistence
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Left {{a+1}} ≠ right {{a^2}}, so the two-sided limit at {{a}} does not exist (a jump)."
+    standaloneContext: "lim from the left uses x < a; lim from the right uses x > a."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          The step $f(x) = 0$ for $x < 0$, $f(x) = 1$ for $x \ge 0$. Does $\lim_{x \to 0} f(x)$ exist?
+        options:
+          - { text: 'No: the left limit 0 and the right limit 1 differ', correct: true }
+          - { text: 'Yes, it is 1, because $f(0) = 1$', misconception: limit-equals-value }
+          - { text: 'Yes, it is 0.5', misconception: limit-average }
+          - { text: 'Yes, it is 0', misconception: one-sided-is-limit }
+        hints:
+          nudge: "Compare the two one-sided limits."
+          partial: "0 from the left, 1 from the right."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** The two sides head to different values, so there is no single $L$.
+
+          **Common mistakes:**
+          - 1 — $f(0)$ doesn't decide the limit.
+          - 0.5 — limits aren't averages.
+          - 0 — one side alone is a one-sided limit.
+
+          **Connects to:** Q6 — what a limit needs.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          $f(x) = x + 1$ for $x < {{a}}$, $f(x) = x^2$ for $x \ge {{a}}$. What is $\lim_{x \to {{a}}} f(x)$?
+        options:
+          - { text: 'It does not exist', correct: true }
+          - { text: '${{a^2}}$', misconception: limit-equals-value }
+          - { text: '${{a+1}}$', misconception: one-sided-is-limit }
+          - { text: '${{(a+1+a^2)/2}}$', misconception: limit-average }
+        hints:
+          nudge: "Find both one-sided limits."
+          buildsOn: "Q3: from the left {{a+1}}, from the right {{a^2}}."
+          partial: "Equal or not?"
+        explanation: |
+          **Answer:** it does not exist.
+
+          **Why:** The left limit is ${{a+1}}$ and the right limit ${{a^2}}$ (Q3). They differ: a jump.
+
+          **Common mistakes:**
+          - ${{a^2}}$ — that's $f({{a}})$ and the right limit only.
+          - ${{a+1}}$ — the left limit only.
+          - Their average — limits aren't averaged.
+
+          **Connects to:** Q6 — making the sides meet.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          $f(x) = x + c$ for $x < {{a}}$ and $f(x) = x^2$ for $x \ge {{a}}$. Which $c$ makes $\lim_{x \to {{a}}} f(x)$ exist?
+        answer: { expr: "a^2 - a" }
+        distractors:
+          - { expr: "a^2", misconception: one-sided-is-limit }
+          - { expr: "a^2 + a", misconception: sign-slip }
+          - { expr: "1", misconception: limit-equals-value }
+        hints:
+          nudge: "Make the left limit equal the right limit."
+          buildsOn: "Q3: the right limit is {{a^2}}."
+          partial: "{{a}} + c = {{a^2}}."
+        explanation: |
+          **Answer:** $c = {{a^2 - a}}$
+
+          **Why:** The left limit ${{a}} + c$ must match the right limit ${{a^2}}$ (Q3): $c = {{a^2}} - {{a}} = {{a^2-a}}$.
+
+          **Common mistakes:**
+          - ${{a^2}}$ — that makes the left limit ${{a^2+a}}$.
+          - ${{a^2+a}}$ — subtract ${{a}}$, don't add it.
+          - 1 — that's the original left piece, which jumps.
+
+          **Connects to:** Q6 — when limits exist.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: limit-nonexistence
+    clueFor: [s6]
+    establishes: "Limits also fail by blowing up (1/(x − {{a}}) → ±∞) or by oscillating (sin(1/x))."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: 'What happens to $\dfrac{1}{(x - {{a}})^2}$ as $x \to {{a}}$?'
+        options:
+          - { text: 'It grows without bound (→ +∞), so there is no finite limit', correct: true }
+          - { text: 'It approaches 0', misconception: blowup-is-zero }
+          - { text: 'It approaches 1', misconception: blowup-is-one }
+          - { text: 'It approaches −∞ from one side', misconception: square-sign }
+        hints:
+          nudge: "What happens to 1/(tiny positive number)?"
+          partial: "(x − {{a}})² is small and positive on both sides."
+        explanation: |
+          **Answer:** it grows without bound.
+
+          **Why:** The denominator is a tiny positive number on both sides, so the fraction is huge and positive.
+
+          **Common mistakes:**
+          - 0 — dividing by a tiny number makes things big.
+          - 1 — nothing pins the value near 1.
+          - $-\infty$ — a square is never negative.
+
+          **Connects to:** Q6 — summing up.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: 'Does $\lim_{x \to {{a}}} \dfrac{1}{x - {{a}}}$ exist, even as $\pm\infty$?'
+        options:
+          - { text: 'No: it goes to $-\infty$ from the left and $+\infty$ from the right', correct: true }
+          - { text: 'Yes, $+\infty$', misconception: one-sided-is-limit }
+          - { text: 'Yes, 0', misconception: blowup-is-zero }
+          - { text: 'No, only because $x - {{a}} = 0$ at ${{a}}$', misconception: undefined-no-limit }
+        hints:
+          nudge: "Try x = {{a}} − 0.01 and x = {{a}} + 0.01."
+          partial: "−100 and +100."
+        explanation: |
+          **Answer:** no — the sides go to opposite infinities.
+
+          **Why:** For $x < {{a}}$ the denominator is negative and tiny, so the fraction is a large negative number; for $x > {{a}}$, large
+          positive.
+
+          **Common mistakes:**
+          - $+\infty$ — that's only the right side.
+          - 0 — dividing by tiny numbers gives huge ones.
+          - "Because it's undefined at ${{a}}$" — the reason is the sides' behaviour, not the hole.
+
+          **Connects to:** Q6 — summing up.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: 'Why does $\lim_{x \to 0} \sin(1/x)$ not exist?'
+        options:
+          - { text: 'Every interval around 0 contains points where it equals 1 and points where it equals −1', correct: true }
+          - { text: 'It goes to $+\infty$', misconception: oscillation-is-blowup }
+          - { text: 'Because $1/0$ is undefined', misconception: undefined-no-limit }
+          - { text: 'It does exist: it is 0', misconception: sin-near-zero }
+        hints:
+          nudge: "As x → 0, 1/x passes through every multiple of π/2."
+          partial: "sin(1/x) = 1 whenever 1/x = π/2 + 2πk."
+        explanation: |
+          **Answer:** it oscillates between −1 and 1 forever.
+
+          **Why:** No matter how close to 0 you look, it still hits both 1 and −1, so it can't settle near any $L$.
+
+          **Common mistakes:**
+          - $+\infty$ — it stays between −1 and 1.
+          - "$1/0$ undefined" — undefined at 0 alone never rules out a limit.
+          - 0 — the input $1/x$ is huge, not small.
+
+          **Connects to:** Q6 — summing up.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: one-sided-limits
+    uses: [s2, s4, s5]
+    establishes: "The limit exists exactly when both one-sided limits exist and agree; f(a) plays no part."
+    standaloneContext: |
+      One-sided limits look at x < a or x > a only. A limit ignores f(a) and fails at jumps, blow-ups and oscillations.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'When does $\lim_{x \to a} f(x)$ exist?'
+        options:
+          - { text: 'When both one-sided limits exist and are equal', correct: true }
+          - { text: 'When $f(a)$ is defined', misconception: limit-needs-value }
+          - { text: 'When at least one one-sided limit exists', misconception: one-sided-is-limit }
+          - { text: 'When the one-sided limits both equal $f(a)$', misconception: one-sided-must-match-value }
+        hints:
+          nudge: "Which earlier example had a value but no limit?"
+          partial: "The step function at 0."
+        explanation: |
+          **Answer:** both one-sided limits exist and agree.
+
+          **Why:** Then $f(x)$ is close to one value $L$ on both sides.
+
+          **Common mistakes:**
+          - "$f(a)$ defined" — the step function was defined at 0 but had no limit.
+          - "One side" — that's only a one-sided limit.
+          - "Equal $f(a)$" — that's continuity, a stronger condition.
+
+          **Connects to:** the challenge — zooming in.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          $f(x) = x + 1$ for $x < {{a}}$, $f({{a}}) = 0$, and $f(x) = 2x - {{a - 1}}$ for $x > {{a}}$. What is $\lim_{x \to {{a}}} f(x)$?
+        options:
+          - { text: '${{a+1}}$', correct: true }
+          - { text: '$0$', misconception: limit-equals-value }
+          - { text: 'It does not exist: $f({{a}})$ differs from the sides', misconception: one-sided-must-match-value }
+          - { text: '${{2*a}}$', misconception: limit-substitute-part }
+        hints:
+          nudge: "Compute both one-sided limits; ignore f({{a}})."
+          buildsOn: "Q2: f(a) doesn't matter. Q4: compare the sides. Q5: neither side blows up here."
+          partial: "Left: {{a}} + 1. Right: 2·{{a}} − {{a-1}}."
+        explanation: |
+          **Answer:** ${{a+1}}$.
+
+          **Why:** Left: ${{a}} + 1 = {{a+1}}$. Right: $2 \cdot {{a}} - {{a-1}} = {{a+1}}$. They agree (Q4), and $f({{a}}) = 0$ is irrelevant (Q2).
+
+          **Common mistakes:**
+          - 0 — that's the value at ${{a}}$.
+          - "Doesn't exist" — the sides agree; only continuity fails.
+          - ${{2*a}}$ — that's $2 \cdot {{a}}$ without the $-{{a-1}}$.
+
+          **Connects to:** the challenge — zooming in.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: '$\lim_{x \to a} f(x) = L$. Which statement **must** be true?'
+        options:
+          - { text: 'For $x \ne a$ close enough to $a$, $f(x)$ is within any chosen distance of $L$', correct: true }
+          - { text: '$f(a) = L$', misconception: limit-equals-value }
+          - { text: '$f(x) = L$ for some $x$ near $a$', misconception: limit-attained }
+          - { text: '$f$ is defined at $a$', misconception: limit-needs-value }
+        hints:
+          nudge: "Which statement is about *closeness* rather than equality?"
+          buildsOn: "Q2: the value at a doesn't matter. Q4/Q5: failures are about where f heads."
+          partial: "f(x) = x + 1 (x ≠ {{a}}) never equals {{a+1}}, yet that's its limit."
+        explanation: |
+          **Answer:** $f(x)$ is as close to $L$ as we like for $x$ near $a$.
+
+          **Why:** That's the definition — made precise with $\varepsilon$ and $\delta$ in L7. It says nothing about $f(a)$ (Q2) or about
+          hitting $L$ exactly.
+
+          **Common mistakes:**
+          - $f(a) = L$ — only for continuous $f$.
+          - "Attains $L$" — $f$ can approach $L$ without reaching it.
+          - "Defined at $a$" — not needed.
+
+          **Connects to:** the challenge — zooming in.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: limit-graphs-tables
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: |
+          A graph is the line $y = 2x$ with the point at $x = 3$ removed and a dot drawn at $(3, 0)$ instead. As $x \to 3$, where do the
+          points on the line head?
+        answer: { expr: "6" }
+        distractors:
+          - { expr: "0", misconception: limit-equals-value }
+          - { expr: "3", misconception: limit-is-input }
+          - { expr: "2", misconception: limit-substitute-part }
+        hints:
+          nudge: "Follow the line, not the dot."
+          partial: "2 · 3"
+        explanation: |
+          **Answer:** 6
+
+          **Why:** Points on the line near $x = 3$ have $y$ near 6. The lone dot at $(3, 0)$ is $f(3)$, which the limit ignores.
+
+          **Common mistakes:**
+          - 0 — that's the dot, the value at 3.
+          - 3 — that's the input.
+          - 2 — that's the slope.
+
+          **Connects to:** Q2 — limit vs value.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l2.ch
+  type: graph-manipulator
+  title: "Zoom in on a limit"
+  concept: limit-graphs-tables
+  uses: [s1, s6]
+  params:
+    sets:
+      - { b: 1 }
+      - { b: 2 }
+      - { b: 3 }
+  derived:
+    L: "3 * b^2"
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $g(x) = \dfrac{x^3 - {{b^3}}}{x - {{b}}}$ has $\lim_{x \to {{b}}} g(x) = {{L}}$. Drag $x$ toward ${{b}}$ (zoom with $w$) until **every** point of
+        the graph between $x$ and ${{b}}$ lies within $\varepsilon = 0.5$ of ${{L}}$.
+      config:
+        f: "(x^3 - b^3) / (x - b)"
+        view: { x: ["b - w", "b + w"], y: ["L - (3*b + 1) * w * 1.3", "L + (3*b + 1) * w * 1.3"] }
+        controls:
+          - { name: x0, label: "x", min: "b - 1", max: "b + 1", step: 0.001, initial: "b + 1", drag: true }
+          - { name: w, label: "zoom w", min: 0.02, max: 1.2, step: 0.01, initial: 1.2 }
+        overlays: { band: { y: "L", eps: 0.5, x: "b" } }
+      check: { expr: "abs(x0 - b) > 0 and maxDev(min(x0, b), max(x0, b), L) < 0.5" }
+      feedback:
+        - { if: "abs(x0 - b) == 0", say: "x must get close to b without landing on it — g(b) isn't even defined.", misconception: limit-equals-value }
+        - { if: "true", say: "Some of the graph between x and b is still outside the band. Move x closer." }
+      hints:
+        nudge: "Watch where the curve leaves the shaded band."
+        buildsOn: "From Q1: near b, g(x) approaches L from both sides."
+        partial: "Zoom in with w, then drag x into the stretch that stays inside the band."
+      solution: { x0: "b + 0.9 * 0.5 / (3*b + 1)", w: 0.3 }
+      explanation: |
+        Closer inputs give outputs closer to ${{L}}$: that's what $\lim_{x \to {{b}}} g(x) = {{L}}$ promises — for any band, some
+        stretch around ${{b}}$ fits inside it.
+    standard:
+      difficulty: 3
+      goal: |
+        Same $g(x) = \dfrac{x^3 - {{b^3}}}{x - {{b}}}$, limit ${{L}}$, but now $\varepsilon = 0.1$: get every point between $x$ and ${{b}}$ within
+        0.1 of ${{L}}$.
+      config:
+        f: "(x^3 - b^3) / (x - b)"
+        view: { x: ["b - w", "b + w"], y: ["L - (3*b + 1) * w * 1.3", "L + (3*b + 1) * w * 1.3"] }
+        controls:
+          - { name: x0, label: "x", min: "b - 1", max: "b + 1", step: 0.001, initial: "b - 1", drag: true }
+          - { name: w, label: "zoom w", min: 0.02, max: 1.2, step: 0.01, initial: 1.2 }
+        overlays: { band: { y: "L", eps: 0.1, x: "b" } }
+      check: { expr: "abs(x0 - b) > 0 and maxDev(min(x0, b), max(x0, b), L) < 0.1" }
+      feedback:
+        - { if: "abs(x0 - b) == 0", say: "x must approach b without landing on it.", misconception: limit-equals-value }
+        - { if: "maxDev(min(x0, b), max(x0, b), L) < 0.5", say: "Inside ε = 0.5 — but this band is five times narrower. Zoom in further." }
+        - { if: "true", say: "Part of the graph between x and b is outside the band. Zoom in and move x closer." }
+      hints:
+        nudge: "The narrower band needs x closer to b."
+        buildsOn: "From Q6: whatever band you choose, close enough inputs fit."
+        partial: "Near b the curve has slope about {{3*b}}, so x must be within about 0.1/{{3*b+1}} of b."
+      solution: { x0: "b - 0.9 * 0.1 / (3*b + 1)", w: 0.05 }
+      explanation: |
+        A five-times narrower band needed $x$ about five times closer to ${{b}}$. Shrinking ε and finding a matching stretch around ${{b}}$ is
+        exactly the ε–δ game of L7.
+    harder:
+      difficulty: 4
+      goal: |
+        ε = 0.1 again — but stop **as soon as** you're inside: every point between $x$ and ${{b}}$ within 0.1 of ${{L}}$, **and** $g(x)$ itself
+        more than 0.06 away from ${{L}}$.
+      config:
+        f: "(x^3 - b^3) / (x - b)"
+        view: { x: ["b - w", "b + w"], y: ["L - (3*b + 1) * w * 1.3", "L + (3*b + 1) * w * 1.3"] }
+        controls:
+          - { name: x0, label: "x", min: "b - 1", max: "b + 1", step: 0.001, initial: "b + 1", drag: true }
+          - { name: w, label: "zoom w", min: 0.02, max: 1.2, step: 0.01, initial: 1.2 }
+        overlays: { band: { y: "L", eps: 0.1, x: "b" } }
+      check: { expr: "abs(x0 - b) > 0 and maxDev(min(x0, b), max(x0, b), L) < 0.1 and abs(fx0 - L) > 0.06" }
+      feedback:
+        - { if: "maxDev(min(x0, b), max(x0, b), L) < 0.1 and abs(fx0 - L) <= 0.06", say: "Inside the band, but deeper than needed. Back off toward the band's edge." }
+        - { if: "abs(x0 - b) == 0", say: "x must approach b without landing on it.", misconception: limit-equals-value }
+        - { if: "true", say: "Part of the graph between x and b is outside the band. Zoom in and move x closer." }
+      hints:
+        nudge: "Find where the curve crosses the edge of the band."
+        buildsOn: "From Q6: the limit guarantees a stretch around b — find its edge."
+        partial: "g(x) − {{L}} ≈ {{3*b}}(x − {{b}}): aim for |g(x) − {{L}}| between 0.06 and 0.1."
+      solution: { x0: "b + 0.9 * 0.1 / (3*b + 1)", w: 0.05 }
+      explanation: |
+        The edge of the band marks the largest stretch that works. That largest distance from ${{b}}$ is what L7 calls $\delta$.
+
+summary:
+  keyTakeaways:
+    - "lim_{x→a} f(x) = L: f(x) gets as close to L as we like for x near a, with x ≠ a."
+    - "The value f(a) — or whether it exists — doesn't affect the limit."
+    - "The limit exists exactly when both one-sided limits exist and are equal."
+    - "Limits fail at jumps, blow-ups (→ ±∞) and oscillations."
+  next: calc1.u1.l3

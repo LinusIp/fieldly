@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { ChallengeLogic, CheckScope, ResolveCtx } from '../types';
 import type { Comparator } from './compare';
+import { generators } from './generators';
 
 /*
  * code-runner (§9.2): the student writes a function; visible tests show their results, hidden
@@ -30,7 +31,7 @@ export const configSchema = z.strictObject({
   comparator: z.enum(['exact', 'unordered', 'float']),
   perf: z
     .strictObject({
-      generator: z.string(),
+      generator: z.string().refine((g) => g in generators, { message: 'unknown performance generator' }),
       params: z.record(z.string(), z.number()),
       timeLimitMs: z.number().positive(),
     })

@@ -1,0 +1,333 @@
+# Misconceptions for Calculus I.
+
+# ── calc1.u1.l1: functions and their graphs ──
+- id: shift-direction
+  short: "f(x − h) moves the graph right by h; f(x + h) moves it left. Changes inside the brackets run backwards."
+  explain: |
+    The new graph reaches f(0) where x − h = 0, i.e. at x = h.
+  lessons: [calc1.u1.l1]
+
+- id: shift-axis
+  short: "Changes inside f( ) act on x (horizontal); changes outside act on y (vertical)."
+  explain: |
+    In f(x − h) + k, h is the horizontal shift and k the vertical one.
+  lessons: [calc1.u1.l1]
+
+- id: stretch-is-shift
+  short: "A factor stretches the graph; adding a number shifts it."
+  explain: |
+    a·f(x) multiplies every output by a; f(x) + k adds k to every output.
+  lessons: [calc1.u1.l1]
+
+- id: shift-is-stretch
+  short: "Adding inside the brackets shifts the graph; multiplying x stretches or compresses it."
+  explain: |
+    f(x − 2) is a shift; f(2x) or f(x/2) change the width.
+  lessons: [calc1.u1.l1]
+
+- id: shift-ignored
+  short: "Every transformation in the formula moves the graph — none can be skipped."
+  explain: |
+    Track the vertex (or any point) through each change.
+  lessons: [calc1.u1.l1]
+
+- id: shift-vertical-sign
+  short: "A + k outside the function moves the graph up by k."
+  explain: |
+    Vertical changes act as written; only inside changes run backwards.
+  lessons: [calc1.u1.l1]
+
+- id: compress-direction
+  short: "f(2x) compresses the graph toward the y-axis: features happen at half the x."
+  explain: |
+    To get f(6) you now need 2x = 6, so x = 3.
+  lessons: [calc1.u1.l1]
+
+- id: stretch-shift-order
+  short: "In a·f(x) + k, the stretch happens first and the shift is added after."
+  explain: |
+    The vertex height is k, not a·k.
+  lessons: [calc1.u1.l1]
+
+- id: stretch-inverted
+  short: "In y = a(x − h)² + k, a is the rise one unit from the vertex — not its reciprocal."
+  explain: |
+    One step right of the vertex, y increases by a · 1² = a.
+  lessons: [calc1.u1.l1]
+
+- id: domain-strict
+  short: "Check the endpoint: √0 = 0 is allowed, but ln 0 is not."
+  explain: |
+    Square roots need ≥ 0; logarithms need > 0; denominators need ≠ 0.
+  lessons: [calc1.u1.l1]
+
+- id: domain-ignores-root
+  short: "A square root needs a non-negative argument — that restricts the domain."
+  explain: |
+    Solve "argument ≥ 0".
+  lessons: [calc1.u1.l1]
+
+- id: domain-ignores-denominator
+  short: "A denominator can't be zero — remove those x-values."
+  explain: |
+    Combine every restriction: roots, denominators, logs.
+  lessons: [calc1.u1.l1]
+
+- id: domain-combines-wrong
+  short: "Combine restrictions by removing only the excluded points — don't discard whole intervals."
+  explain: |
+    x ≥ h with x ≠ h + 2 keeps everything from h onward except one point.
+  lessons: [calc1.u1.l1]
+
+- id: domain-one-branch
+  short: "x² > c² has two solution pieces: x > c and x < −c."
+  explain: |
+    Large negative x work too, because their squares are large.
+  lessons: [calc1.u1.l1]
+
+- id: domain-inequality-flip
+  short: "Check the direction of the inequality: test a value from your answer."
+  explain: |
+    Multiplying or dividing by a negative, or a minus in front of x, reverses it.
+  lessons: [calc1.u1.l1]
+
+- id: range-is-domain
+  short: "The range is the set of outputs, not the set of allowed inputs."
+  explain: |
+    Find the smallest and largest values f actually takes.
+  lessons: [calc1.u1.l1]
+
+- id: range-ignores-shift
+  short: "A vertical shift moves every output, including the minimum."
+  explain: |
+    x² + 1 has minimum 1, not 0.
+  lessons: [calc1.u1.l1]
+
+- id: range-ignores-reflection
+  short: "A negative coefficient flips the graph: a minimum becomes a maximum."
+  explain: |
+    −(x − h)² ≤ 0, so the outputs lie *below* the vertex.
+  lessons: [calc1.u1.l1]
+
+- id: range-uses-h
+  short: "h shifts the graph sideways, so it can't change the outputs' bounds."
+  explain: |
+    The vertical position comes from k.
+  lessons: [calc1.u1.l1]
+
+- id: range-one-branch
+  short: "Both branches count: 1/(x − h) is negative to the left of h and positive to the right."
+  explain: |
+    Together they cover every value except 0.
+  lessons: [calc1.u1.l1]
+
+- id: composition-order
+  short: "f ∘ g means apply g first, then f: f(g(x))."
+  explain: |
+    Work from the inside out.
+  lessons: [calc1.u1.l1]
+
+- id: composition-multiply
+  short: "Composition feeds one function into the other — it isn't multiplication."
+  explain: |
+    (f ∘ g)(x) = f(g(x)), not f(x)·g(x).
+  lessons: [calc1.u1.l1]
+
+- id: composition-one-function
+  short: "Both functions must be applied, the inner one first."
+  explain: |
+    f(g(2)): compute g(2), then put it into f.
+  lessons: [calc1.u1.l1]
+
+- id: composition-domain-outer
+  short: "The composite's domain comes from requiring g(x) to be in f's domain — not f's domain itself."
+  explain: |
+    For √(h − x), you need h − x ≥ 0.
+  lessons: [calc1.u1.l1]
+
+- id: composition-domain-inner
+  short: "The inner function's output must suit the outer function."
+  explain: |
+    g may accept every x, but f(g(x)) may not.
+  lessons: [calc1.u1.l1]
+
+- id: square-distributes
+  short: "(a − b)² is not a² ± b²: expand it as a² − 2ab + b² — keep the cross term."
+  explain: |
+    Multiply (a − b)(a − b) term by term.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-is-f
+  short: "f⁻¹(7) asks which input gives output 7 — not f(7)."
+  explain: |
+    Solve f(x) = 7.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-reciprocal
+  short: "f⁻¹ is the inverse function, not 1/f."
+  explain: |
+    It undoes f: f⁻¹(f(x)) = x.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-order
+  short: "Undo the steps in reverse order: the last thing f does is undone first."
+  explain: |
+    f(x) = 3x − h: add h first, then divide by 3.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-negate
+  short: "Negating doesn't undo multiplication — divide instead."
+  explain: |
+    Check by composing: f(f⁻¹(x)) must be x.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-impossible
+  short: "Squares can be undone with √ on a restricted domain."
+  explain: |
+    Restrict to one side of the vertex so the function is one-to-one.
+  lessons: [calc1.u1.l1]
+
+- id: inverse-linear-only
+  short: "Many non-linear functions have inverses — e.g. eˣ and ln x."
+  explain: |
+    What matters is being one-to-one.
+  lessons: [calc1.u1.l1]
+
+# ── calc1.u1.l2: the idea of a limit ──
+- id: limit-equals-value
+  short: "The limit always equals f(a)? No — the limit ignores x = a; f(a) can be different or undefined."
+  explain: |
+    Only continuous functions have lim f(x) = f(a).
+  lessons: [calc1.u1.l2]
+
+- id: undefined-no-limit
+  short: "f(a) being undefined doesn't stop the limit from existing."
+  explain: |
+    The limit only looks at x near a, never at a itself.
+  lessons: [calc1.u1.l2]
+
+- id: limit-needs-value
+  short: "A limit can exist even where f(a) is undefined."
+  explain: |
+    (x² − 4)/(x − 2) has limit 4 at 2, though it is undefined there.
+  lessons: [calc1.u1.l2]
+
+- id: limit-must-match-value
+  short: "A limit and a value that disagree mean a discontinuity, not a missing limit."
+  explain: |
+    The limit can exist and differ from f(a).
+  lessons: [calc1.u1.l2]
+
+- id: one-sided-must-match-value
+  short: "One-sided limits don't have to equal f(a) — they only need to agree with each other for the limit to exist."
+  explain: |
+    Matching f(a) as well is continuity, a stronger condition.
+  lessons: [calc1.u1.l2]
+
+- id: limit-is-input
+  short: "The limit is the value f(x) approaches, not the value x approaches."
+  explain: |
+    Read the outputs, not the inputs.
+  lessons: [calc1.u1.l2]
+
+- id: limit-nearest-value
+  short: "A table entry is only an approximation — the limit is what the entries close in on."
+  explain: |
+    Look at the trend as x gets closer from both sides.
+  lessons: [calc1.u1.l2]
+
+- id: limit-nearest-value-far
+  short: "Use the entries closest to a, from both sides — they show the trend best."
+  explain: |
+    x = 2.1 is farther from 2 than x = 2.01.
+  lessons: [calc1.u1.l2]
+
+- id: limit-average
+  short: "Limits aren't averages of the two sides or of anything else."
+  explain: |
+    If the sides disagree, the limit does not exist.
+  lessons: [calc1.u1.l2]
+
+- id: limit-substitute-part
+  short: "Substituting into part of a formula doesn't give the limit."
+  explain: |
+    Simplify the whole expression first, or look at the trend.
+  lessons: [calc1.u1.l2]
+
+- id: limit-attained
+  short: "A function can approach L without ever equalling it."
+  explain: |
+    x + 1 for x ≠ 2 approaches 3 but never equals 3.
+  lessons: [calc1.u1.l2]
+
+- id: zero-over-zero-zero
+  short: "0/0 isn't 0 — it's a signal to simplify; the limit can be any number."
+  explain: |
+    Factor or rationalize, then take the limit.
+  lessons: [calc1.u1.l2]
+
+- id: table-proves-limit
+  short: "A table only suggests a limit — it can miss what happens between the sampled points."
+  explain: |
+    Check with algebra or a graph.
+  lessons: [calc1.u1.l2]
+
+- id: sin-near-zero
+  short: "sin(π/x) or sin(1/x) near 0 has a huge input, not a small one — it doesn't approach 0."
+  explain: |
+    Only sin(u) with u → 0 approaches 0.
+  lessons: [calc1.u1.l2]
+
+- id: one-sided-direction
+  short: "x → a⁻ means from the left (x < a); x → a⁺ means from the right (x > a)."
+  explain: |
+    Use the piece of the function that applies on that side.
+  lessons: [calc1.u1.l2]
+
+- id: one-sided-negates
+  short: "The ⁻ in a⁻ means \"from the left\", not \"make it negative\"."
+  explain: |
+    Plug in values just below a.
+  lessons: [calc1.u1.l2]
+
+- id: one-sided-is-limit
+  short: "One side alone gives a one-sided limit; the two-sided limit needs both sides to agree."
+  explain: |
+    Check the other side before naming the limit.
+  lessons: [calc1.u1.l2]
+
+- id: abs-ignored
+  short: "|x − a| equals −(x − a) when x < a — the sign flips on the left."
+  explain: |
+    Split absolute values at the point where the inside is 0.
+  lessons: [calc1.u1.l2]
+
+- id: sign-slip
+  short: "Recheck the sign when you move a term across the equation."
+  explain: |
+    Substitute your answer back in to confirm.
+  lessons: [calc1.u1.l2]
+
+- id: blowup-is-zero
+  short: "Dividing by a tiny number gives a huge number, not 0."
+  explain: |
+    1/0.001 = 1000.
+  lessons: [calc1.u1.l2]
+
+- id: blowup-is-one
+  short: "Nothing pins the value near 1 — the fraction grows without bound."
+  explain: |
+    Try values ever closer to a and watch the outputs.
+  lessons: [calc1.u1.l2]
+
+- id: square-sign
+  short: "A square is never negative, so 1/(x − a)² is positive on both sides."
+  explain: |
+    Both sides go to +∞.
+  lessons: [calc1.u1.l2]
+
+- id: oscillation-is-blowup
+  short: "sin(1/x) stays between −1 and 1; it fails by oscillating, not by growing."
+  explain: |
+    It hits 1 and −1 infinitely often near 0.
+  lessons: [calc1.u1.l2]

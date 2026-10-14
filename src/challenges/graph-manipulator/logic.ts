@@ -117,7 +117,8 @@ export interface Config {
   y?: string;
   r?: string;
   t: [number, number];
-  view: { x: [number, number]; y: [number, number] };
+  /** Plot window; entries may be expressions in the controls (e.g. a zoom width), so it is resolved per state. */
+  view: { x: [number | string, number | string]; y: [number | string, number | string] };
   controls: Control[];
   tangents: string[];
   secant?: { at: string; h: string };
@@ -156,10 +157,7 @@ export function resolveConfig(raw: RawConfig, ctx: ResolveCtx): Config {
     y: raw.y,
     r: raw.r,
     t: raw.t ? [ctx.num(raw.t[0]), ctx.num(raw.t[1])] : [0, 1],
-    view: {
-      x: [ctx.num(raw.view.x[0]), ctx.num(raw.view.x[1])],
-      y: [ctx.num(raw.view.y[0]), ctx.num(raw.view.y[1])],
-    },
+    view: raw.view,
     controls,
     tangents: o.tangent === undefined ? [] : Array.isArray(o.tangent) ? o.tangent : [o.tangent],
     secant: o.secant,
@@ -225,18 +223,22 @@ export function model(config: Config, values: Record<string, number>) {
   };
   const main = curve(config);
   const target = config.target ? curve(config.target) : undefined;
-  return { scope, f, fp, A, area, main, target };
+  const view = {
+    x: [num(config.view.x[0]), num(config.view.x[1])] as [number, number],
+    y: [num(config.view.y[0]), num(config.view.y[1])] as [number, number],
+  };
+  return { scope, f, fp, A, area, main, target, view };
 }
 
 /** Parameter range sampled for the plot and for matchError. */
-export function domain(config: Config): [number, number] {
-  return config.mode === 'function' ? config.view.x : config.t;
+export function domain(config: Config, m: ReturnType<typeof model>): [number, number] {
+  return config.mode === 'function' ? m.view.x : config.t;
 }
 
 /** Largest distance between the curve and the target at matching parameter values. */
 export function matchError(config: Config, m: ReturnType<typeof model>): number {
   if (!m.target) return NaN;
-  const [lo, hi] = domain(config);
+  const [lo, hi] = domain(config, m);
   let worst = 0;
   for (let i = 0; i <= 400; i++) {
     const u = lo + ((hi - lo) * i) / 400;

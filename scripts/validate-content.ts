@@ -501,6 +501,11 @@ function validateLesson(
     reported.add(key);
     err(msg, where);
   };
+  const onceWarn = (key: string, msg: string, where?: string) => {
+    if (reported.has(key)) return;
+    reported.add(key);
+    warn(msg, where);
+  };
   const renderCheck = (src: string | undefined, scope: Scope, where: string, label: string) => {
     if (!src) return;
     let out: string;
@@ -629,7 +634,10 @@ function validateLesson(
         });
         // A correct solution must not trigger a feedback rule ahead of success — harmless, but
         // also check the empty/initial state does not crash checkScope.
-        logic.checkScope(logic.initialState(config), config);
+        const initialScope = logic.checkScope(logic.initialState(config), config);
+        // A challenge that is already solved before the student does anything teaches nothing.
+        if (ch.type !== 'code-runner' && evalBoolean(v.check.expr, { ...scope, ...initialScope }))
+          onceWarn(`${where}:initial`, 'the starting state already passes the check', where);
       } catch (e) {
         once(`${where}:eval`, `challenge: ${(e as Error).message} (params ${JSON.stringify(scope)})`, where);
       }

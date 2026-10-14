@@ -158,6 +158,7 @@ export function TransientPlotter({
               }
               className="accent-[var(--c-accent)]"
               data-slider={s.name}
+              aria-label={s.name}
             />
           </label>
         ))}

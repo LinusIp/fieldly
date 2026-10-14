@@ -225,6 +225,7 @@ export function SeriesExplorer({
           onChange={(e) => onStateChange({ k: Number(e.target.value) })}
           className="accent-[var(--c-accent)]"
           data-slider={series ? 'N' : 'degree'}
+          aria-label={series ? 'N, terms added' : 'Degree'}
         />
       </label>
       <p className="font-mono text-sm" data-testid="series-readouts">

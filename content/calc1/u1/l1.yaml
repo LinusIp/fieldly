@@ -1,0 +1,645 @@
+id: calc1.u1.l1
+title: "Functions and their graphs"
+version: 1
+concepts: [domain-range, function-composition, inverse-functions, graph-transformations]
+estimatedMinutes: 25
+
+# Scenario: the parabola f(x) = x² moved and reshaped — shifts h (right) and k (up) vary.
+params:
+  sets:
+    - { h: 2, k: 3 }
+    - { h: 1, k: 4 }
+    - { h: 3, k: 2 }
+
+intro: |
+  A **function** assigns exactly one output to each allowed input.
+
+  - The **domain** is the set of allowed inputs. Rule out division by zero, square roots of
+    negatives and logarithms of non-positive numbers.
+  - The **range** is the set of outputs that actually occur.
+  - **Composition** feeds one function into another: $(f \circ g)(x) = f(g(x))$ — apply $g$ first.
+  - An **inverse** $f^{-1}$ undoes $f$: $f^{-1}(f(x)) = x$. It exists only if $f$ is one-to-one;
+    to find it, solve $y = f(x)$ for $x$.
+
+  **Transformations** of $y = f(x)$:
+
+  - $f(x - h)$ shifts **right** by $h$; $f(x) + k$ shifts **up** by $k$;
+  - $a\,f(x)$ stretches vertically by $a$ (and reflects if $a < 0$);
+  - $f(bx)$ compresses horizontally by a factor $b$.
+
+  Changes *inside* the brackets act on $x$ and run "backwards"; changes *outside* act on $y$ as written.
+
+workedExample: |
+  Start from $f(x) = \sqrt{x}$ (domain $x \ge 0$, range $y \ge 0$).
+
+  - $g(x) = \sqrt{x - 5} - 1$ is $f$ shifted right 5 and down 1.
+  - Domain: $x - 5 \ge 0$, so $x \ge 5$. Range: $y \ge -1$.
+  - Inverse: $y = \sqrt{x - 5} - 1 \Rightarrow x = (y + 1)^2 + 5$, so $g^{-1}(x) = (x + 1)^2 + 5$ for $x \ge -1$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: domain-range
+    clueFor: [s2]
+    establishes: "Domain of √(x − {{h}}): x ≥ {{h}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: 'What is the domain of $f(x) = \sqrt{x - 3}$?'
+        options:
+          - { text: '$x \ge 3$', correct: true }
+          - { text: '$x \ge -3$', misconception: shift-direction }
+          - { text: '$x > 3$', misconception: domain-strict }
+          - { text: 'All real numbers', misconception: domain-ignores-root }
+        hints:
+          nudge: "What can't go under a square root?"
+          partial: "Solve x − 3 ≥ 0."
+        explanation: |
+          **Answer:** $x \ge 3$.
+
+          **Why:** The expression under the root must be non-negative: $x - 3 \ge 0$.
+
+          **Common mistakes:**
+          - $x \ge -3$ — the sign flips the wrong way.
+          - $x > 3$ — $\sqrt{0} = 0$ is allowed.
+          - All reals — negative inputs to the root are undefined.
+
+          **Connects to:** Q2 — the range.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'What is the domain of $f(x) = \dfrac{\sqrt{x - {{h}}}}{x - {{h+2}}}$?'
+        options:
+          - { text: '$x \ge {{h}}$ and $x \ne {{h+2}}$', correct: true }
+          - { text: '$x \ge {{h}}$', misconception: domain-ignores-denominator }
+          - { text: '$x \ne {{h+2}}$', misconception: domain-ignores-root }
+          - { text: '$x > {{h+2}}$', misconception: domain-combines-wrong }
+        hints:
+          nudge: "Two restrictions: the root and the denominator."
+          partial: "x − {{h}} ≥ 0, and x − {{h+2}} ≠ 0."
+        explanation: |
+          **Answer:** $x \ge {{h}}$, $x \ne {{h+2}}$.
+
+          **Why:** The root needs $x \ge {{h}}$; the denominator is zero at $x = {{h+2}}$, which lies inside that set, so it is removed.
+
+          **Common mistakes:**
+          - Only $x \ge {{h}}$ — division by zero at ${{h+2}}$.
+          - Only $x \ne {{h+2}}$ — the root rules out $x < {{h}}$.
+          - $x > {{h+2}}$ — values between ${{h}}$ and ${{h+2}}$ are fine.
+
+          **Connects to:** Q2 — the range.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: 'What is the domain of $f(x) = \ln(x^2 - {{h^2}})$?'
+        options:
+          - { text: '$x < -{{h}}$ or $x > {{h}}$', correct: true }
+          - { text: '$x > {{h}}$', misconception: domain-one-branch }
+          - { text: '$-{{h}} < x < {{h}}$', misconception: domain-inequality-flip }
+          - { text: '$x \ge {{h}}$', misconception: domain-strict }
+        hints:
+          nudge: "A logarithm needs a positive argument."
+          partial: "x² > {{h^2}} means |x| > {{h}}."
+        explanation: |
+          **Answer:** $x < -{{h}}$ or $x > {{h}}$.
+
+          **Why:** $\ln$ needs $x^2 - {{h^2}} > 0$, i.e. $|x| > {{h}}$ — two pieces.
+
+          **Common mistakes:**
+          - Only $x > {{h}}$ — negative $x$ with large size work too.
+          - $-{{h}} < x < {{h}}$ — that's where the argument is *negative*.
+          - $x \ge {{h}}$ — $\ln 0$ is undefined, and the left piece is missing.
+
+          **Connects to:** Q2 — the range.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: domain-range
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "Range of −(x − {{h}})² + {{k}}: y ≤ {{k}}."
+    standaloneContext: "The domain is the set of allowed inputs; the range is the set of outputs that occur."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'What is the range of $f(x) = x^2 + 1$?'
+        options:
+          - { text: '$y \ge 1$', correct: true }
+          - { text: 'All real numbers', misconception: range-is-domain }
+          - { text: '$y \ge 0$', misconception: range-ignores-shift }
+          - { text: '$y > 1$', misconception: domain-strict }
+        hints:
+          nudge: "What's the smallest x² can be?"
+          partial: "x² ≥ 0, so x² + 1 ≥ …"
+        explanation: |
+          **Answer:** $y \ge 1$.
+
+          **Why:** $x^2 \ge 0$ with equality at $x = 0$, so outputs start at 1 and go up.
+
+          **Common mistakes:**
+          - All reals — that's the domain.
+          - $y \ge 0$ — the $+1$ lifts every output.
+          - $y > 1$ — $f(0) = 1$ is reached.
+
+          **Connects to:** Q6 — reading features from the formula.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'What is the range of $f(x) = -(x - {{h}})^2 + {{k}}$?'
+        options:
+          - { text: '$y \le {{k}}$', correct: true }
+          - { text: '$y \ge {{k}}$', misconception: range-ignores-reflection }
+          - { text: '$y \le {{h}}$', misconception: range-uses-h }
+          - { text: 'All real numbers', misconception: range-is-domain }
+        hints:
+          nudge: "What's the largest −(x − {{h}})² can be?"
+          buildsOn: "Q1: the domain is about inputs; now look at outputs."
+          partial: "−(x − {{h}})² ≤ 0."
+        explanation: |
+          **Answer:** $y \le {{k}}$.
+
+          **Why:** $-(x - {{h}})^2 \le 0$, reaching 0 at $x = {{h}}$; adding ${{k}}$ gives outputs up to ${{k}}$.
+
+          **Common mistakes:**
+          - $y \ge {{k}}$ — the minus sign flips the parabola.
+          - $y \le {{h}}$ — $h$ moves the graph sideways, not up.
+          - All reals — that's the domain.
+
+          **Connects to:** Q6 — the vertex form.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'What is the range of $f(x) = \dfrac{1}{x - {{h}}} + {{k}}$?'
+        options:
+          - { text: 'All real $y \ne {{k}}$', correct: true }
+          - { text: 'All real $y \ne {{h}}$', misconception: range-uses-h }
+          - { text: '$y > {{k}}$', misconception: range-one-branch }
+          - { text: 'All real numbers', misconception: range-is-domain }
+        hints:
+          nudge: "Can 1/(x − {{h}}) ever be 0?"
+          buildsOn: "Q1: x = {{h}} is excluded from the domain."
+          partial: "1/u takes every value except 0."
+        explanation: |
+          **Answer:** every $y$ except ${{k}}$.
+
+          **Why:** $\frac{1}{x - {{h}}}$ takes every value except 0 (negative for $x < {{h}}$, positive for $x > {{h}}$); adding ${{k}}$ misses only ${{k}}$.
+
+          **Common mistakes:**
+          - $y \ne {{h}}$ — that's the excluded *input*.
+          - $y > {{k}}$ — the left branch gives values below ${{k}}$.
+          - All reals — ${{k}}$ is never reached.
+
+          **Connects to:** Q6 — transformations.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: function-composition
+    clueFor: [s4, s6]
+    establishes: "(f ∘ g)(x) = f(g(x)): with f(x) = x², g(x) = x − {{h}}, it's (x − {{h}})²."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'With $f(x) = x + 1$ and $g(x) = x^2$, what is $f(g(2))$?'
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "9", misconception: composition-order }
+          - { expr: "12", misconception: composition-multiply }
+          - { expr: "3", misconception: composition-one-function }
+        hints:
+          nudge: "Work from the inside out: g first."
+          partial: "g(2) = 4; then f(4) = …"
+        explanation: |
+          **Answer:** 5
+
+          **Why:** $g(2) = 4$, then $f(4) = 5$.
+
+          **Common mistakes:**
+          - 9 — that's $g(f(2)) = 3^2$.
+          - 12 — that's $f(2) \cdot g(2)$; composition isn't multiplication.
+          - 3 — only $f$ was applied.
+
+          **Connects to:** Q4 — inverses undo compositions.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: 'With $f(x) = x^2$ and $g(x) = x - {{h}}$, which is $(f \circ g)(x)$?'
+        options:
+          - { text: '$x^2 - {{2*h}}x + {{h^2}}$', correct: true }
+          - { text: '$x^2 - {{h}}$', misconception: composition-order }
+          - { text: '$x^2 + {{h^2}}$', misconception: square-distributes }
+          - { text: '$x^3 - {{h}}x^2$', misconception: composition-multiply }
+        verify:
+          - { lhs: "(x - h)^2", rhs: "x^2 - 2*h*x + h^2", vars: { x: [-5, 5] } }
+        hints:
+          nudge: "Put g(x) into f: f(x − {{h}})."
+          partial: "(x − {{h}})², expanded."
+        explanation: |
+          **Answer:** $(x - {{h}})^2 = x^2 - {{2*h}}x + {{h^2}}$.
+
+          **Why:** $f(g(x)) = f(x - {{h}}) = (x - {{h}})^2$.
+
+          **Common mistakes:**
+          - $x^2 - {{h}}$ — that's $g(f(x))$.
+          - $x^2 + {{h^2}}$ — squaring each part misses the cross term $-{{2*h}}x$.
+          - $x^3 - {{h}}x^2$ — that's the product $f \cdot g$.
+
+          **Connects to:** Q6 — composition as a shift.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'With $f(x) = \sqrt{x}$ and $g(x) = {{h}} - x$, what is the domain of $f \circ g$?'
+        options:
+          - { text: '$x \le {{h}}$', correct: true }
+          - { text: '$x \ge 0$', misconception: composition-domain-outer }
+          - { text: '$x \ge {{h}}$', misconception: domain-inequality-flip }
+          - { text: 'All real numbers', misconception: composition-domain-inner }
+        hints:
+          nudge: "g(x) must land in f's domain."
+          partial: "{{h}} − x ≥ 0."
+        explanation: |
+          **Answer:** $x \le {{h}}$.
+
+          **Why:** $f(g(x)) = \sqrt{ {{h}} - x}$ needs ${{h}} - x \ge 0$.
+
+          **Common mistakes:**
+          - $x \ge 0$ — that's $f$'s own domain, not the composite's.
+          - $x \ge {{h}}$ — the minus sign reverses the inequality.
+          - All reals — that's $g$'s domain only.
+
+          **Connects to:** Q4 — inverses.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: inverse-functions
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "Inverse of 3x − {{h}}: (x + {{h}})/3 — it undoes the steps in reverse order."
+    standaloneContext: "(f ∘ g)(x) = f(g(x)): apply g first, then f."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: 'For $f(x) = 2x + 3$, what is $f^{-1}(7)$?'
+        answer: { expr: "2" }
+        distractors:
+          - { expr: "17", misconception: inverse-is-f }
+          - { expr: "1/7", misconception: inverse-reciprocal }
+          - { expr: "5", misconception: inverse-order }
+        hints:
+          nudge: "Which input gives output 7?"
+          partial: "Solve 2x + 3 = 7."
+        explanation: |
+          **Answer:** 2
+
+          **Why:** $f(2) = 7$, so $f^{-1}(7) = 2$.
+
+          **Common mistakes:**
+          - 17 — that's $f(7)$.
+          - $1/7$ — $f^{-1}$ is the inverse *function*, not $1/f$.
+          - 5 — undo in reverse order: subtract 3 first, then halve.
+
+          **Connects to:** Q5 — inverses and graphs.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Which is the inverse of $f(x) = 3x - {{h}}$?'
+        options:
+          - { text: '$f^{-1}(x) = \dfrac{x + {{h}}}{3}$', correct: true }
+          - { text: '$f^{-1}(x) = \dfrac{x}{3} + {{h}}$', misconception: inverse-order }
+          - { text: '$f^{-1}(x) = \dfrac{1}{3x - {{h}}}$', misconception: inverse-reciprocal }
+          - { text: '$f^{-1}(x) = -3x + {{h}}$', misconception: inverse-negate }
+        verify:
+          - { lhs: "3 * ((x + h) / 3) - h", rhs: "x", vars: { x: [-10, 10] } }
+        hints:
+          nudge: "Solve y = 3x − {{h}} for x."
+          buildsOn: "Q3: f⁻¹(f(x)) must give back x."
+          partial: "Add {{h}}, then divide by 3."
+        explanation: |
+          **Answer:** $f^{-1}(x) = \frac{x + {{h}}}{3}$.
+
+          **Why:** $f$ multiplies by 3, then subtracts ${{h}}$; the inverse adds ${{h}}$, then divides by 3. Check: $f(f^{-1}(x)) = x$.
+
+          **Common mistakes:**
+          - $\frac{x}{3} + {{h}}$ — undoes the steps in the wrong order.
+          - $\frac{1}{3x - {{h}}}$ — that's the reciprocal.
+          - $-3x + {{h}}$ — negating doesn't undo multiplication.
+
+          **Connects to:** Q5 — the graph of an inverse.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: 'Why does $f(x) = (x - {{h}})^2$ need a restricted domain to have an inverse?'
+        options:
+          - { text: 'It is not one-to-one: $x = {{h}} \pm 1$ both give 1', correct: true }
+          - { text: 'Squares cannot be undone', misconception: inverse-impossible }
+          - { text: 'Its range is all real numbers', misconception: range-is-domain }
+          - { text: 'Only linear functions have inverses', misconception: inverse-linear-only }
+        hints:
+          nudge: "An inverse must send each output back to *one* input."
+          buildsOn: "Q3: f⁻¹(f(x)) = x must hold for every x."
+          partial: "Find two inputs with the same output."
+        explanation: |
+          **Answer:** it isn't one-to-one.
+
+          **Why:** $f({{h-1}}) = f({{h+1}}) = 1$, so $f^{-1}(1)$ would need two values. Restricting to $x \ge {{h}}$ gives $f^{-1}(x) = {{h}} + \sqrt{x}$.
+
+          **Common mistakes:**
+          - "Can't be undone" — $\sqrt{\ }$ undoes it on a restricted domain.
+          - "Range all reals" — the range is $y \ge 0$.
+          - "Only linear" — many non-linear functions are invertible.
+
+          **Connects to:** Q5 — the graph of an inverse.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: graph-transformations
+    clueFor: [s6]
+    establishes: "y = f(x − {{h}}) + {{k}} moves every point right {{h}}, up {{k}}."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: 'How is the graph of $y = f(x - 2)$ related to $y = f(x)$?'
+        options:
+          - { text: 'Shifted 2 right', correct: true }
+          - { text: 'Shifted 2 left', misconception: shift-direction }
+          - { text: 'Shifted 2 down', misconception: shift-axis }
+          - { text: 'Stretched by 2', misconception: shift-is-stretch }
+        hints:
+          nudge: "Where does the new graph reach the value f(0)?"
+          partial: "x − 2 = 0 at x = 2."
+        explanation: |
+          **Answer:** 2 right.
+
+          **Why:** The new graph reaches $f(0)$ at $x = 2$ — every feature moves 2 right.
+
+          **Common mistakes:**
+          - Left — changes inside the brackets run backwards.
+          - Down — a change inside affects $x$, not $y$.
+          - Stretched — that's $f(x/2)$.
+
+          **Connects to:** Q6 — vertex form.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'The point $(1, 5)$ is on $y = f(x)$. Which point is on $y = f(x - {{h}}) + {{k}}$?'
+        options:
+          - { text: '$({{1+h}}, {{5+k}})$', correct: true }
+          - { text: '$({{1-h}}, {{5+k}})$', misconception: shift-direction }
+          - { text: '$({{1+k}}, {{5+h}})$', misconception: shift-axis }
+          - { text: '$({{1+h}}, {{5-k}})$', misconception: shift-vertical-sign }
+        hints:
+          nudge: "Inside: x-shift (backwards sign). Outside: y-shift (as written)."
+          partial: "Right {{h}}, up {{k}}."
+        explanation: |
+          **Answer:** $({{1+h}}, {{5+k}})$.
+
+          **Why:** At $x = {{1+h}}$, $f(x - {{h}}) = f(1) = 5$; adding ${{k}}$ gives ${{5+k}}$.
+
+          **Common mistakes:**
+          - $x = {{1-h}}$ — the shift is to the right.
+          - Swapped shifts — ${{h}}$ acts on $x$, ${{k}}$ on $y$.
+          - $y = {{5-k}}$ — $+{{k}}$ outside moves up.
+
+          **Connects to:** Q6 — vertex form.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: 'The point $(6, 4)$ is on $y = f(x)$. Which point is on $y = {{k}}\,f(2x)$?'
+        options:
+          - { text: '$(3, {{4*k}})$', correct: true }
+          - { text: '$(12, {{4*k}})$', misconception: compress-direction }
+          - { text: '$(3, {{4+k}})$', misconception: stretch-is-shift }
+          - { text: '$(6, {{8*k}})$', misconception: shift-axis }
+        hints:
+          nudge: "Which x makes 2x = 6?"
+          partial: "x = 3, and the output is multiplied by {{k}}."
+        explanation: |
+          **Answer:** $(3, {{4*k}})$.
+
+          **Why:** $2x = 6$ at $x = 3$, giving $f(6) = 4$; the factor ${{k}}$ outside stretches it to ${{4*k}}$.
+
+          **Common mistakes:**
+          - $x = 12$ — $f(2x)$ *compresses* toward the $y$-axis.
+          - $y = {{4+k}}$ — a factor stretches; it doesn't shift.
+          - $(6, {{8*k}})$ — the 2 acts on $x$, not $y$.
+
+          **Connects to:** Q6 — vertex form.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: graph-transformations
+    uses: [s2, s3, s5]
+    establishes: "y = a(x − {{h}})² + {{k}} has vertex ({{h}}, {{k}}); a sets the stretch and direction."
+    standaloneContext: |
+      f(x − h) + k shifts the graph of f right h and up k; a·f(x) stretches it vertically (reflecting if a < 0).
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'Where is the vertex of $y = (x - {{h}})^2 + {{k}}$?'
+        options:
+          - { text: '$({{h}}, {{k}})$', correct: true }
+          - { text: '$(-{{h}}, {{k}})$', misconception: shift-direction }
+          - { text: '$({{k}}, {{h}})$', misconception: shift-axis }
+          - { text: '$(0, {{k}})$', misconception: shift-ignored }
+        hints:
+          nudge: "The vertex of x² is (0, 0). Apply the shifts."
+          partial: "Right {{h}}, up {{k}}."
+        explanation: |
+          **Answer:** $({{h}}, {{k}})$.
+
+          **Why:** $x^2$ has its vertex at the origin; the graph moves right ${{h}}$ and up ${{k}}$.
+
+          **Common mistakes:**
+          - $(-{{h}}, {{k}})$ — $x - {{h}}$ shifts right.
+          - Swapped — $h$ is horizontal, $k$ vertical.
+          - $(0, {{k}})$ — the horizontal shift counts too.
+
+          **Connects to:** the challenge — match a parabola.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          $g(x) = f(x - {{h}}) + {{k}}$ with $f(x) = -2x^2$. What is the range of $g$?
+        options:
+          - { text: '$y \le {{k}}$', correct: true }
+          - { text: '$y \ge {{k}}$', misconception: range-ignores-reflection }
+          - { text: '$y \le {{-2*k}}$', misconception: stretch-shift-order }
+          - { text: '$y \le {{h}}$', misconception: range-uses-h }
+        hints:
+          nudge: "The −2 flips and stretches; the shifts move the vertex."
+          buildsOn: "Q2: range from the vertex. Q3: g is a composition. Q5: shifts move every point."
+          partial: "Vertex ({{h}}, {{k}}); the parabola opens down."
+        explanation: |
+          **Answer:** $y \le {{k}}$.
+
+          **Why:** $g(x) = -2(x - {{h}})^2 + {{k}}$: a composition with $x - {{h}}$ (Q3) then a lift (Q5). It opens down from its vertex
+          $({{h}}, {{k}})$, so outputs are at most ${{k}}$ (Q2).
+
+          **Common mistakes:**
+          - $y \ge {{k}}$ — the negative coefficient flips it.
+          - $y \le {{-2*k}}$ — the ${{k}}$ is added *after* the stretch.
+          - $y \le {{h}}$ — $h$ is horizontal.
+
+          **Connects to:** the challenge — match a parabola.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A parabola has vertex $({{h}}, {{k}})$ and passes through $({{h+1}}, {{k+3}})$. Which formula is it?
+        options:
+          - { text: '$y = 3(x - {{h}})^2 + {{k}}$', correct: true }
+          - { text: '$y = 3(x + {{h}})^2 + {{k}}$', misconception: shift-direction }
+          - { text: '$y = (x - {{h}})^2 + {{k + 3}}$', misconception: stretch-is-shift }
+          - { text: '$y = \tfrac{1}{3}(x - {{h}})^2 + {{k}}$', misconception: stretch-inverted }
+        verify:
+          - { lhs: "3 * ((h + 1) - h)^2 + k", rhs: "k + 3" }
+        hints:
+          nudge: "Start from y = a(x − {{h}})² + {{k}} and use the extra point."
+          buildsOn: "Q2: the vertex sets the range. Q5: shifts give the vertex form."
+          partial: "{{k+3}} = a · 1² + {{k}}."
+        explanation: |
+          **Answer:** $y = 3(x - {{h}})^2 + {{k}}$.
+
+          **Why:** The vertex form gives $y = a(x - {{h}})^2 + {{k}}$ (Q5). One step right of the vertex the graph is 3 higher, so $a \cdot 1^2 = 3$.
+
+          **Common mistakes:**
+          - $(x + {{h}})^2$ — that vertex is at $x = -{{h}}$.
+          - Raising $k$ — the vertex must stay at height ${{k}}$.
+          - $\frac{1}{3}$ — then one step right rises only $\frac{1}{3}$.
+
+          **Connects to:** the challenge — match a parabola.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s5
+    concept: graph-transformations
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'For $y = f(x + 3)$, at which $x$ does the graph reach the value $f(0)$?'
+        answer: { expr: "-3" }
+        distractors:
+          - { expr: "3", misconception: shift-direction }
+          - { expr: "0", misconception: shift-ignored }
+          - { expr: "1/3", misconception: shift-is-stretch }
+        hints:
+          nudge: "Which x makes x + 3 = 0?"
+          partial: "x = −3."
+        explanation: |
+          **Answer:** $-3$
+
+          **Why:** $x + 3 = 0$ at $x = -3$: the graph is shifted 3 **left**. Inside changes run backwards.
+
+          **Common mistakes:**
+          - 3 — the plus sign moves the graph left.
+          - 0 — the input changed, so the point moved.
+          - $\frac{1}{3}$ — that would be a horizontal stretch.
+
+          **Connects to:** Q5 — shifting points.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l1.ch
+  type: graph-manipulator
+  title: "Match the parabola"
+  concept: graph-transformations
+  uses: [s5, s6]
+  params:
+    sets:
+      - { p: 2, q: -1, a: 2 }
+      - { p: -1, q: 3, a: -1 }
+      - { p: 1, q: 2, a: 0.5 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: 'Slide the parabola $y = (x - h)^2 + k$ onto the dashed target $y = (x - {{p}})^2 + {{q}}$.'
+      config:
+        f: "(x - h)^2 + k"
+        view: { x: [-5, 5], y: [-5, 8] }
+        controls:
+          - { name: h, min: -4, max: 4, step: 0.5, initial: 0 }
+          - { name: k, min: -4, max: 4, step: 0.5, initial: 0 }
+        overlays: { target: { f: "(x - p)^2 + q" } }
+      check: { expr: "matchError < 0.01" }
+      feedback:
+        - { if: "abs(h - p) > 0.01 and abs(k - q) < 0.01", say: "The height is right. Move it sideways — h shifts right.", misconception: shift-direction }
+        - { if: "abs(k - q) > 0.01 and abs(h - p) < 0.01", say: "Sideways is right. Now raise or lower it with k.", misconception: shift-axis }
+        - { if: "true", say: "Line up the vertices first: the target's vertex is where it turns." }
+      hints:
+        nudge: "Where is the target's lowest point?"
+        buildsOn: "From Q6: the vertex of (x − h)² + k is (h, k)."
+        partial: "Set h and k to the target vertex's coordinates."
+      solution: { h: p, k: q }
+      explanation: |
+        Matching the vertex matches the whole curve: shifting doesn't change the shape.
+    standard:
+      difficulty: 3
+      goal: 'Match the dashed target $y = {{a}}(x - {{p}})^2 + {{q}}$ using $y = A(x - h)^2 + k$.'
+      config:
+        f: "A * (x - h)^2 + k"
+        view: { x: [-5, 5], y: [-6, 8] }
+        controls:
+          - { name: A, min: -3, max: 3, step: 0.5, initial: 1 }
+          - { name: h, min: -4, max: 4, step: 0.5, initial: 0 }
+          - { name: k, min: -4, max: 4, step: 0.5, initial: 0 }
+        overlays: { target: { f: "a * (x - p)^2 + q" } }
+      check: { expr: "matchError < 0.01" }
+      feedback:
+        - { if: "abs(h - p) < 0.01 and abs(k - q) < 0.01", say: "The vertex is right; now the width and direction — that's A.", misconception: stretch-is-shift }
+        - { if: "A * a < 0", say: "Your parabola opens the other way. A negative A flips it.", misconception: range-ignores-reflection }
+        - { if: "true", say: "Match the vertex with h and k, then the shape with A." }
+      hints:
+        nudge: "Vertex first, then how steeply it rises."
+        buildsOn: "From Q6: vertex (h, k); one step from the vertex the curve moves by A."
+        partial: "One unit right of the target's vertex, how far up or down is it?"
+      solution: { A: a, h: p, k: q }
+      explanation: |
+        $h$ and $k$ place the vertex; $A$ is the rise one unit from the vertex — negative for a parabola that opens down.
+    harder:
+      difficulty: 4
+      goal: |
+        Match the dashed target $y = {{a}}\,|x - {{p}}| + {{q}}$ using $y = A\,|B(x - h)| + k$ with $B$ fixed **positive** — there's more than one
+        way; any exact match counts.
+      config:
+        f: "A * abs(B * (x - h)) + k"
+        view: { x: [-5, 5], y: [-6, 8] }
+        controls:
+          - { name: A, min: -3, max: 3, step: 0.25, initial: 1 }
+          - { name: B, min: 0.5, max: 4, step: 0.5, initial: 1 }
+          - { name: h, min: -4, max: 4, step: 0.5, initial: 0 }
+          - { name: k, min: -4, max: 4, step: 0.5, initial: 0 }
+        overlays: { target: { f: "a * abs(x - p) + q" } }
+      check: { expr: "matchError < 0.01" }
+      feedback:
+        - { if: "abs(h - p) > 0.01", say: "The corner is in the wrong place — h moves it sideways.", misconception: shift-direction }
+        - { if: "abs(A * B - a) > 0.01", say: "The corner is right, but the slopes aren't: for |x| shapes only A·B matters.", misconception: stretch-is-shift }
+        - { if: "true", say: "Check the height of the corner — that's k." }
+      hints:
+        nudge: "Place the corner, then match the slope of each arm."
+        buildsOn: "From Q5: inside changes act on x, outside changes on y."
+        partial: "|B(x − h)| = B·|x − h| for B > 0, so the slope is A·B."
+      solution: { A: a, B: 1, h: p, k: q }
+      explanation: |
+        For $B > 0$, $A|B(x - h)| = AB\,|x - h|$: a horizontal compression of $|x|$ is the same as a vertical stretch. Only the product $AB$
+        matters.
+
+summary:
+  keyTakeaways:
+    - "Domain: exclude zero denominators, negative square-root arguments and non-positive log arguments."
+    - "(f ∘ g)(x) = f(g(x)) — apply g first; its domain needs g(x) in f's domain."
+    - "f⁻¹ undoes f in reverse order; it exists only if f is one-to-one."
+    - "f(x − h) + k shifts right h and up k; a·f(x) stretches vertically; f(bx) compresses horizontally."
+  next: calc1.u1.l2

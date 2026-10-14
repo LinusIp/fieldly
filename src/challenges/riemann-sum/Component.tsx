@@ -150,6 +150,7 @@ export function RiemannSum({
           onChange={(e) => onStateChange({ ...state, n: effectiveN(Number(e.target.value), state.rule) })}
           className="accent-[var(--c-accent)]"
           data-slider="n"
+          aria-label="Subintervals n"
         />
       </label>
       <p className="font-mono text-sm" data-testid="riemann-readouts">
