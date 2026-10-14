@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { APP_KEY } from '../config';
+import { localDay } from '../engine/day';
 import { emptyProgress, migrate } from './migrations';
 import type { Progress, Settings } from './schema';
 
@@ -94,12 +95,7 @@ if (typeof document !== 'undefined') {
   });
 }
 
-export function localDay(d = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+export { localDay };
 
 /** Consecutive days with activity, ending today (or yesterday if nothing yet today). */
 export function streak(activity: Record<string, number>, now = new Date()): number {

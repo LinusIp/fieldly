@@ -18,6 +18,8 @@ export const AnswerRecordSchema = z.object({
   misconception: z.string().optional(),
   /** Variant served, for core steps. */
   variant: variantKey.optional(),
+  /** Every misconception matched on any attempt of this question (recap). */
+  seen: z.array(z.string()).optional(),
   /** Confidence prompt (§2.5), when turned on in Settings. */
   confidence: z.enum(['sure', 'unsure']).optional(),
 });
@@ -42,8 +44,12 @@ export const AttemptStateSchema = z.object({
       checks: z.number().int().min(0),
       solved: z.boolean(),
       usedSolution: z.boolean().optional(),
+      /** Solution shown only because the interactive's view isn't built yet: no score, rating or stars. */
+      skipped: z.boolean().optional(),
       score: z.number().optional(),
       feedback: z.string().optional(),
+      /** Misconceptions named by feedback rules during this challenge (recap). */
+      seen: z.array(z.string()).optional(),
     }),
   ),
   facts: z.array(z.string()),

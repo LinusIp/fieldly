@@ -21,6 +21,8 @@ export interface ChallengeOutcome {
   attempted: boolean;
   solved: boolean;
   usedTier3: boolean;
+  /** Skipped because the interactive isn't built yet: counts as attempted, not for stars. */
+  skipped?: boolean;
 }
 
 /** Completed: all core steps answered and both challenges attempted (§3.4). */
