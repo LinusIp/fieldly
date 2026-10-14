@@ -1,0 +1,655 @@
+id: calc1.u1.l7
+title: "The ε–δ definition"
+version: 1
+concepts: [epsilon-delta]
+estimatedMinutes: 30
+
+# Scenario: proving lim f(x) = L for a line f(x) = m x − 1 with slope m at x = a, and for x² at a.
+params:
+  sets:
+    - { m: 4, a: 2 }
+    - { m: 5, a: 3 }
+    - { m: 2, a: 4 }
+
+intro: |
+  "$f(x)$ gets as close to $L$ as we like when $x$ is close enough to $a$" becomes precise as:
+
+  $$\lim_{x \to a} f(x) = L \iff \text{for every } \varepsilon > 0 \text{ there is a } \delta > 0 \text{ such that }
+  0 < |x - a| < \delta \Rightarrow |f(x) - L| < \varepsilon.$$
+
+  Read it as a game. A challenger picks a tolerance $\varepsilon$ (a band $L \pm \varepsilon$). You must answer
+  with a $\delta$ (a window $a \pm \delta$, with $x = a$ itself excluded) so that the whole graph over the window
+  stays inside the band. The limit is $L$ if you can win for **every** $\varepsilon$.
+
+  - **Lines:** for $f(x) = mx + b$, $|f(x) - L| = |m|\,|x - a|$, so $\delta = \varepsilon / |m|$ works — and is the largest that does.
+  - **Curves:** factor $|f(x) - L|$, bound the extra factor by first insisting $\delta \le 1$, then take
+    $\delta = \min(1, \varepsilon / \text{bound})$.
+
+  Any smaller $\delta$ also works: δ is a promise of "close enough", not a unique answer.
+
+workedExample: |
+  Prove $\lim_{x \to 6} (7x - 4) = 38$ with $\varepsilon = 0.07$:
+
+  - $|f(x) - 38| = |7x - 42| = 7|x - 6|$.
+  - Need $7|x - 6| < 0.07$, i.e. $|x - 6| < 0.01$: take $\delta = 0.01$.
+  - In general $\delta = \varepsilon / 7$ — it exists for every $\varepsilon > 0$, so the limit is 38.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: epsilon-delta
+    clueFor: [s2]
+    establishes: "ε is the challenger's tolerance on outputs; δ is your answer, a window on inputs."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: 'In the ε–δ definition, which number is chosen **first**?'
+        options:
+          - { text: 'ε — then δ is found to match it', correct: true }
+          - { text: 'δ — then ε is found to match it', misconception: epsilon-delta-order }
+          - { text: 'Both together, freely', misconception: epsilon-delta-free }
+          - { text: 'Neither: they are always 0.1', misconception: epsilon-delta-fixed }
+        hints:
+          nudge: "'For every ε there is a δ…'"
+          partial: "δ may depend on ε."
+        explanation: |
+          **Answer:** ε first.
+
+          **Why:** The definition says *for every* ε *there is* a δ — δ answers ε, and usually depends on it.
+
+          **Common mistakes:**
+          - δ first — that reverses the game.
+          - Freely — ε is arbitrary; only δ is ours to pick.
+          - Fixed values — the definition needs every ε > 0.
+
+          **Connects to:** Q2 — finding δ for a line.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'What does "$0 < |x - a| < \delta \Rightarrow |f(x) - L| < \varepsilon$" say in words?'
+        options:
+          - { text: 'Every $x \ne a$ within δ of $a$ has $f(x)$ within ε of $L$', correct: true }
+          - { text: 'Every $f(x)$ within ε of $L$ has $x$ within δ of $a$', misconception: epsilon-delta-converse }
+          - { text: 'Some $x$ within δ of $a$ has $f(x)$ within ε of $L$', misconception: epsilon-delta-some }
+          - { text: '$f(a)$ is within ε of $L$', misconception: limit-equals-value }
+        hints:
+          nudge: "Read the arrow: if (close input) then (close output)."
+          partial: "It's about every x in the window."
+        explanation: |
+          **Answer:** every $x \ne a$ in the δ-window gives an output in the ε-band.
+
+          **Why:** The implication runs from inputs to outputs and must hold for all such $x$.
+
+          **Common mistakes:**
+          - The converse — close outputs needn't come from close inputs.
+          - "Some $x$" — one lucky point proves nothing.
+          - $f(a)$ — $x = a$ is excluded by $0 < |x - a|$.
+
+          **Connects to:** Q2 — finding δ.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: 'Why does the definition say $0 < |x - a|$ rather than just $|x - a| < \delta$?'
+        options:
+          - { text: 'So that $f(a)$ — which may be missing or different — plays no part', correct: true }
+          - { text: 'To keep δ positive', misconception: epsilon-delta-zero-clause }
+          - { text: 'Because $x$ must be greater than $a$', misconception: one-sided-is-limit }
+          - { text: 'It makes no difference', misconception: limit-equals-value }
+        hints:
+          nudge: "What point does 0 < |x − a| exclude?"
+          partial: "x = a itself."
+        explanation: |
+          **Answer:** so $f(a)$ doesn't matter.
+
+          **Why:** $0 < |x - a|$ excludes $x = a$, matching the idea that limits ignore the value at the point (L2).
+
+          **Common mistakes:**
+          - "δ positive" — that's the separate condition $\delta > 0$.
+          - "$x > a$" — $|x - a|$ allows both sides.
+          - "No difference" — with $x = a$ included, a hole or a moved point would break the limit.
+
+          **Connects to:** Q2 — δ for lines.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: epsilon-delta
+    uses: [s1]
+    clueFor: [s3, s6]
+    establishes: "For f(x) = {{m}}x − 1 at x = {{a}}: |f(x) − {{m*a-1}}| = {{m}}|x − {{a}}|, so δ = ε/{{m}}."
+    standaloneContext: "lim f = L: for every ε > 0 there is a δ > 0 with 0 < |x − a| < δ ⇒ |f(x) − L| < ε."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'For $f(x) = 2x$ at $a = 1$ (so $L = 2$) and $\varepsilon = 0.1$, which δ is the largest that works?'
+        answer: { expr: "0.05" }
+        distractors:
+          - { expr: "0.1", misconception: delta-equals-epsilon }
+          - { expr: "0.2", misconception: delta-multiplies }
+          - { expr: "1", misconception: epsilon-delta-fixed }
+        hints:
+          nudge: "|2x − 2| = 2|x − 1|."
+          partial: "2|x − 1| < 0.1."
+        explanation: |
+          **Answer:** 0.05
+
+          **Why:** $|f(x) - 2| = 2|x - 1| < 0.1$ exactly when $|x - 1| < 0.05$.
+
+          **Common mistakes:**
+          - 0.1 — the slope 2 doubles every input gap.
+          - 0.2 — divide by the slope, don't multiply.
+          - 1 — far too wide.
+
+          **Connects to:** Q3 — testing a δ.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          Prove $\lim_{x \to {{a}}} ({{m}}x - 1) = {{m*a - 1}}$: for $\varepsilon = 0.2$, what is the largest δ that works?
+        answer: { expr: "0.2/m" }
+        distractors:
+          - { expr: "0.2", misconception: delta-equals-epsilon }
+          - { expr: "0.2*m", misconception: delta-multiplies }
+          - { expr: "0.2/(m*a - 1)", misconception: delta-divides-by-limit }
+        hints:
+          nudge: "Write |f(x) − L| in terms of |x − {{a}}|."
+          buildsOn: "Q1: we need |f(x) − L| < ε whenever |x − {{a}}| < δ."
+          partial: "|{{m}}x − {{m*a}}| = {{m}}|x − {{a}}| < 0.2."
+        explanation: |
+          **Answer:** $\delta = \frac{0.2}{ {{m}} } = {{0.2/m}}$
+
+          **Why:** $|f(x) - {{m*a-1}}| = {{m}}|x - {{a}}|$, which is below 0.2 exactly when $|x - {{a}}| < \frac{0.2}{ {{m}} }$.
+
+          **Common mistakes:**
+          - 0.2 — the slope ${{m}}$ magnifies input gaps.
+          - $0.2 \times {{m}}$ — divide, don't multiply.
+          - Dividing by ${{m*a-1}}$ — the limit's size doesn't matter; the slope does.
+
+          **Connects to:** Q6 — δ as a function of ε.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'For $f(x) = -{{m}}x + 7$, which δ works for every $\varepsilon > 0$ at any point $a$?'
+        options:
+          - { text: '$\delta = \varepsilon / {{m}}$', correct: true }
+          - { text: '$\delta = -\varepsilon / {{m}}$', misconception: delta-negative-slope }
+          - { text: '$\delta = {{m}}\varepsilon$', misconception: delta-multiplies }
+          - { text: 'None: decreasing functions have no ε–δ limit', misconception: epsilon-delta-increasing-only }
+        hints:
+          nudge: "|−{{m}}x + {{m}}a| = ?"
+          buildsOn: "Q1: δ must be positive."
+          partial: "{{m}}|x − a| — the absolute value removes the sign."
+        explanation: |
+          **Answer:** $\delta = \varepsilon / {{m}}$.
+
+          **Why:** $|f(x) - f(a)| = |-{{m}}(x - a)| = {{m}}|x - a|$. The sign of the slope disappears inside the absolute value.
+
+          **Common mistakes:**
+          - $-\varepsilon / {{m}}$ — δ must be positive.
+          - ${{m}}\varepsilon$ — divide by the slope's size.
+          - "No limit" — decreasing lines are continuous too.
+
+          **Connects to:** Q3 — testing a δ.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: epsilon-delta
+    uses: [s2]
+    clueFor: [s4]
+    establishes: "A δ fails if some x in the window lands outside the band; any smaller δ than a working one also works."
+    standaloneContext: "For a line with slope m, |f(x) − L| = |m||x − a|."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'For $f(x) = 3x$ at $a = 1$ and $\varepsilon = 0.2$, does $\delta = 0.1$ work?'
+        options:
+          - { text: 'No: $x = 1.09$ gives $|f(x) - 3| = 0.27 > 0.2$', correct: true }
+          - { text: 'Yes: $0.1 < 0.2$', misconception: delta-equals-epsilon }
+          - { text: 'Yes: $f(1) = 3$ exactly', misconception: limit-equals-value }
+          - { text: 'Only from the left', misconception: one-sided-is-limit }
+        hints:
+          nudge: "Try an x near the edge of the window."
+          partial: "3 × 0.09 = 0.27."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** Inside the window, $|f(x) - 3| = 3|x - 1|$ can reach almost $0.3 > 0.2$. The largest working δ is $\frac{0.2}{3} \approx 0.067$.
+
+          **Common mistakes:**
+          - "$0.1 < 0.2$" — δ and ε measure different axes.
+          - "$f(1) = 3$" — the point itself is excluded and irrelevant.
+          - "From the left" — both sides fail.
+
+          **Connects to:** Q4 — curves.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          For $f(x) = {{m}}x - 1$ at $a = {{a}}$, δ = ${{0.2/m}}$ works for $\varepsilon = 0.2$. Does δ = ${{0.1/m}}$ also work?
+        options:
+          - { text: 'Yes: a smaller window stays inside the same band', correct: true }
+          - { text: 'No: δ must be exactly ε / slope', misconception: delta-unique }
+          - { text: 'No: a smaller δ needs a smaller ε', misconception: delta-epsilon-locked }
+          - { text: 'Only for $x$ to the right of ${{a}}$', misconception: one-sided-is-limit }
+        hints:
+          nudge: "Is every x in the smaller window also in the larger one?"
+          buildsOn: "Q2: δ = ε/{{m}} is the largest that works."
+          partial: "Shrinking the window can only help."
+        explanation: |
+          **Answer:** yes.
+
+          **Why:** Every $x$ with $|x - {{a}}| < {{0.1/m}}$ also satisfies $|x - {{a}}| < {{0.2/m}}$, so its output is already inside the band (Q2).
+
+          **Common mistakes:**
+          - "Exactly ε/slope" — that's the *largest*; any smaller δ works.
+          - "Needs a smaller ε" — the band is fixed by the challenger; a narrower window still fits it.
+          - "Only to the right" — the window is symmetric, and both sides shrink together.
+
+          **Connects to:** Q4 — curves.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          To prove $\lim_{x \to 0} \frac{|x|}{x} = 1$ fails, a challenger picks $\varepsilon = \frac{1}{2}$. Why does no δ work?
+        options:
+          - { text: 'Every window around 0 contains $x < 0$, where $\frac{|x|}{x} = -1$, which is 2 away from 1', correct: true }
+          - { text: 'Because $\frac{|0|}{0}$ is undefined', misconception: undefined-no-limit }
+          - { text: 'Because $\varepsilon = \frac{1}{2}$ is too small to win with', misconception: epsilon-too-small }
+          - { text: 'A δ does work: $\delta = \frac{1}{2}$', misconception: one-sided-is-limit }
+        hints:
+          nudge: "What is |x|/x for small negative x?"
+          buildsOn: "Q2: every x in the window must land in the band."
+          partial: "−1 is outside 1 ± ½."
+        explanation: |
+          **Answer:** the left side always lands at −1.
+
+          **Why:** Any window $(-\delta, \delta)$ includes negative $x$ with output $-1$, and $|-1 - 1| = 2 > \frac{1}{2}$. So 1 isn't the limit (and neither is
+          anything else — it's a jump).
+
+          **Common mistakes:**
+          - "Undefined at 0" — that point is excluded anyway.
+          - "ε too small" — the definition must survive *every* ε; one failing ε is enough to disprove.
+          - $\delta = \frac{1}{2}$ — $x = -0.1$ breaks it.
+
+          **Connects to:** Q4 — curves.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: epsilon-delta
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "For x² at {{a}}: |x² − {{a^2}}| = |x − {{a}}||x + {{a}}| ≤ {{2*a+1}}|x − {{a}}| when δ ≤ 1, so δ = min(1, ε/{{2*a+1}})."
+    standaloneContext: "A δ works when every x ≠ a in (a − δ, a + δ) gives f(x) within ε of L."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: 'Which factorisation helps with $|x^2 - 9|$ near $x = 3$?'
+        options:
+          - { text: '$|x - 3|\,|x + 3|$', correct: true }
+          - { text: '$|x - 3|^2$', misconception: square-distributes }
+          - { text: '$|x - 9|$', misconception: square-root-drop }
+          - { text: '$|x|^2 - 9$', misconception: abs-distributes }
+        verify:
+          - { lhs: "abs(x^2 - 9)", rhs: "abs(x - 3) * abs(x + 3)", vars: { x: [-6, 6] } }
+        hints:
+          nudge: "Difference of squares."
+          partial: "x² − 9 = (x − 3)(x + 3)."
+        explanation: |
+          **Answer:** $|x - 3|\,|x + 3|$.
+
+          **Why:** It splits off $|x - 3|$, the distance δ controls; the other factor just needs a bound.
+
+          **Common mistakes:**
+          - $|x - 3|^2$ — that's $(x - 3)^2$, a different expression.
+          - $|x - 9|$ — that drops the square.
+          - $|x|^2 - 9$ — the absolute value is of the whole difference.
+
+          **Connects to:** Q5 — bounding the extra factor.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          Proving $\lim_{x \to {{a}}} x^2 = {{a^2}}$, you first insist $\delta \le 1$. What bound on $|x + {{a}}|$ does that give?
+        answer: { expr: "2*a + 1" }
+        distractors:
+          - { expr: "2*a", misconception: delta-bound-ignores-window }
+          - { expr: "a + 1", misconception: delta-bound-wrong-factor }
+          - { expr: "1", misconception: delta-bound-is-delta }
+        hints:
+          nudge: "If |x − {{a}}| < 1, how big can x be?"
+          buildsOn: "Q3: every x in the window must be handled."
+          partial: "x < {{a+1}}, so x + {{a}} < {{2*a+1}}."
+        explanation: |
+          **Answer:** $|x + {{a}}| < {{2*a+1}}$
+
+          **Why:** With $|x - {{a}}| < 1$, $x$ lies in $({{a-1}}, {{a+1}})$, so $x + {{a}}$ lies in $({{2*a-1}}, {{2*a+1}})$.
+
+          **Common mistakes:**
+          - ${{2*a}}$ — that's the value at $x = {{a}}$, not a bound over the window.
+          - ${{a+1}}$ — that bounds $x$, not $x + {{a}}$.
+          - 1 — that's δ's bound, not the factor's.
+
+          **Connects to:** Q5 — δ for the curve.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          Continue: for $\lim_{x \to {{a}}} x^2 = {{a^2}}$ and $\varepsilon = 0.1$, which δ does the "min" recipe give?
+        answer: { expr: "0.1/(2*a + 1)" }
+        distractors:
+          - { expr: "0.1/(2*a)", misconception: delta-bound-ignores-window }
+          - { expr: "0.1", misconception: delta-equals-epsilon }
+          - { expr: "1", misconception: delta-min-wrong }
+        hints:
+          nudge: "δ = min(1, ε / bound)."
+          buildsOn: "Q3: smaller δs are safe; Q4's bound is {{2*a+1}}."
+          partial: "min(1, 0.1/{{2*a+1}})"
+        explanation: |
+          **Answer:** $\delta = \frac{0.1}{ {{2*a+1}} } \approx {{0.1/(2*a+1)}}$
+
+          **Why:** Then $|x^2 - {{a^2}}| = |x - {{a}}|\,|x + {{a}}| < \delta \cdot {{2*a+1}} \le 0.1$. It's not the largest δ — a safe one is enough (Q3).
+
+          **Common mistakes:**
+          - $\frac{0.1}{ {{2*a}} }$ — near the window's edge $|x + {{a}}|$ exceeds ${{2*a}}$.
+          - 0.1 — the extra factor magnifies gaps.
+          - 1 — the min picks the *smaller* value.
+
+          **Connects to:** Q5 — why the extra restriction.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: epsilon-delta
+    uses: [s4]
+    clueFor: [s6]
+    establishes: "Restricting δ ≤ 1 first is a convenience that bounds the extra factor; the min keeps both promises."
+    standaloneContext: "For x² at a: |x² − a²| = |x − a||x + a|; with δ ≤ 1, |x + a| < 2a + 1."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: 'Why does the recipe for $x^2$ use $\delta = \min(1, \ldots)$?'
+        options:
+          - { text: 'The bound on $|x + a|$ was derived assuming $\delta \le 1$', correct: true }
+          - { text: 'δ may never exceed 1 in any proof', misconception: delta-max-one }
+          - { text: 'To make δ as large as possible', misconception: delta-min-wrong }
+          - { text: 'Because ε is always less than 1', misconception: epsilon-delta-fixed }
+        hints:
+          nudge: "Which step assumed |x − a| < 1?"
+          partial: "The bound on the extra factor."
+        explanation: |
+          **Answer:** the bound needed $\delta \le 1$.
+
+          **Why:** Both promises — the window is at most 1 wide and at most $\varepsilon$/bound — must hold, so δ is the smaller of the two.
+
+          **Common mistakes:**
+          - "Never exceed 1" — only this proof chose 1 for convenience.
+          - "As large as possible" — min makes it smaller, not larger.
+          - "ε < 1" — ε can be anything positive.
+
+          **Connects to:** Q6 — the whole definition.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          For $\lim_{x \to {{a}}} x^2 = {{a^2}}$ the challenger now picks a huge $\varepsilon = 100$. What does $\delta = \min\left(1, \frac{100}{ {{2*a+1}} }\right)$ equal?
+        answer: { expr: "1" }
+        distractors:
+          - { expr: "100/(2*a + 1)", misconception: delta-min-wrong }
+          - { expr: "100", misconception: delta-equals-epsilon }
+          - { expr: "0", misconception: delta-max-one }
+        hints:
+          nudge: "Compare 1 with 100/{{2*a+1}}."
+          buildsOn: "Q4: the bound {{2*a+1}} only holds for δ ≤ 1."
+          partial: "100/{{2*a+1}} ≈ {{100/(2*a+1)}} > 1."
+        explanation: |
+          **Answer:** 1
+
+          **Why:** $\frac{100}{ {{2*a+1}} } \approx {{100/(2*a+1)}}$ is larger than 1, so the min is 1 — keeping the bound from Q4 valid.
+
+          **Common mistakes:**
+          - $\frac{100}{ {{2*a+1}} }$ — with a window that wide, the bound ${{2*a+1}}$ no longer holds.
+          - 100 — δ isn't ε.
+          - 0 — δ must be positive.
+
+          **Connects to:** Q6 — the whole definition.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          For $\lim_{x \to {{a}}} x^2 = {{a^2}}$ and $\varepsilon = 0.5$, what is the **largest** δ that works (not just a safe one)?
+        answer: { expr: "sqrt(a^2 + 0.5) - a" }
+        distractors:
+          - { expr: "0.5/(2*a + 1)", misconception: delta-safe-is-largest }
+          - { expr: "a - sqrt(a^2 - 0.5)", misconception: delta-wrong-side }
+          - { expr: "0.5/(2*a)", misconception: delta-bound-ignores-window }
+        hints:
+          nudge: "The curve leaves the band first on one side. Which?"
+          buildsOn: "Q4: the recipe gives a safe δ, not the largest."
+          partial: "x² < {{a^2}} + 0.5 on the right; x² > {{a^2}} − 0.5 on the left."
+        explanation: |
+          **Answer:** $\sqrt{ {{a^2}} + 0.5} - {{a}} \approx {{sqrt(a^2 + 0.5) - a}}$
+
+          **Why:** The parabola is steeper on the right, so it leaves the band there first, at $x = \sqrt{ {{a^2}} + 0.5}$. The recipe's
+          ${{0.5/(2*a+1)}}$ is smaller — safe but not tight (Q4).
+
+          **Common mistakes:**
+          - The recipe's δ — it works, but isn't the largest.
+          - The left side — the curve is flatter there, so that gap is wider.
+          - $\frac{0.1}{ {{2*a}} }$ — a tangent-line estimate, slightly too big.
+
+          **Connects to:** the challenge — finding the largest δ.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: epsilon-delta
+    uses: [s2, s5]
+    establishes: "The order is essential: for every ε there exists δ (depending on ε)."
+    standaloneContext: |
+      lim f = L: for every ε > 0 there is a δ > 0 with 0 < |x − a| < δ ⇒ |f(x) − L| < ε. Lines: δ = ε/|m|.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'For $f(x) = {{m}}x - 1$, how does the largest δ change when ε is halved?'
+        options:
+          - { text: 'It halves too', correct: true }
+          - { text: 'It doubles', misconception: delta-multiplies }
+          - { text: 'It stays the same', misconception: delta-independent }
+          - { text: 'It becomes 0', misconception: delta-max-one }
+        hints:
+          nudge: "δ = ε/{{m}}."
+          buildsOn: "Q2: δ = ε/{{m}}."
+          partial: "Halve the numerator."
+        explanation: |
+          **Answer:** it halves.
+
+          **Why:** $\delta = \frac{\varepsilon}{ {{m}} }$ (Q2) is proportional to ε: a tighter band needs a narrower window.
+
+          **Common mistakes:**
+          - Doubles — tighter tolerance needs closer inputs.
+          - Same — δ depends on ε.
+          - 0 — δ stays positive for every ε > 0.
+
+          **Connects to:** the challenge.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: 'Which statement is the definition of $\lim_{x \to a} f(x) = L$?'
+        options:
+          - { text: 'For every $\varepsilon > 0$ there is a $\delta > 0$ such that …', correct: true }
+          - { text: 'There is a $\delta > 0$ such that for every $\varepsilon > 0$ …', misconception: quantifier-order }
+          - { text: 'For every $\delta > 0$ there is an $\varepsilon > 0$ such that …', misconception: epsilon-delta-order }
+          - { text: 'There are $\varepsilon > 0$ and $\delta > 0$ such that …', misconception: epsilon-delta-some }
+        hints:
+          nudge: "Who moves first in the game?"
+          buildsOn: "Q2 and Q5: δ was computed from ε."
+          partial: "δ answers ε."
+        explanation: |
+          **Answer:** for every ε there is a δ.
+
+          **Why:** δ is allowed to depend on ε — as $\frac{\varepsilon}{ {{m}} }$ did (Q2) and $\min(1, \ldots)$ did (Q5).
+
+          **Common mistakes:**
+          - "δ for every ε" — one δ for all ε would force $f(x) = L$ exactly near $a$.
+          - "Every δ, some ε" — that's true of almost any function and proves nothing.
+          - "Some ε and δ" — one easy pair proves nothing.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          Someone claims $\lim_{x \to {{a}}} ({{m}}x - 1) = {{m*a}}$. Which ε exposes the claim, and why?
+        options:
+          - { text: '$\varepsilon = \frac{1}{2}$: near ${{a}}$ the outputs are close to ${{m*a-1}}$, which is 1 away from ${{m*a}}$', correct: true }
+          - { text: 'No ε can: for each one a small enough δ works', misconception: epsilon-delta-always-wins }
+          - { text: '$\varepsilon = 2$: smaller tolerances can always be met', misconception: epsilon-too-small }
+          - { text: 'You need $\varepsilon = 0$', misconception: epsilon-zero }
+        hints:
+          nudge: "What is the true limit? How far is it from {{m*a}}?"
+          buildsOn: "Q2: outputs near {{a}} are near {{m*a-1}}."
+          partial: "A band narrower than that gap can't be met."
+        explanation: |
+          **Answer:** any ε below 1, e.g. $\frac{1}{2}$.
+
+          **Why:** For $x$ close to ${{a}}$, $f(x)$ is close to ${{m*a-1}}$ (Q2), at distance about 1 from ${{m*a}}$. A band of half-width $\frac{1}{2}$ around
+          ${{m*a}}$ excludes those outputs, whatever δ is chosen.
+
+          **Common mistakes:**
+          - "No ε can" — only the true limit survives every ε.
+          - $\varepsilon = 2$ — that band is wide enough to contain ${{m*a-1}}$, so it can be met.
+          - $\varepsilon = 0$ — ε must be positive.
+
+          **Connects to:** the challenge.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: epsilon-delta
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'For $f(x) = 10x$, if $|x - 1| < 0.01$, how far can $f(x)$ be from 10?'
+        answer: { expr: "0.1" }
+        distractors:
+          - { expr: "0.01", misconception: delta-equals-epsilon }
+          - { expr: "0.001", misconception: delta-multiplies }
+          - { expr: "10", misconception: limit-is-input }
+        hints:
+          nudge: "|10x − 10| = 10|x − 1|."
+          partial: "10 × 0.01"
+        explanation: |
+          **Answer:** up to 0.1
+
+          **Why:** The slope 10 magnifies input gaps tenfold: $10 \times 0.01 = 0.1$. So to get within ε of 10, use $\delta = \varepsilon / 10$.
+
+          **Common mistakes:**
+          - 0.01 — outputs move 10× as much as inputs.
+          - 0.001 — that divides instead of multiplying.
+          - 10 — that's $L$ itself.
+
+          **Connects to:** Q2 — δ = ε / slope.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l7.ch
+  type: graph-manipulator
+  title: "Choose the largest δ"
+  concept: epsilon-delta
+  uses: [s2, s5]
+  params:
+    sets:
+      - { p: 2, q: 1 }
+      - { p: 3, q: 2 }
+      - { p: 4, q: 3 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $f(x) = {{p}}x + 1$ at $a = {{q}}$, $L = {{p*q + 1}}$, $\varepsilon = 0.2$. Widen the window $q \pm \delta$ as far as possible while the
+        graph over it stays inside the band — the **largest** δ (to the slider's precision).
+      config:
+        f: "p*x + 1"
+        view: { x: ["q - w", "q + w"], y: ["p*q + 1 - p*w*1.1", "p*q + 1 + p*w*1.1"] }
+        controls:
+          - { name: d, label: "δ", min: 0.0005, max: 0.5, step: 0.0005, initial: 0.25 }
+          - { name: w, label: "zoom w", min: 0.05, max: 1, step: 0.05, initial: 0.6 }
+        overlays: { band: { y: "p*q + 1", eps: 0.2, x: "q", dx: "d" } }
+      check: { expr: "maxDev(q - d, q + d, p*q + 1) <= 0.2 + 1e-9 and maxDev(q - d - 0.0005, q + d + 0.0005, p*q + 1) > 0.2 + 1e-9" }
+      feedback:
+        - { if: "maxDev(q - d, q + d, p*q + 1) > 0.2 + 1e-9", say: "Part of the graph over the window leaves the band — shrink δ.", misconception: delta-equals-epsilon }
+        - { if: "true", say: "That δ works, but a slightly larger one would too. Widen it." }
+      hints:
+        nudge: "Where does the line cross the edges of the band?"
+        buildsOn: "From Q2: for a line, δ = ε / slope."
+        partial: "δ = 0.2/{{p}}."
+      solution: { d: "0.2 / p", w: 0.2 }
+      explanation: |
+        $|f(x) - {{p*q+1}}| = {{p}}|x - {{q}}|$, so the line leaves the band exactly at $|x - {{q}}| = \frac{0.2}{ {{p}} }$.
+    standard:
+      difficulty: 3
+      goal: |
+        $f(x) = x^2$ at $a = {{p}}$, $L = {{p^2}}$, $\varepsilon = 0.5$. Find the **largest** δ: the graph over $({{p}} - \delta, {{p}} + \delta)$ must stay inside
+        the band.
+      config:
+        f: "x^2"
+        view: { x: ["p - w", "p + w"], y: ["p^2 - 2*p*w*1.2 - 0.1", "p^2 + 2*p*w*1.2 + w^2 + 0.1"] }
+        controls:
+          - { name: d, label: "δ", min: 0.0005, max: 0.5, step: 0.0005, initial: 0.25 }
+          - { name: w, label: "zoom w", min: 0.05, max: 1, step: 0.05, initial: 0.6 }
+        overlays: { band: { y: "p^2", eps: 0.5, x: "p", dx: "d" } }
+      check: { expr: "maxDev(p - d, p + d, p^2) <= 0.5 + 1e-9 and maxDev(p - d - 0.0005, p + d + 0.0005, p^2) > 0.5 + 1e-9" }
+      feedback:
+        - { if: "maxDev(p - d, p + d, p^2) > 0.5 + 1e-9", say: "The curve leaves the band inside your window. Which side leaves first?", misconception: delta-wrong-side }
+        - { if: "abs(d - 0.5/(2*p + 1)) < 0.0006", say: "That's the safe recipe value — it works, but it isn't the largest.", misconception: delta-safe-is-largest }
+        - { if: "true", say: "That works, but there's room to widen δ." }
+      hints:
+        nudge: "The parabola is steeper on the right of {{p}}. Where does it reach {{p^2}} + 0.5?"
+        buildsOn: "From Q5: the largest δ is set by the side that leaves the band first."
+        partial: "δ = √({{p^2}} + 0.5) − {{p}}."
+      solution: { d: "sqrt(p^2 + 0.5) - p", w: 0.3 }
+      explanation: |
+        The right side leaves first, at $x = \sqrt{ {{p^2}} + 0.5}$; the left side would allow $ {{p}} - \sqrt{ {{p^2}} - 0.5}$, which is wider. The
+        largest δ is the smaller gap: ${{sqrt(p^2 + 0.5) - p}}$.
+    harder:
+      difficulty: 4
+      goal: |
+        $f(x) = \sqrt{x}$ at $a = {{q^2}}$, $L = {{q}}$, $\varepsilon = 0.2$. Find the **largest** δ — this time the *left* side is the tight one.
+      config:
+        f: "sqrt(x)"
+        view: { x: ["q^2 - w", "q^2 + w"], y: ["q - w/(2*q)*1.4 - 0.05", "q + w/(2*q)*1.2 + 0.05"] }
+        controls:
+          - { name: d, label: "δ", min: 0.0005, max: 2, step: 0.0005, initial: 1 }
+          - { name: w, label: "zoom w", min: 0.1, max: 3, step: 0.1, initial: 2 }
+        overlays: { band: { y: "q", eps: 0.2, x: "q^2", dx: "d" } }
+      check: { expr: "maxDev(q^2 - d, q^2 + d, q) <= 0.2 + 1e-9 and maxDev(q^2 - d - 0.0005, q^2 + d + 0.0005, q) > 0.2 + 1e-9" }
+      feedback:
+        - { if: "maxDev(q^2 - d, q^2 + d, q) > 0.2 + 1e-9", say: "The curve leaves the band inside your window — check the left side.", misconception: delta-wrong-side }
+        - { if: "true", say: "That works, but there's room to widen δ." }
+      hints:
+        nudge: "√x flattens out to the right, so it leaves the band first on the left."
+        buildsOn: "From Q5: the tighter side sets the largest δ."
+        partial: "Left edge: √x = {{q}} − 0.2 at x = ({{q}} − 0.2)²."
+      solution: { d: "q^2 - (q - 0.2)^2", w: 1 }
+      explanation: |
+        $\sqrt{x}$ is steeper on the left, so it reaches ${{q}} - 0.2$ sooner: $\delta = {{q^2}} - ({{q}} - 0.2)^2 = {{q^2 - (q - 0.2)^2}}$, smaller than the
+        right-hand gap $({{q}} + 0.2)^2 - {{q^2}}$.
+
+summary:
+  keyTakeaways:
+    - "lim f = L: for every ε > 0 there's a δ > 0 with 0 < |x − a| < δ ⇒ |f(x) − L| < ε."
+    - "Lines: δ = ε/|slope|. Curves: factor, bound the extra factor with δ ≤ 1, take δ = min(1, ε/bound)."
+    - "Any smaller δ also works; the largest is set by the side where f leaves the band first."
+    - "Order matters: δ answers ε. One ε that no δ can meet disproves a claimed limit."
+  next: calc1.u2.l1

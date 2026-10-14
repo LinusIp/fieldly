@@ -189,6 +189,21 @@ export function GraphManipulator({
                 stroke="var(--c-accent)"
                 strokeDasharray="4 4"
               />
+              {m.band.x !== undefined && m.band.dx !== undefined && (
+                <g data-testid="graph-delta">
+                  <rect
+                    x={sx(m.band.x - m.band.dx)}
+                    y={M.t}
+                    width={Math.max(0, sx(m.band.x + m.band.dx) - sx(m.band.x - m.band.dx))}
+                    height={H - M.t - M.b}
+                    fill="var(--c-warn)"
+                    opacity={0.1}
+                  />
+                  {[m.band.x - m.band.dx, m.band.x + m.band.dx].map((xx) => (
+                    <line key={xx} x1={sx(xx)} y1={M.t} x2={sx(xx)} y2={H - M.b} stroke="var(--c-warn)" />
+                  ))}
+                </g>
+              )}
               {m.band.x !== undefined && (
                 <line
                   x1={sx(m.band.x)}

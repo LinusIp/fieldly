@@ -803,3 +803,287 @@
   explain: |
     A length-4 bracket needs two extra halvings compared with length 1.
   lessons: [calc1.u1.l5]
+
+# ── calc1.u1.l6: squeeze theorem & trig limits ──
+- id: squeeze-adds-bounds
+  short: "The squeezed function gets the bounds' common limit — the bounds aren't combined."
+  explain: |
+    If both bounds go to 5, so does f.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-gives-zero
+  short: "The squeeze gives whatever common limit the bounds have — not always 0."
+  explain: |
+    Find the limits of the bounds.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-bounds-dont-converge
+  short: "Bounds only prove a limit if they approach the same value."
+  explain: |
+    ±1 never meet; ±x² both go to 0.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-wrong-lower-bound
+  short: "A bound must hold for every x near a: sin(1/x) is often negative, so 0 is not a lower bound."
+  explain: |
+    Start from −1 ≤ sin ≤ 1.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-wrong-lower-bound-flip
+  short: "Check the inequality direction: x² is an upper bound for x² sin(1/x), not a lower one."
+  explain: |
+    Multiply −1 ≤ sin(1/x) ≤ 1 by x² ≥ 0.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-bound-kept
+  short: "A bounded term over a growing one vanishes: the bound itself doesn't stay in the answer."
+  explain: |
+    |m cos(x²)/x²| ≤ m/x² → 0.
+  lessons: [calc1.u1.l6]
+
+- id: product-law-without-limits
+  short: "The product law needs each factor to have a limit; cos(∞) is not a number."
+  explain: |
+    Use the squeeze when a factor only stays bounded.
+  lessons: [calc1.u1.l6]
+
+- id: oscillating-factor-no-limit
+  short: "An oscillating factor times something going to 0 still goes to 0."
+  explain: |
+    Bound it: |x cos(1/x)| ≤ |x|.
+  lessons: [calc1.u1.l6]
+
+- id: sinx-over-x-everywhere
+  short: "sin x / x → 1 only as x → 0; as x → ∞ it goes to 0."
+  explain: |
+    Check where x is heading.
+  lessons: [calc1.u1.l6]
+
+- id: trig-degrees
+  short: "sin x / x → 1 needs radians; in degrees the limit is π/180."
+  explain: |
+    Calculus uses radians for this reason.
+  lessons: [calc1.u1.l6]
+
+- id: trig-limit-ignores-inner
+  short: "Match the inside: sin(kx)/x = k · sin(kx)/(kx) → k, not 1."
+  explain: |
+    The argument of sin must match the denominator.
+  lessons: [calc1.u1.l6]
+
+- id: trig-limit-multiply
+  short: "Inner factors divide: sin(kx)/sin(mx) → k/m."
+  explain: |
+    Write each sine as (its argument) × sin(u)/u.
+  lessons: [calc1.u1.l6]
+
+- id: trig-limit-drops-coefficient
+  short: "Keep every coefficient: tan(kx)/(mx) → k/m."
+  explain: |
+    Only the sin(u)/u part becomes 1.
+  lessons: [calc1.u1.l6]
+
+- id: trig-inner-not-squared
+  short: "With x² below, the inner factor comes out squared: x² = u²/k²."
+  explain: |
+    (1 − cos kx)/x² → k²/2.
+  lessons: [calc1.u1.l6]
+
+- id: trig-substitute-part
+  short: "Replacing only cos x by 1 leaves 0/0, not 0."
+  explain: |
+    Rewrite with 1 + cos x first.
+  lessons: [calc1.u1.l6]
+
+- id: cos-limit-like-sin
+  short: "(1 − cos x)/x → 0, not 1 — the cosine limit differs from the sine one."
+  explain: |
+    1 − cos x ≈ x²/2 near 0.
+  lessons: [calc1.u1.l6]
+
+- id: cos-limit-wrong-power
+  short: "(1 − cos x)/x → 0 but (1 − cos x)/x² → 1/2 — the power in the denominator matters."
+  explain: |
+    1 − cos x ≈ x²/2.
+  lessons: [calc1.u1.l6]
+
+- id: tan-limit-angle
+  short: "tan x / x → 1 as x → 0; π/4 is just where tan equals 1."
+  explain: |
+    tan x = sin x / cos x.
+  lessons: [calc1.u1.l6]
+
+- id: squeeze-vs-sin-limit
+  short: "x sin(1/x) → 0 as x → 0 (squeeze), but → 1 as x → ∞ (sin u/u)."
+  explain: |
+    Check where x is heading.
+  lessons: [calc1.u1.l6]
+
+- id: sin-distributes
+  short: "sin(4x) ≠ 4 sin x — sine doesn't distribute over multiplication."
+  explain: |
+    Keep the argument together: u = 4x.
+  lessons: [calc1.u1.l6]
+
+# ── calc1.u1.l7: the ε–δ definition ──
+- id: epsilon-delta-order
+  short: "ε comes first: for every tolerance ε, you must find a window δ."
+  explain: |
+    δ answers ε and may depend on it.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-free
+  short: "ε isn't yours to choose — the definition must hold for every ε > 0."
+  explain: |
+    Only δ is picked in response.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-fixed
+  short: "ε and δ aren't fixed numbers: ε is any positive tolerance, δ is computed from it."
+  explain: |
+    A proof gives δ as a formula in ε.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-converse
+  short: "The implication runs from close inputs to close outputs, not the other way."
+  explain: |
+    0 < |x − a| < δ ⇒ |f(x) − L| < ε.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-some
+  short: "It must hold for every x in the window — and for every ε. One example proves nothing."
+  explain: |
+    Look for the worst x in the window.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-zero-clause
+  short: "0 < |x − a| excludes x = a itself; δ > 0 is a separate condition."
+  explain: |
+    The limit ignores the value at a.
+  lessons: [calc1.u1.l7]
+
+- id: delta-equals-epsilon
+  short: "δ and ε measure different axes: the slope converts input gaps into output gaps."
+  explain: |
+    For a line, δ = ε/|m|.
+  lessons: [calc1.u1.l7]
+
+- id: delta-multiplies
+  short: "Divide by the slope: outputs move |m| times as far as inputs, so δ = ε/|m|."
+  explain: |
+    A steeper graph needs a narrower window.
+  lessons: [calc1.u1.l7]
+
+- id: delta-divides-by-limit
+  short: "The size of L doesn't matter — the slope does."
+  explain: |
+    |f(x) − L| = |m||x − a| for a line.
+  lessons: [calc1.u1.l7]
+
+- id: delta-negative-slope
+  short: "δ is a distance, so it's positive: use |m|."
+  explain: |
+    The absolute value removes the sign of the slope.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-increasing-only
+  short: "The definition works for any function — decreasing lines included."
+  explain: |
+    Use |m| for the slope's size.
+  lessons: [calc1.u1.l7]
+
+- id: delta-unique
+  short: "Any δ smaller than a working one also works — δ isn't unique."
+  explain: |
+    Shrinking the window can only help.
+  lessons: [calc1.u1.l7]
+
+- id: delta-epsilon-locked
+  short: "The band (ε) is fixed by the challenger; a narrower window (δ) still fits it."
+  explain: |
+    Smaller δ, same ε — still fine.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-too-small
+  short: "To disprove a limit you need one ε that no δ can meet; a small ε is exactly the tool."
+  explain: |
+    The true limit survives every ε, however small.
+  lessons: [calc1.u1.l7]
+
+- id: abs-distributes
+  short: "The absolute value applies to the whole expression: |x² − 9| ≠ |x|² − 9."
+  explain: |
+    Factor inside first: |x − 3||x + 3|.
+  lessons: [calc1.u1.l7]
+
+- id: square-root-drop
+  short: "x² − 9 isn't x − 9 — keep the square and factor it."
+  explain: |
+    Difference of squares: (x − 3)(x + 3).
+  lessons: [calc1.u1.l7]
+
+- id: delta-bound-ignores-window
+  short: "Bound the extra factor over the whole window, not just at x = a."
+  explain: |
+    With |x − a| < 1, |x + a| can reach 2a + 1.
+  lessons: [calc1.u1.l7]
+
+- id: delta-bound-wrong-factor
+  short: "Bound the factor that appears: |x + a|, not |x|."
+  explain: |
+    If x < a + 1, then x + a < 2a + 1.
+  lessons: [calc1.u1.l7]
+
+- id: delta-bound-is-delta
+  short: "The restriction δ ≤ 1 bounds the window; the extra factor needs its own bound."
+  explain: |
+    Translate |x − a| < 1 into a bound on |x + a|.
+  lessons: [calc1.u1.l7]
+
+- id: delta-min-wrong
+  short: "Take the minimum: δ must keep both promises at once."
+  explain: |
+    min(1, ε/bound) is never larger than either.
+  lessons: [calc1.u1.l7]
+
+- id: delta-max-one
+  short: "Choosing δ ≤ 1 is a convenience for one proof, not a rule — and δ is always positive."
+  explain: |
+    Use the min of the two requirements.
+  lessons: [calc1.u1.l7]
+
+- id: delta-safe-is-largest
+  short: "The recipe gives a safe δ, not necessarily the largest one."
+  explain: |
+    The largest is where the graph first leaves the band.
+  lessons: [calc1.u1.l7]
+
+- id: delta-wrong-side
+  short: "The graph leaves the band first on its steeper side — that side sets the largest δ."
+  explain: |
+    Compute both gaps; take the smaller.
+  lessons: [calc1.u1.l7]
+
+- id: delta-independent
+  short: "δ depends on ε: a tighter band needs a narrower window."
+  explain: |
+    For a line, δ = ε/|m| scales with ε.
+  lessons: [calc1.u1.l7]
+
+- id: quantifier-order
+  short: "\"There is a δ for every ε\" is a different (much stronger) statement than \"for every ε there is a δ\"."
+  explain: |
+    In the limit definition, δ may depend on ε.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-delta-always-wins
+  short: "Only the true limit can meet every ε; a wrong L fails for any ε smaller than its distance from the true limit."
+  explain: |
+    Choose ε below that distance.
+  lessons: [calc1.u1.l7]
+
+- id: epsilon-zero
+  short: "ε must be positive; ε = 0 would demand f(x) = L exactly."
+  explain: |
+    Pick a small positive ε instead.
+  lessons: [calc1.u1.l7]

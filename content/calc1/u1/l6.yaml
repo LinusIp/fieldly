@@ -1,0 +1,645 @@
+id: calc1.u1.l6
+title: "Squeeze theorem & trig limits"
+version: 1
+concepts: [squeeze-theorem, trig-limits]
+estimatedMinutes: 25
+
+# Scenario: trig limits with an inner factor k (sin(kx), cos(kx)) and a second factor m; angles in radians.
+params:
+  sets:
+    - { k: 3, m: 5 }
+    - { k: 5, m: 3 }
+    - { k: 2, m: 7 }
+
+intro: |
+  **Squeeze theorem.** If $g(x) \le f(x) \le h(x)$ near $a$ and $\lim g = \lim h = L$, then $\lim f = L$ too.
+  It handles functions that wiggle: since $-1 \le \sin(\text{anything}) \le 1$,
+  $-x^2 \le x^2 \sin(1/x) \le x^2$, so $x^2 \sin(1/x) \to 0$ as $x \to 0$.
+
+  Two fundamental trig limits (with $x$ in **radians**):
+
+  $$\lim_{x \to 0} \frac{\sin x}{x} = 1, \qquad \lim_{x \to 0} \frac{1 - \cos x}{x} = 0.$$
+
+  The first is proved by squeezing: $\cos x \le \frac{\sin x}{x} \le 1$ near 0.
+
+  Use them by matching the inside: $\frac{\sin(kx)}{x} = k \cdot \frac{\sin(kx)}{kx} \to k$. And
+  $1 - \cos x = \frac{\sin^2 x}{1 + \cos x}$ gives $\frac{1 - \cos x}{x^2} \to \frac{1}{2}$.
+
+workedExample: |
+  $\lim_{x \to 0} \dfrac{\sin(6x)}{\tan(9x)}$:
+
+  - Write $\tan(9x) = \frac{\sin(9x)}{\cos(9x)}$, so the expression is $\frac{\sin 6x}{\sin 9x} \cos 9x$.
+  - $\frac{\sin 6x}{\sin 9x} = \frac{6}{9} \cdot \frac{\sin 6x / 6x}{\sin 9x / 9x} \to \frac{6}{9} = \frac{2}{3}$, and $\cos 9x \to 1$.
+  - The limit is $\frac{2}{3}$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: squeeze-theorem
+    clueFor: [s2]
+    establishes: "If g ≤ f ≤ h and g, h → L, then f → L: −x² ≤ x² sin(1/x) ≤ x² gives limit 0."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          Near $x = 2$, $g(x) \le f(x) \le h(x)$, with $\lim_{x \to 2} g(x) = 5$ and $\lim_{x \to 2} h(x) = 5$. What is $\lim_{x \to 2} f(x)$?
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "2", misconception: limit-is-input }
+          - { expr: "10", misconception: squeeze-adds-bounds }
+          - { expr: "0", misconception: squeeze-gives-zero }
+        hints:
+          nudge: "f is trapped between two functions heading to the same place."
+          partial: "There's nowhere else for f to go."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** $f$ is squeezed between two functions that both approach 5, so it must approach 5.
+
+          **Common mistakes:**
+          - 2 — that's the input.
+          - 10 — the bounds aren't added.
+          - 0 — the squeeze gives the bounds' common limit, whatever it is.
+
+          **Connects to:** Q2 — using the squeeze.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'Which bounds prove $\lim_{x \to 0} x^2 \sin(1/x) = 0$?'
+        options:
+          - { text: '$-x^2 \le x^2 \sin(1/x) \le x^2$', correct: true }
+          - { text: '$-1 \le x^2 \sin(1/x) \le 1$', misconception: squeeze-bounds-dont-converge }
+          - { text: '$0 \le x^2 \sin(1/x) \le x^2$', misconception: squeeze-wrong-lower-bound }
+          - { text: '$x^2 \le x^2 \sin(1/x) \le 1$', misconception: squeeze-wrong-lower-bound-flip }
+        hints:
+          nudge: "Start from −1 ≤ sin(1/x) ≤ 1 and multiply by x² ≥ 0."
+          partial: "Both bounds must go to 0."
+        explanation: |
+          **Answer:** $-x^2 \le x^2 \sin(1/x) \le x^2$.
+
+          **Why:** Multiplying $-1 \le \sin(1/x) \le 1$ by $x^2 \ge 0$ keeps the order, and both $\pm x^2 \to 0$.
+
+          **Common mistakes:**
+          - $\pm 1$ — true, but the bounds don't approach a common value.
+          - $0 \le \ldots$ — $\sin(1/x)$ is often negative, so this is false.
+          - $x^2 \le \ldots$ — also false where $\sin(1/x) < 1$.
+
+          **Connects to:** Q2 — squeezing at infinity.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: 'Why can''t you compute $\lim_{x \to 0} x \cos(1/x)$ with the product law?'
+        options:
+          - { text: '$\lim \cos(1/x)$ does not exist — but the squeeze $-|x| \le x\cos(1/x) \le |x|$ gives 0', correct: true }
+          - { text: 'You can: it is $0 \cdot \cos(\infty) = 0$', misconception: product-law-without-limits }
+          - { text: 'The limit does not exist, because $\cos(1/x)$ oscillates', misconception: oscillating-factor-no-limit }
+          - { text: 'It equals $\cos 0 = 1$', misconception: limit-substitute-part }
+        hints:
+          nudge: "The product law needs both limits to exist."
+          partial: "|cos(1/x)| ≤ 1."
+        explanation: |
+          **Answer:** $\lim \cos(1/x)$ doesn't exist; squeeze instead.
+
+          **Why:** The product law needs both factors to have limits. Bounding $|x\cos(1/x)| \le |x| \to 0$ gives the limit 0.
+
+          **Common mistakes:**
+          - "$\cos(\infty)$" — that isn't a number.
+          - "No limit" — the shrinking $x$ tames the oscillation.
+          - "$\cos 0$" — the argument is $1/x$, not $x$.
+
+          **Connects to:** Q2 — squeezing.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: squeeze-theorem
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "−1/x ≤ sin x / x ≤ 1/x for x > 0, so (kx + sin x)/x → {{k}} as x → ∞."
+    standaloneContext: "Squeeze theorem: if g ≤ f ≤ h and g, h → L, then f → L."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'What is $\lim_{x \to \infty} \dfrac{\sin x}{x}$?'
+        answer: { expr: "0" }
+        distractors:
+          - { expr: "1", misconception: sinx-over-x-everywhere }
+          - { expr: "-1", misconception: sign-slip }
+          - { expr: "0.5", misconception: limit-average }
+        hints:
+          nudge: "|sin x| ≤ 1 while x grows."
+          partial: "−1/x ≤ sin x / x ≤ 1/x."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** $-\frac{1}{x} \le \frac{\sin x}{x} \le \frac{1}{x}$, and both bounds go to 0.
+
+          **Common mistakes:**
+          - 1 — that's the limit as $x \to 0$, not $\infty$.
+          - −1 — the bounds both approach 0.
+          - 0.5 — no averaging.
+
+          **Connects to:** Q6 — choosing the tool.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to \infty} \dfrac{ {{k}}x + \sin x}{x}$.'
+        answer: { expr: "k" }
+        distractors:
+          - { expr: "k + 1", misconception: sinx-over-x-everywhere }
+          - { expr: "0", misconception: squeeze-gives-zero }
+          - { expr: "1", misconception: infinity-over-infinity-one }
+        hints:
+          nudge: "Split the fraction."
+          buildsOn: "Q1: squeeze the wiggly part."
+          partial: "{{k}} + sin x / x."
+        explanation: |
+          **Answer:** ${{k}}$
+
+          **Why:** $\frac{ {{k}}x + \sin x}{x} = {{k}} + \frac{\sin x}{x}$, and the squeeze (Q1) sends $\frac{\sin x}{x} \to 0$ as $x \to \infty$.
+
+          **Common mistakes:**
+          - ${{k+1}}$ — $\frac{\sin x}{x} \to 1$ only as $x \to 0$.
+          - 0 — only the wiggly part vanishes.
+          - 1 — $\frac{\infty}{\infty}$ isn't 1.
+
+          **Connects to:** Q6 — choosing the tool.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to \infty} \dfrac{x^2 + {{m}}\cos(x^2)}{ {{k}}x^2 + 1}$.'
+        answer: { expr: "1/k" }
+        distractors:
+          - { expr: "m/k", misconception: squeeze-bound-kept }
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "k", misconception: quotient-law-inverted }
+        hints:
+          nudge: "Divide top and bottom by x²."
+          buildsOn: "Q1: a bounded wiggle over x² is squeezed to 0."
+          partial: "(1 + {{m}}cos(x²)/x²)/({{k}} + 1/x²)"
+        explanation: |
+          **Answer:** $\frac{1}{ {{k}} } \approx {{1/k}}$
+
+          **Why:** $\left|\frac{ {{m}}\cos(x^2)}{x^2}\right| \le \frac{ {{m}} }{x^2} \to 0$ (squeeze, Q1), so the quotient tends to $\frac{1}{ {{k}} }$.
+
+          **Common mistakes:**
+          - $\frac{ {{m}} }{ {{k}} }$ — the bounded $\cos$ term vanishes; it doesn't replace the $x^2$.
+          - 1 — $\frac{\infty}{\infty}$ isn't 1.
+          - ${{k}}$ — upside down.
+
+          **Connects to:** Q6 — choosing the tool.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: trig-limits
+    clueFor: [s4, s5]
+    establishes: "sin(kx)/x = k · sin(kx)/(kx) → {{k}} as x → 0."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'What is $\lim_{x \to 0} \dfrac{\sin x}{x}$ ($x$ in radians)?'
+        answer: { expr: "1" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "pi/180", misconception: trig-degrees }
+          - { expr: "-1", misconception: sign-slip }
+        hints:
+          nudge: "Try x = 0.01: sin(0.01) ≈ 0.0099998."
+          partial: "The ratio is almost exactly 1."
+        explanation: |
+          **Answer:** 1
+
+          **Why:** Near 0, $\sin x \approx x$ (in radians), so the ratio tends to 1.
+
+          **Common mistakes:**
+          - 0 — $\frac{0}{0}$ isn't 0.
+          - $\pi/180$ — that's for $x$ in degrees.
+          - −1 — $\sin x$ and $x$ have the same sign near 0.
+
+          **Connects to:** Q4 — the cosine partner.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to 0} \dfrac{\sin({{k}}x)}{x}$.'
+        answer: { expr: "k" }
+        distractors:
+          - { expr: "1", misconception: trig-limit-ignores-inner }
+          - { expr: "1/k", misconception: quotient-law-inverted }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        hints:
+          nudge: "Make the denominator match the inside of sin."
+          partial: "sin({{k}}x)/x = {{k}} · sin({{k}}x)/({{k}}x)."
+        explanation: |
+          **Answer:** ${{k}}$
+
+          **Why:** $\frac{\sin {{k}}x}{x} = {{k}} \cdot \frac{\sin {{k}}x}{ {{k}}x} \to {{k}} \cdot 1$.
+
+          **Common mistakes:**
+          - 1 — the inside is ${{k}}x$, not $x$.
+          - $\frac{1}{ {{k}} }$ — the ${{k}}$ multiplies.
+          - 0 — the $\frac{0}{0}$ trap.
+
+          **Connects to:** Q5 — combining.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to 0} \dfrac{\sin({{k}}x)}{\sin({{m}}x)}$.'
+        answer: { expr: "k/m" }
+        distractors:
+          - { expr: "1", misconception: trig-limit-ignores-inner }
+          - { expr: "m/k", misconception: quotient-law-inverted }
+          - { expr: "k*m", misconception: trig-limit-multiply }
+        hints:
+          nudge: "Turn each sine into sin(u)/u."
+          buildsOn: "From the lesson: sin(u)/u → 1 as u → 0."
+          partial: "({{k}}x · sin({{k}}x)/({{k}}x)) / ({{m}}x · sin({{m}}x)/({{m}}x))"
+        explanation: |
+          **Answer:** $\frac{ {{k}} }{ {{m}} } \approx {{k/m}}$
+
+          **Why:** $\frac{\sin {{k}}x}{\sin {{m}}x} = \frac{ {{k}} }{ {{m}} } \cdot \frac{\sin({{k}}x)/({{k}}x)}{\sin({{m}}x)/({{m}}x)} \to \frac{ {{k}} }{ {{m}} }$.
+
+          **Common mistakes:**
+          - 1 — the inner factors differ.
+          - $\frac{ {{m}} }{ {{k}} }$ — upside down.
+          - ${{k*m}}$ — they divide.
+
+          **Connects to:** Q5 — combining.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: trig-limits
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "(1 − cos x)/x → 0 and (1 − cos x)/x² → 1/2; so (1 − cos kx)/x² → {{k^2}}/2."
+    standaloneContext: "sin u / u → 1 as u → 0 (u in radians)."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: 'What is $\lim_{x \to 0} \dfrac{1 - \cos x}{x}$?'
+        answer: { expr: "0" }
+        distractors:
+          - { expr: "1", misconception: cos-limit-like-sin }
+          - { expr: "0.5", misconception: cos-limit-wrong-power }
+          - { expr: "-1", misconception: sign-slip }
+        hints:
+          nudge: "1 − cos x shrinks like x²/2 — much faster than x."
+          partial: "Try x = 0.01: (1 − cos 0.01)/0.01 ≈ 0.005."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** $1 - \cos x \approx \frac{x^2}{2}$ near 0, so the ratio behaves like $\frac{x}{2} \to 0$.
+
+          **Common mistakes:**
+          - 1 — that's the sine limit.
+          - $\frac{1}{2}$ — that's for $x^2$ in the denominator.
+          - −1 — $1 - \cos x \ge 0$.
+
+          **Connects to:** Q6 — choosing the tool.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Which step turns $\dfrac{1 - \cos x}{x^2}$ into known limits?'
+        options:
+          - { text: 'Multiply top and bottom by $1 + \cos x$: $\frac{\sin^2 x}{x^2 (1 + \cos x)}$', correct: true }
+          - { text: 'Cancel $x^2$ against $\cos x$', misconception: cancel-terms }
+          - { text: 'Replace $\cos x$ by 1, giving 0', misconception: trig-substitute-part }
+          - { text: 'Use $\frac{\sin x}{x} \to 1$ directly on $1 - \cos x$', misconception: cos-limit-like-sin }
+        hints:
+          nudge: "(1 − cos x)(1 + cos x) = ?"
+          buildsOn: "Q3: aim for sin x / x."
+          partial: "1 − cos²x = sin²x."
+        explanation: |
+          **Answer:** multiply by the "conjugate" $1 + \cos x$.
+
+          **Why:** $\frac{1 - \cos^2 x}{x^2(1 + \cos x)} = \left(\frac{\sin x}{x}\right)^2 \frac{1}{1 + \cos x} \to 1 \cdot \frac{1}{2}$ (Q3).
+
+          **Common mistakes:**
+          - Cancelling — $x^2$ and $\cos x$ share no factor.
+          - $\cos x \to 1$ alone — that gives $\frac{0}{0}$, not 0.
+          - Sine limit on $1 - \cos x$ — they're different functions.
+
+          **Connects to:** Q6 — choosing the tool.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to 0} \dfrac{1 - \cos({{k}}x)}{x^2}$.'
+        answer: { expr: "k^2/2" }
+        distractors:
+          - { expr: "1/2", misconception: trig-limit-ignores-inner }
+          - { expr: "k/2", misconception: trig-inner-not-squared }
+          - { expr: "0", misconception: cos-limit-wrong-power }
+        verify:
+          - { lhs: "(1 - cos(k * x)) / x^2", rhs: "(sin(k*x)/(k*x))^2 * k^2 / (1 + cos(k*x))", vars: { x: [0.01, 0.3] } }
+        hints:
+          nudge: "Let u = {{k}}x."
+          buildsOn: "Q3: match the inside."
+          partial: "(1 − cos u)/u² · {{k^2}}."
+        explanation: |
+          **Answer:** $\frac{ {{k^2}} }{2} = {{k^2/2}}$
+
+          **Why:** With $u = {{k}}x$: $\frac{1 - \cos u}{x^2} = {{k^2}} \cdot \frac{1 - \cos u}{u^2} \to {{k^2}} \cdot \frac{1}{2}$.
+
+          **Common mistakes:**
+          - $\frac{1}{2}$ — the inside is ${{k}}x$.
+          - $\frac{ {{k}} }{2}$ — $x^2 = u^2 / {{k^2}}$, so the factor is squared.
+          - 0 — that's the limit with $x$, not $x^2$, below.
+
+          **Connects to:** Q6 — choosing the tool.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: trig-limits
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "tan(kx)/x → {{k}}; the limits need radians — in degrees sin(x°)/x → π/180."
+    standaloneContext: "sin u / u → 1 as u → 0, with u in radians."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: 'What is $\lim_{x \to 0} \dfrac{\tan x}{x}$?'
+        answer: { expr: "1" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "pi/4", misconception: tan-limit-angle }
+          - { expr: "2", misconception: trig-limit-multiply }
+        hints:
+          nudge: "tan x = sin x / cos x."
+          partial: "(sin x / x) · (1 / cos x)."
+        explanation: |
+          **Answer:** 1
+
+          **Why:** $\frac{\tan x}{x} = \frac{\sin x}{x} \cdot \frac{1}{\cos x} \to 1 \cdot 1$.
+
+          **Common mistakes:**
+          - 0 — the $\frac{0}{0}$ trap.
+          - $\pi/4$ — that's where $\tan = 1$, unrelated.
+          - 2 — the factors multiply to 1.
+
+          **Connects to:** Q6 — choosing the tool.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to 0} \dfrac{\tan({{k}}x)}{ {{m}}x}$.'
+        answer: { expr: "k/m" }
+        distractors:
+          - { expr: "1/m", misconception: trig-limit-ignores-inner }
+          - { expr: "m/k", misconception: quotient-law-inverted }
+          - { expr: "k", misconception: trig-limit-drops-coefficient }
+        hints:
+          nudge: "tan({{k}}x)/({{k}}x) → 1."
+          buildsOn: "Q3: match the inside."
+          partial: "({{k}}/{{m}}) · tan({{k}}x)/({{k}}x)."
+        explanation: |
+          **Answer:** $\frac{ {{k}} }{ {{m}} } \approx {{k/m}}$
+
+          **Why:** $\frac{\tan {{k}}x}{ {{m}}x} = \frac{ {{k}} }{ {{m}} } \cdot \frac{\tan {{k}}x}{ {{k}}x} \to \frac{ {{k}} }{ {{m}} }$.
+
+          **Common mistakes:**
+          - $\frac{1}{ {{m}} }$ — the inside ${{k}}x$ matters.
+          - $\frac{ {{m}} }{ {{k}} }$ — upside down.
+          - ${{k}}$ — the ${{m}}$ in the denominator stays.
+
+          **Connects to:** Q6 — choosing the tool.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: 'If $x$ is measured in **degrees**, what is $\lim_{x \to 0} \dfrac{\sin x^\circ}{x}$?'
+        answer: { expr: "pi/180" }
+        distractors:
+          - { expr: "1", misconception: trig-degrees }
+          - { expr: "180/pi", misconception: quotient-law-inverted }
+          - { expr: "0", misconception: zero-over-zero-zero }
+        hints:
+          nudge: "x degrees = πx/180 radians."
+          buildsOn: "Q3: sin u / u → 1 needs u in radians."
+          partial: "sin(πx/180)/x = (π/180) · sin u / u."
+        explanation: |
+          **Answer:** $\frac{\pi}{180} \approx {{pi/180}}$
+
+          **Why:** $\sin x^\circ = \sin\frac{\pi x}{180}$; matching the inside (Q3) gives the factor $\frac{\pi}{180}$. That's why calculus uses radians.
+
+          **Common mistakes:**
+          - 1 — only in radians.
+          - $\frac{180}{\pi}$ — upside down.
+          - 0 — the $\frac{0}{0}$ trap.
+
+          **Connects to:** Q6 — choosing the tool.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: trig-limits
+    uses: [s2, s4, s5]
+    establishes: "Match the inside to the denominator; squeeze bounded wiggles; substitute u = 1/x at infinity."
+    standaloneContext: |
+      sin u/u → 1 and (1 − cos u)/u → 0 as u → 0 (radians); bounded factors times things going to 0 are squeezed to 0.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to 0} \dfrac{\sin({{k}}x) + {{m}}x}{x}$.'
+        answer: { expr: "k + m" }
+        distractors:
+          - { expr: "1 + m", misconception: trig-limit-ignores-inner }
+          - { expr: "k", misconception: trig-limit-drops-coefficient }
+          - { expr: "k*m", misconception: trig-limit-multiply }
+        hints:
+          nudge: "Split into two fractions."
+          buildsOn: "Q5: match the inside of the sine."
+          partial: "sin({{k}}x)/x + {{m}}."
+        explanation: |
+          **Answer:** ${{k+m}}$
+
+          **Why:** $\frac{\sin {{k}}x}{x} \to {{k}}$ (Q5's matching trick) and $\frac{ {{m}}x}{x} = {{m}}$.
+
+          **Common mistakes:**
+          - ${{1+m}}$ — the inside ${{k}}x$ gives ${{k}}$, not 1.
+          - ${{k}}$ — the ${{m}}x / x$ part stays.
+          - ${{k*m}}$ — the pieces add.
+
+          **Connects to:** the challenge.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to \infty} x \sin\!\left(\dfrac{ {{k}} }{x}\right)$.'
+        answer: { expr: "k" }
+        distractors:
+          - { expr: "0", misconception: squeeze-gives-zero }
+          - { expr: "1", misconception: trig-limit-ignores-inner }
+          - { expr: "1/k", misconception: quotient-law-inverted }
+        hints:
+          nudge: "Substitute u = {{k}}/x: as x → ∞, u → 0."
+          buildsOn: "Q2: limits at infinity. Q4/Q5: match the inside."
+          partial: "x = {{k}}/u, so x sin({{k}}/x) = {{k}} · sin(u)/u."
+        explanation: |
+          **Answer:** ${{k}}$
+
+          **Why:** With $u = \frac{ {{k}} }{x} \to 0^+$: $x \sin\frac{ {{k}} }{x} = {{k}} \cdot \frac{\sin u}{u} \to {{k}}$.
+
+          **Common mistakes:**
+          - 0 — $\sin(\text{small})$ shrinks, but $x$ grows just as fast.
+          - 1 — the ${{k}}$ survives the substitution.
+          - $\frac{1}{ {{k}} }$ — upside down.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: 'Which limit equals 1?'
+        options:
+          - { text: '$\lim_{x \to \infty} x \sin(1/x)$', correct: true }
+          - { text: '$\lim_{x \to 0} x \sin(1/x)$', misconception: squeeze-vs-sin-limit }
+          - { text: '$\lim_{x \to \infty} \frac{\sin x}{x}$', misconception: sinx-over-x-everywhere }
+          - { text: '$\lim_{x \to 0} \frac{1 - \cos x}{x}$', misconception: cos-limit-like-sin }
+        hints:
+          nudge: "Which one has sin(u)/u with u → 0?"
+          buildsOn: "Q2: squeezes give 0. Q4: the cosine limit is 0."
+          partial: "u = 1/x → 0 as x → ∞."
+        explanation: |
+          **Answer:** $\lim_{x \to \infty} x \sin(1/x) = 1$.
+
+          **Why:** With $u = 1/x \to 0$, it's $\frac{\sin u}{u} \to 1$.
+
+          **Common mistakes:**
+          - $x \to 0$ — then $\sin(1/x)$ wiggles and $x \to 0$ squeezes it to 0.
+          - $\frac{\sin x}{x}$ at $\infty$ — squeezed to 0 (Q2).
+          - $\frac{1 - \cos x}{x}$ — that's 0 (Q4).
+
+          **Connects to:** the challenge.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: trig-limits
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'Rewrite $\dfrac{\sin(4x)}{x}$ so that it contains $\dfrac{\sin u}{u}$ with $u = 4x$.'
+        options:
+          - { text: '$4 \cdot \dfrac{\sin(4x)}{4x}$', correct: true }
+          - { text: '$\dfrac{1}{4} \cdot \dfrac{\sin(4x)}{4x}$', misconception: quotient-law-inverted }
+          - { text: '$\dfrac{\sin(4x)}{4x}$', misconception: trig-limit-drops-coefficient }
+          - { text: '$4\sin x \cdot \dfrac{1}{x}$', misconception: sin-distributes }
+        verify:
+          - { lhs: "sin(4*x)/x", rhs: "4 * sin(4*x)/(4*x)", vars: { x: [0.1, 2] } }
+        hints:
+          nudge: "To divide by 4x instead of x, what must you multiply by?"
+          partial: "1/x = 4 · 1/(4x)."
+        explanation: |
+          **Answer:** $4 \cdot \frac{\sin(4x)}{4x}$.
+
+          **Why:** Dividing by $4x$ instead of $x$ divides by an extra 4, so multiply by 4 to compensate. Then the limit is $4 \cdot 1$.
+
+          **Common mistakes:**
+          - $\frac{1}{4}$ — that compensates the wrong way.
+          - Dropping the 4 — that changes the value.
+          - $4\sin x$ — $\sin(4x) \ne 4\sin x$.
+
+          **Connects to:** Q3 — matching the inside.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l6.ch
+  type: graph-manipulator
+  title: "Close in on a trig limit"
+  concept: trig-limits
+  uses: [s3, s4]
+  params:
+    sets:
+      - { k: 2 }
+      - { k: 3 }
+      - { k: 4 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $\dfrac{\sin x}{x} \to 1$ as $x \to 0$. Drag $x$ toward 0 (zoom with $w$) until **every** point between $x$ and 0 lies within
+        $\varepsilon = 0.05$ of 1.
+      config:
+        f: "sin(x) / x"
+        view: { x: ["-w", "w"], y: ["1 - 1.3 * w^2 / 6 - 0.06", "1 + 0.06 + 0.1 * w"] }
+        controls:
+          - { name: x0, label: "x", min: -2, max: 2, step: 0.001, initial: 2, drag: true }
+          - { name: w, label: "zoom w", min: 0.05, max: 2.5, step: 0.05, initial: 2.5 }
+        overlays: { band: { y: 1, eps: 0.05, x: 0 } }
+      check: { expr: "x0 != 0 and maxDev(min(x0, 0), max(x0, 0), 1) < 0.05" }
+      feedback:
+        - { if: "x0 == 0", say: "x approaches 0 but never equals it — sin(0)/0 is undefined.", misconception: limit-equals-value }
+        - { if: "true", say: "Part of the curve between x and 0 is outside the band. Move x closer to 0." }
+      hints:
+        nudge: "Where does the curve leave the band?"
+        buildsOn: "From Q3: sin x / x → 1."
+        partial: "sin x / x ≈ 1 − x²/6, so |x| below about 0.5 works."
+      solution: { x0: 0.4, w: 0.6 }
+      explanation: |
+        $\frac{\sin x}{x} \approx 1 - \frac{x^2}{6}$ near 0, so the gap shrinks like $x^2$ — fast.
+    standard:
+      difficulty: 3
+      goal: |
+        Move the dashed line $y = L$ to $\lim_{x \to 0} \dfrac{\sin({{k}}x)}{x}$, then drag $x$ toward 0 until every point between $x$ and 0
+        is within $\varepsilon = 0.01$ of $L$.
+      config:
+        f: "sin(k*x) / x"
+        view: { x: ["-w", "w"], y: ["k - 1.3 * k^3 * w^2 / 6 - 0.05", "k + 0.05 + 0.2 * w"] }
+        controls:
+          - { name: L, min: 0, max: 6, step: 0.5, initial: 1 }
+          - { name: x0, label: "x", min: -1, max: 1, step: 0.001, initial: 1, drag: true }
+          - { name: w, label: "zoom w", min: 0.01, max: 1, step: 0.01, initial: 1 }
+        overlays: { band: { y: "L", eps: 0.01, x: 0 } }
+      check: { expr: "L == k and x0 != 0 and maxDev(min(x0, 0), max(x0, 0), L) < 0.01" }
+      feedback:
+        - { if: "L == 1", say: "The inside is kx, not x — the limit isn't 1.", misconception: trig-limit-ignores-inner }
+        - { if: "L != k", say: "Find the limit first: sin(kx)/x = k · sin(kx)/(kx)." }
+        - { if: "true", say: "L is right. Now get x close enough that the whole stretch fits in the band." }
+      hints:
+        nudge: "First the value of the limit, then the zoom."
+        buildsOn: "From Q3: sin(kx)/x → k."
+        partial: "sin({{k}}x)/x ≈ {{k}} − {{k^3}}x²/6: |x| below about √(0.06/{{k^3}})."
+      solution: { L: "k", x0: "0.7 * sqrt(0.06 / k^3)", w: 0.1 }
+      explanation: |
+        $\frac{\sin {{k}}x}{x} = {{k}} \cdot \frac{\sin {{k}}x}{ {{k}}x} \to {{k}}$; near 0 it's about ${{k}} - \frac{ {{k^3}} x^2}{6}$, so a
+        larger ${{k}}$ needs a smaller $x$.
+    harder:
+      difficulty: 4
+      goal: |
+        Move $y = L$ to $\lim_{x \to 0} \dfrac{1 - \cos({{k}}x)}{x^2}$, then get every point between $x$ and 0 within $\varepsilon = 0.01$ of $L$.
+      config:
+        f: "(1 - cos(k*x)) / x^2"
+        view: { x: ["-w", "w"], y: ["k^2/2 - 1.3 * k^4 * w^2 / 24 - 0.05", "k^2/2 + 0.05 + 0.2 * w"] }
+        controls:
+          - { name: L, min: 0, max: 10, step: 0.5, initial: 0.5 }
+          - { name: x0, label: "x", min: -1, max: 1, step: 0.001, initial: -1, drag: true }
+          - { name: w, label: "zoom w", min: 0.01, max: 1, step: 0.01, initial: 1 }
+        overlays: { band: { y: "L", eps: 0.01, x: 0 } }
+      check: { expr: "L == k^2/2 and x0 != 0 and maxDev(min(x0, 0), max(x0, 0), L) < 0.01" }
+      feedback:
+        - { if: "L == 0.5", say: "1/2 is the limit for cos(x) — here the inside is kx.", misconception: trig-limit-ignores-inner }
+        - { if: "L == k/2", say: "x² = u²/k², so the factor is k², not k.", misconception: trig-inner-not-squared }
+        - { if: "L != k^2/2", say: "Find the limit first: substitute u = kx." }
+        - { if: "true", say: "L is right. Now close in on 0." }
+      hints:
+        nudge: "Substitute u = {{k}}x."
+        buildsOn: "From Q4: (1 − cos u)/u² → 1/2."
+        partial: "The limit is {{k^2}}/2; near 0 the gap is about {{k^4}}x²/24."
+      solution: { L: "k^2/2", x0: "-0.7 * sqrt(0.24) / k^2", w: 0.1 }
+      explanation: |
+        $\frac{1 - \cos {{k}}x}{x^2} = {{k^2}} \cdot \frac{1 - \cos u}{u^2} \to \frac{ {{k^2}} }{2}$, with a gap of about $\frac{ {{k^4}} x^2}{24}$.
+
+summary:
+  keyTakeaways:
+    - "Squeeze: g ≤ f ≤ h with g, h → L forces f → L — ideal for bounded wiggles times something going to 0."
+    - "lim sin x / x = 1 and lim (1 − cos x)/x = 0 as x → 0, in radians."
+    - "Match the inside: sin(kx)/x → k; (1 − cos kx)/x² → k²/2."
+    - "At infinity, substitute u = 1/x to turn limits into ones at 0."
+  next: calc1.u1.l7

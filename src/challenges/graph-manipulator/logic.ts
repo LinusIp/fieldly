@@ -52,8 +52,10 @@ export const configSchema = z
         derivative: z.boolean().optional(),
         /** A(x) = ∫ from `from` to x of f; `at` names the control whose A-value is reported. */
         accumulation: z.strictObject({ from: numOrExpr, at: name.optional() }).optional(),
-        /** Horizontal band y = L ± ε, with an optional vertical line at x = a. */
-        band: z.strictObject({ y: numOrExpr, eps: numOrExpr, x: numOrExpr.optional() }).optional(),
+        /** Horizontal band y = L ± ε, with an optional vertical line at x = a and strip a ± dx (an ε–δ box). */
+        band: z
+          .strictObject({ y: numOrExpr, eps: numOrExpr, x: numOrExpr.optional(), dx: numOrExpr.optional() })
+          .optional(),
         /** A target curve (same mode as the plot) for matching challenges. */
         target: z
           .strictObject({
@@ -127,7 +129,7 @@ export interface Config {
   derivative: boolean;
   accumulation?: { from: number; at?: string };
   /** May name controls (e.g. a guessed limit L), so it is resolved per state. */
-  band?: { y: number | string; eps: number | string; x?: number | string };
+  band?: { y: number | string; eps: number | string; x?: number | string; dx?: number | string };
   target?: { f?: string; x?: string; y?: string; r?: string };
   data: [number, number][];
   vars: Scope;
@@ -227,6 +229,7 @@ export function model(config: Config, values: Record<string, number>) {
         y: num(config.band.y),
         eps: num(config.band.eps),
         x: config.band.x !== undefined ? num(config.band.x) : undefined,
+        dx: config.band.dx !== undefined ? num(config.band.dx) : undefined,
       }
     : undefined;
   return { scope, f, fp, A, area, main, target, view, band };
