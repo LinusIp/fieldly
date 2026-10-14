@@ -4,6 +4,8 @@ export type Box = 1 | 2 | 3 | 4 | 5;
 export interface ReviewItem {
   box: Box;
   due: string; // ISO timestamp
+  /** Parameter seed the question was last shown with, so review can pick different numbers. */
+  seed?: number;
 }
 export type ReviewQueue = Record<string, ReviewItem>;
 
@@ -19,13 +21,25 @@ function dueFrom(now: Date, box: Box): string {
 }
 
 /** After a step is answered in a lesson: a score below 0.6 puts the item in box 1. */
-export function recordLessonAnswer(queue: ReviewQueue, key: string, score: number, now: Date): ReviewQueue {
+export function recordLessonAnswer(
+  queue: ReviewQueue,
+  key: string,
+  score: number,
+  now: Date,
+  seed?: number,
+): ReviewQueue {
   if (score >= ENTER_THRESHOLD) return queue;
-  return { ...queue, [key]: { box: 1, due: dueFrom(now, 1) } };
+  return { ...queue, [key]: { box: 1, due: dueFrom(now, 1), seed } };
 }
 
 /** After a review answer: ≥ 0.8 moves up a box (past box 5 the item retires); otherwise back to box 1. */
-export function recordReviewAnswer(queue: ReviewQueue, key: string, score: number, now: Date): ReviewQueue {
+export function recordReviewAnswer(
+  queue: ReviewQueue,
+  key: string,
+  score: number,
+  now: Date,
+  seed?: number,
+): ReviewQueue {
   const item = queue[key];
   const next = { ...queue };
   if (score >= PROMOTE_THRESHOLD) {
@@ -34,9 +48,9 @@ export function recordReviewAnswer(queue: ReviewQueue, key: string, score: numbe
       delete next[key];
       return next;
     }
-    next[key] = { box: box as Box, due: dueFrom(now, box as Box) };
+    next[key] = { box: box as Box, due: dueFrom(now, box as Box), seed };
   } else {
-    next[key] = { box: 1, due: dueFrom(now, 1) };
+    next[key] = { box: 1, due: dueFrom(now, 1), seed };
   }
   return next;
 }

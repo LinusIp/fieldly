@@ -1,8 +1,299 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
+import { Markdown } from '../../components/Markdown';
+import { Badge, Button, ErrorState, Loading } from '../../components/ui';
+import { findLesson, loadSubject, useContentIndex } from '../../content/loader';
+import type { SubjectContent } from '../../content/types';
+import { dueCount } from '../../engine/review';
+import { conceptStatus, type ConceptStatus } from '../../engine/scoring';
+import {
+  downloadProgress,
+  parseImport,
+  summarizeProgress,
+  type ImportSummary,
+} from '../../storage/exportImport';
+import { streak, useProgress } from '../../storage/progress';
+import type { Progress } from '../../storage/schema';
+
+const STATUS_TONE: Record<ConceptStatus, 'ok' | 'warn' | 'bad'> = {
+  Strong: 'ok',
+  Developing: 'warn',
+  'Needs work': 'bad',
+};
+
 export default function ProfilePage() {
+  const { data: index, error } = useContentIndex();
+  const progress = useProgress((s) => s.progress);
+  const [subjects, setSubjects] = useState<Map<string, SubjectContent> | null>(null);
+
+  useEffect(() => {
+    if (!index) return;
+    let alive = true;
+    Promise.all(index.subjects.map((s) => loadSubject(s.id).then((c) => [s.id, c] as const))).then(
+      (pairs) => alive && setSubjects(new Map(pairs)),
+      () => alive && setSubjects(new Map()),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [index]);
+
+  if (error) return <ErrorState error={error} />;
+  if (!index || !subjects) return <Loading what="Loading your profile" />;
+
+  const s = summarizeProgress(progress);
+  const days = streak(progress.activity);
+  const due = dueCount(progress.review, new Date());
+
+  // Concept ratings grouped by subject (a concept belongs to the subject whose concepts.yaml lists it).
+  const groups = index.subjects
+    .map((subj) => {
+      const content = subjects.get(subj.id);
+      const rows = (content?.concepts ?? [])
+        .filter((c) => progress.ratings.concept[c.id])
+        .map((c) => ({ ...c, ...progress.ratings.concept[c.id] }));
+      return { subj, rows };
+    })
+    .filter((g) => g.rows.length > 0);
+
+  const misconceptions = Object.entries(progress.misconceptions)
+    .sort((a, b) => b[1].count - a[1].count || b[1].lastSeen.localeCompare(a[1].lastSeen))
+    .slice(0, 8)
+    .map(([id, m]) => {
+      for (const content of subjects.values()) {
+        const found = content.misconceptions.find((x) => x.id === id);
+        if (found) return { id, ...m, info: found };
+      }
+      return { id, ...m, info: undefined };
+    });
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-2xl font-semibold">Profile</h1>
-      <p className="mt-2 text-muted">This page is being built and is not available yet.</p>
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+      <h1 className="text-2xl font-semibold">Your progress</h1>
+
+      <section aria-label="Totals" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {[
+          ['Lessons completed', s.lessonsCompleted],
+          ['Stars', s.stars],
+          ['Questions answered', s.questionsAnswered],
+          ['Day streak', days],
+          ['Review due', due],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-border bg-surface p-4">
+            <div className="text-2xl font-semibold">{value}</div>
+            <div className="text-xs text-muted">{label}</div>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-semibold">Concepts</h2>
+        <p className="text-sm text-muted">
+          A rating appears once you've answered at least 3 questions on a concept. Strong ≥ 1250 · Developing
+          1050–1249 · Needs work &lt; 1050.
+        </p>
+        {groups.length === 0 && (
+          <p className="mt-3 text-sm text-muted">Answer some questions to see your concepts here.</p>
+        )}
+        {groups.map(({ subj, rows }) => (
+          <div key={subj.id} className="mt-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{subj.title}</h3>
+            <ul className="mt-2 space-y-2" data-testid={`concepts-${subj.id}`}>
+              {rows.map((c) => {
+                const st = conceptStatus(c.r, c.n);
+                const pct = Math.max(2, Math.min(100, ((c.r - 800) / 800) * 100));
+                return (
+                  <li
+                    key={c.id}
+                    className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[14rem_1fr_auto]"
+                  >
+                    <span className="truncate">{c.title}</span>
+                    <span className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${pct}%`,
+                          background: st ? `var(--c-${STATUS_TONE[st]})` : 'var(--c-border)',
+                        }}
+                      />
+                    </span>
+                    <span className="w-36 text-right">
+                      {st ? (
+                        <Badge tone={STATUS_TONE[st]}>
+                          {st} · {Math.round(c.r)}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted">{c.n} of 3 answers</span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-xl border border-border bg-surface p-5">
+        <h2 className="font-semibold">Misconceptions you've met most</h2>
+        {misconceptions.length === 0 ? (
+          <p className="mt-1 text-sm text-muted">None yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {misconceptions.map((m) => (
+              <li key={m.id} className="rounded-lg bg-bg p-3 text-sm">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-medium">
+                    <Markdown inline>{m.info?.short ?? m.id}</Markdown>
+                  </span>
+                  <span className="text-xs text-muted">
+                    {m.count}× · last {new Date(m.lastSeen).toLocaleDateString()}
+                  </span>
+                </div>
+                {m.info && (
+                  <div className="mt-1 text-muted">
+                    <Markdown>{m.info.explain}</Markdown>
+                  </div>
+                )}
+                {m.info && m.info.lessons.length > 0 && (
+                  <div className="mt-2 text-xs">
+                    Revisit:{' '}
+                    {m.info.lessons.map((l, i) => {
+                      const loc = findLesson(index, l);
+                      return (
+                        <span key={l}>
+                          {i > 0 && ' · '}
+                          <Link to={`/l/${l}`} className="text-accent underline">
+                            {loc?.lesson.title ?? l}
+                          </Link>
+                          {loc && !loc.lesson.available && ' (coming soon)'}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <BackupSection progress={progress} />
     </div>
+  );
+}
+
+function BackupSection({ progress }: { progress: Progress }) {
+  const replace = useProgress((s) => s.replace);
+  const reset = useProgress((s) => s.reset);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pending, setPending] = useState<{ progress: Progress; summary: ImportSummary } | null>(null);
+  const [message, setMessage] = useState('');
+  const [confirmText, setConfirmText] = useState('');
+
+  const onFile = async (file: File) => {
+    const r = parseImport(await file.text());
+    if (r.ok) {
+      setPending({ progress: r.progress, summary: r.summary });
+      setMessage('');
+    } else {
+      setPending(null);
+      setMessage(r.error);
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-border bg-surface p-5" aria-labelledby="backup-h">
+      <h2 id="backup-h" className="font-semibold">
+        Back up, restore or reset
+      </h2>
+      <p className="text-sm text-muted">
+        Your progress lives only in this browser. Export it to keep a copy or move it to another device.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <Button onClick={() => downloadProgress(progress)} data-testid="export">
+          Export progress
+        </Button>
+        <Button variant="secondary" onClick={() => fileRef.current?.click()} data-testid="import">
+          Import progress…
+        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          className="sr-only"
+          data-testid="import-file"
+          aria-label="Choose a progress file to import"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onFile(f);
+            e.target.value = '';
+          }}
+        />
+      </div>
+
+      <div aria-live="polite">
+        {message && <p className="mt-3 rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">{message}</p>}
+        {pending && (
+          <div
+            className="mt-3 rounded-lg border border-border bg-bg p-4 text-sm"
+            data-testid="import-summary"
+          >
+            <p className="font-semibold">Replace your current progress with this file?</p>
+            <ul className="mt-1 list-disc pl-5 text-muted">
+              <li>Started {new Date(pending.summary.createdAt).toLocaleDateString()}</li>
+              <li>
+                {pending.summary.lessonsCompleted} lessons completed ({pending.summary.stars} stars),{' '}
+                {pending.summary.lessonsStarted} started
+              </li>
+              <li>{pending.summary.questionsAnswered} questions answered</li>
+              <li>{pending.summary.reviewItems} questions in the review queue</li>
+            </ul>
+            <div className="mt-3 flex gap-3">
+              <Button
+                onClick={() => {
+                  replace(pending.progress);
+                  setPending(null);
+                  setMessage('');
+                }}
+                data-testid="import-confirm"
+              >
+                Replace my progress
+              </Button>
+              <Button variant="secondary" onClick={() => setPending(null)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <details className="mt-5">
+        <summary className="cursor-pointer text-sm font-semibold text-bad">Reset all progress…</summary>
+        <div className="mt-3 space-y-2 text-sm">
+          <p>This deletes every rating, star, answer and review item in this browser. It can't be undone.</p>
+          <label className="block">
+            Type <strong>RESET</strong> to confirm:
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              className="ml-2 rounded border border-border bg-surface px-2 py-1"
+              data-testid="reset-input"
+            />
+          </label>
+          <Button
+            variant="danger"
+            disabled={confirmText !== 'RESET'}
+            onClick={() => {
+              reset();
+              setConfirmText('');
+            }}
+            data-testid="reset"
+          >
+            Reset progress
+          </Button>
+        </div>
+      </details>
+    </section>
   );
 }

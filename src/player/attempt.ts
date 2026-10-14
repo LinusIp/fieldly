@@ -190,7 +190,7 @@ export function applyAnswer(
       [key]: { lastScore: r.score, attempts: (prevQ?.attempts ?? 0) + 1, version: r.question.version ?? 1 },
     },
     misconceptions,
-    review: recordLessonAnswer(progress.review, key, r.score, now),
+    review: recordLessonAnswer(progress.review, key, r.score, now, attempt.seed),
     activity: { ...progress.activity, [day]: (progress.activity[day] ?? 0) + 1 },
   };
 

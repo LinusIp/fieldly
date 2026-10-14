@@ -34,3 +34,7 @@ One line each: date — decision — reason.
 - 2026-10-14 — phys2 U3 challenges use only the two tools §16.4 lists for the unit: capacitors (l7) use the transient plotter's C and V sliders for charge/energy goals — the circuit builder has no capacitor element.
 - 2026-10-14 — `template` treats `{{{x}}}` as a TeX brace around `{{x}}` — needed for `\dfrac{{{R2}}}{…}` in content.
 - 2026-10-14 — CI also runs the Playwright e2e suite before deploying — §17 requires e2e to pass in CI; the §6.3 workflow doesn't list it.
+- 2026-10-14 — Review entries store the parameter seed they were last shown with, and review picks a seed whose parameters differ — §3.3 promises new numbers, which a random seed only gives 2 times in 3 with three param sets.
+- 2026-10-14 — Review answers update concept/subject ratings and question history like lesson answers — the student's ability is the same whichever mode they answer in.
+- 2026-10-14 — Concept ratings and misconception counts are keyed by id only, not subject-prefixed — §12's shape; ids are slugs chosen to be unique across subjects.
+- 2026-10-14 — Export/import/reset live on the profile page; reset needs the word RESET typed, import shows a summary before replacing — §10.1 and §12.
