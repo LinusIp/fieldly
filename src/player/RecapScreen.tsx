@@ -20,15 +20,15 @@ function scoreWord(s: number): string {
 export function misconceptionsMet(
   answers: Record<string, { seen?: string[]; misconception?: string }>,
   challenges: Record<string, { seen?: string[] }>,
-): string[] {
-  const all = [
-    ...Object.values(answers).flatMap((r) => [
-      ...(r.seen ?? []),
-      ...(r.misconception ? [r.misconception] : []),
-    ]),
-    ...Object.values(challenges).flatMap((c) => c.seen ?? []),
-  ];
-  return [...new Set(all)];
+  where: (key: string) => string,
+): { id: string; where: string[] }[] {
+  const out = new Map<string, Set<string>>();
+  const add = (id: string, at: string) => out.set(id, (out.get(id) ?? new Set()).add(at));
+  for (const [key, r] of Object.entries(answers))
+    for (const id of new Set([...(r.seen ?? []), ...(r.misconception ? [r.misconception] : [])]))
+      add(id, where(key));
+  for (const [key, c] of Object.entries(challenges)) for (const id of c.seen ?? []) add(id, where(key));
+  return [...out].map(([id, at]) => ({ id, where: [...at] }));
 }
 
 function Card({ title, children, testId }: { title: string; children: ReactNode; testId?: string }) {
@@ -70,7 +70,17 @@ export function RecapScreen({ screen }: { screen: Recap }) {
     });
 
   const steps = attempt.sequence.filter((id) => isStep(map.get(id)));
-  const met = misconceptionsMet(attempt.answers, attempt.challenges);
+  // Where each answer key came from: "Q1", a challenge's title, "Explore" (an ask task), "Hook".
+  const whereOf = (key: string) => {
+    const screenId = key.split('#')[0];
+    const e = map.get(screenId);
+    if (isStep(e)) return pl.stepLabel(screenId);
+    if (e?.type === 'challenge') return e.title;
+    if (e?.type === 'explore') return 'Explore';
+    if (e?.type === 'hook') return 'Hook';
+    return screenId;
+  };
+  const met = misconceptionsMet(attempt.answers, attempt.challenges, whereOf);
   const subject = index.subjects.find((s) => s.id === lctx.subjectId);
   const lessons = subject ? allLessons(subject) : [];
   const nextId = screen.next ?? lessons[lessons.findIndex((l) => l.id === lesson.id) + 1]?.id;
@@ -243,10 +253,11 @@ export function RecapScreen({ screen }: { screen: Recap }) {
           <ul className="flex flex-col gap-2">
             {met.map((m) => (
               <li
-                key={m}
+                key={m.id}
                 className="rounded-md border-2 border-outline bg-wrong-tint px-3 py-2 font-semibold"
+                data-misconception={m.id}
               >
-                {pl.misconceptionShort(m) ?? m}
+                {pl.misconceptionName(m.id)} ({m.where.join(', ')})
               </li>
             ))}
           </ul>

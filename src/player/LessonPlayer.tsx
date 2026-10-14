@@ -191,6 +191,7 @@ export function LessonPlayer({
     update,
     advance,
     misconceptionShort: (id) => misMap.get(id)?.short,
+    misconceptionName: (id) => misMap.get(id)?.name ?? misMap.get(id)?.short ?? id,
     conceptTitle: (slug) => conceptMap.get(slug) ?? slug,
     stepLabel,
   };
@@ -211,7 +212,7 @@ export function LessonPlayer({
   return (
     <PlayerContext.Provider value={ctx}>
       <div
-        className="pb-10"
+        className="overflow-x-clip pb-10"
         data-testid="lesson-player"
         data-screen={shownEntry.id}
         data-screen-type={shownEntry.type}

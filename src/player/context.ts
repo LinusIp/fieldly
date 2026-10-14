@@ -21,6 +21,8 @@ export interface PlayerCtx {
   /** Leave the current screen (or, when re-reading, step forward through the history). */
   advance(): void;
   misconceptionShort(id: string): string | undefined;
+  /** The misconception's name for lists ("Multiplied V and R instead of dividing"); its short text if unnamed. */
+  misconceptionName(id: string): string;
   conceptTitle(slug: string): string;
   /** "Q3", "Extra practice", "Bonus" … for a step id. */
   stepLabel(id: string): string;

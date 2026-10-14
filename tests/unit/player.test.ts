@@ -350,3 +350,22 @@ describe('player helpers', () => {
     }
   });
 });
+
+describe('recap: misconceptions met (§8.1)', () => {
+  it('names each once with every place it came up, first tries and challenge feedback included', async () => {
+    const { misconceptionsMet } = await import('../../src/player/RecapScreen');
+    const met = misconceptionsMet(
+      {
+        s1: { seen: ['ohm-multiply'], misconception: undefined },
+        s3: { seen: ['ohm-multiply', 'double-halving'], misconception: 'double-halving' },
+      },
+      { ch1: { seen: ['each-gets-full-voltage'] } },
+      (k) => ({ s1: 'Q1', s3: 'Q3', ch1: 'Series by design' })[k] ?? k,
+    );
+    expect(met).toEqual([
+      { id: 'ohm-multiply', where: ['Q1', 'Q3'] },
+      { id: 'double-halving', where: ['Q3'] },
+      { id: 'each-gets-full-voltage', where: ['Series by design'] },
+    ]);
+  });
+});

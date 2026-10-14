@@ -3,6 +3,7 @@ import { formatNumber } from '../../engine/format';
 import type { InteractiveViewProps } from '../types';
 import {
   KIND_NAME,
+  meterText,
   layoutNetlist,
   nextLabel,
   pkey,
@@ -24,6 +25,8 @@ import { solveCircuit, type ElementKind, type Netlist, type SolveResult } from '
 
 const CELL = 120;
 const PAD = 46;
+/** Room right of the last column for part labels and reading badges (they sit beside vertical parts). */
+const PAD_RIGHT = 150;
 const PAD_LEFT = 104;
 const EPS = 1e-6;
 /** A wire's stand-in resistance when computing the current along each wire (display only). */
@@ -253,9 +256,9 @@ function Part({
     : my - 30;
   let readout: string | null = null;
   if (showReading && reading && el.kind === 'ammeter')
-    readout = Number.isNaN(reading.I) ? '— A' : `${formatNumber(reading.I, { sig: 3 })} A`;
+    readout = Number.isNaN(reading.I) ? '— A' : `${meterText(reading.I)} A`;
   if (showReading && reading && el.kind === 'voltmeter')
-    readout = Number.isNaN(reading.V) ? '— V' : `${formatNumber(reading.V, { sig: 3 })} V`;
+    readout = Number.isNaN(reading.V) ? '— V' : `${meterText(reading.V)} V`;
   const carries = live && flow && el.kind !== 'voltmeter' && el.kind !== 'capacitor';
   return (
     <g
@@ -574,7 +577,7 @@ export function CircuitView({
           if (validSegment(config, a, b)) segments.push([a, b]);
       }
 
-  const W = PAD_LEFT + PAD + cols * CELL;
+  const W = PAD_LEFT + PAD_RIGHT + cols * CELL;
   const H = PAD * 2 + rows * CELL + 10;
   const live = result.isShort
     ? 'Short circuit! A wire joins the battery’s terminals.'
@@ -605,7 +608,7 @@ export function CircuitView({
           <svg
             viewBox={`0 0 ${W} ${H}`}
             className="h-auto w-full touch-manipulation select-none"
-            style={{ maxWidth: Math.min(760, W * 1.1), maxHeight: 460 }}
+            style={{ maxWidth: Math.min(880, W), maxHeight: 480 }}
             role="img"
             aria-label="Circuit board"
             data-testid="circuit-board"
@@ -949,8 +952,8 @@ function ListEditor({
                 {KIND_NAME[e.kind]} {e.label}
                 {e.resistance !== undefined ? ` (${formatNumber(e.resistance)} Ω)` : ''} from{' '}
                 {pointName(pkey(e.a))} to {pointName(pkey(e.b))}
-                {e.kind === 'ammeter' && `, reads ${formatNumber(result.elements[e.label]?.I ?? 0)} A`}
-                {e.kind === 'voltmeter' && `, reads ${formatNumber(result.elements[e.label]?.V ?? 0)} V`}
+                {e.kind === 'ammeter' && `, reads ${meterText(result.elements[e.label]?.I ?? 0)} A`}
+                {e.kind === 'voltmeter' && `, reads ${meterText(result.elements[e.label]?.V ?? 0)} V`}
               </span>
               {e.kind === 'switch' && (
                 <button

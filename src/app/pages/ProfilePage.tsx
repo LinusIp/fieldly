@@ -146,7 +146,7 @@ export default function ProfilePage() {
               <li key={m.id} className="rounded-lg bg-surface-sunk p-3 text-sm">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">
-                    <Markdown inline>{m.info?.short ?? m.id}</Markdown>
+                    <Markdown inline>{m.info?.name ?? m.info?.short ?? m.id}</Markdown>
                   </span>
                   <span className="text-xs text-ink-2">
                     met {m.count} time{m.count === 1 ? '' : 's'}, last on{' '}

@@ -2,12 +2,14 @@
 # `explain` is shown in the summary and on the profile page.
 
 - id: ohm-multiply
+  name: "Multiplied V and R instead of dividing"
   short: "This is what you get by multiplying V and R."
   explain: |
     More resistance means *less* current, so $R$ must be in the denominator: $I = V/R$.
   lessons: [phys2.u3.l2]
 
 - id: ohm-inverted
+  name: "Divided R by V (the fraction upside down)"
   short: "The fraction is upside down — that's R ÷ V."
   explain: |
     Rearranging $V = IR$ for $I$ gives $I = V/R$, not $R/V$. A quick check: doubling the
@@ -15,6 +17,7 @@
   lessons: [phys2.u3.l2]
 
 - id: current-equals-voltage
+  name: "Took the current to equal the voltage"
   short: "That copies the voltage — volts and amperes measure different things."
   explain: |
     Voltage is energy per unit charge (V = J/C); current is charge per second (A = C/s).
@@ -22,6 +25,7 @@
   lessons: [phys2.u3.l1, phys2.u3.l2]
 
 - id: current-used-up
+  name: "Thought a resistor uses up current"
   short: "Current isn't used up by a resistor — energy is."
   explain: |
     Charge is conserved: every coulomb entering a resistor leaves it. What the resistor
@@ -29,6 +33,7 @@
   lessons: [phys2.u3.l1, phys2.u3.l2]
 
 - id: battery-constant-current
+  name: "Thought a battery supplies a fixed current"
   short: "A battery fixes the voltage, not the current."
   explain: |
     An ideal battery keeps the voltage across its terminals constant. How much current flows
@@ -36,6 +41,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l4]
 
 - id: square-law
+  name: "Treated current as a square law in voltage"
   short: "That treats the relationship as a square law — it is only first power here."
   explain: |
     With $V$ fixed, $I = V/R$ and $P = V^2/R$ both depend on $R$ to the *first* power, so
@@ -44,6 +50,7 @@
   lessons: [phys2.u3.l2]
 
 - id: series-no-change
+  name: "Thought a series resistor changes nothing"
   short: "Adding a resistor in series always changes the total resistance."
   explain: |
     Every resistor in a series chain adds its resistance: $R_{tot} = R_1 + R_2 + \dots$
@@ -51,6 +58,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l3]
 
 - id: series-parallel-confusion
+  name: "Mixed up the series and parallel rules"
   short: "That's the rule for the other arrangement — series and parallel are swapped."
   explain: |
     **Series** (one path): resistances add, $R_{tot} = R_1 + R_2$, and the same current flows
@@ -59,6 +67,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l3]
 
 - id: multiply-resistances
+  name: "Multiplied series resistances instead of adding"
   short: "Resistances in series add; they don't multiply."
   explain: |
     The charge pushes through one resistor and then the next, so the oppositions add:
@@ -66,6 +75,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l3]
 
 - id: double-halving
+  name: "Halved the current once per resistor"
   short: "The current halves once, not once per resistor."
   explain: |
     Two equal resistors in series double the total resistance, which halves the current —
@@ -73,6 +83,7 @@
   lessons: [phys2.u3.l2]
 
 - id: each-gets-full-voltage
+  name: "Gave each series resistor the full battery voltage"
   short: "In series the battery's voltage is shared between the resistors."
   explain: |
     The voltage drops across series resistors add up to the battery voltage (the loop rule).
@@ -80,6 +91,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l3]
 
 - id: current-voltage-confusion
+  name: "Reported a current as a voltage"
   short: "That number is the current, in amperes — not a voltage."
   explain: |
     Keep track of units: $V/R$ is a current (A); $IR$ is a voltage (V). Writing the unit
@@ -100,12 +112,14 @@
   lessons: [phys2.u3.l2]
 
 - id: power-is-current
+  name: "Gave the current as the power"
   short: "That's the current (in A), not the power."
   explain: |
     $V/R$ is the current. Power needs one more factor: $P = VI = V^2/R$.
   lessons: [phys2.u3.l2]
 
 - id: power-formula-mixup
+  name: "Used V × R for power instead of V²/R"
   short: "Power is V²/R, not V × R — more resistance gives less power at fixed V."
   explain: |
     The three equivalent forms are $P = VI = I^2R = V^2/R$. With the voltage fixed, a bigger
@@ -113,12 +127,14 @@
   lessons: [phys2.u3.l2]
 
 - id: power-equals-voltage
+  name: "Gave the voltage as the power"
   short: "That's the voltage, not the power."
   explain: |
     Power depends on both voltage and current: $P = VI$. The voltage alone is not a power.
   lessons: [phys2.u3.l2]
 
 - id: power-proportional-R
+  name: "Thought power rises with resistance at a fixed voltage"
   short: "With the voltage fixed, power goes *down* as resistance goes up."
   explain: |
     At fixed $V$, $P = V^2/R$, so power is inversely proportional to $R$. (It's only at fixed
@@ -126,6 +142,7 @@
   lessons: [phys2.u3.l2]
 
 - id: power-fixed-by-battery
+  name: "Thought a battery delivers a fixed power"
   short: "A battery fixes the voltage; the power depends on what's connected."
   explain: |
     The power drawn from an ideal battery is $P = V^2/R_{tot}$. Change the circuit and the
@@ -133,6 +150,7 @@
   lessons: [phys2.u3.l2]
 
 - id: more-resistors-more-power
+  name: "Thought more series resistance means more power"
   short: "Extra series resistance lowers the total power, it doesn't raise it."
   explain: |
     In series, extra resistors raise $R_{tot}$, which lowers the current and the total power
@@ -140,6 +158,7 @@
   lessons: [phys2.u3.l2]
 
 - id: forgot-total-R
+  name: "Kept the old resistance after the circuit changed"
   short: "You squared the smaller current but kept the old resistance."
   explain: |
     If you use $P = I^2R$, use the *new* current and the *new* total resistance together.
@@ -147,6 +166,7 @@
   lessons: [phys2.u3.l2]
 
 - id: short-means-no-current
+  name: "Thought a short stops the whole circuit"
   short: "A short across one resistor doesn't stop the whole circuit."
   explain: |
     A wire across a component gives the current a zero-resistance path around it. That
@@ -161,6 +181,7 @@
   lessons: [phys2.u3.l2]
 
 - id: parallel-one-branch
+  name: "Counted only one parallel branch"
   short: "That's the current in one branch only — the battery supplies both."
   explain: |
     In parallel, the current from the battery splits between the branches and recombines.
@@ -168,6 +189,7 @@
   lessons: [phys2.u3.l2, phys2.u3.l3]
 
 - id: resistance-means-more-work
+  name: "Thought more resistance means more power"
   short: "More resistance in the path means less current and less power, not more."
   explain: |
     It is tempting to think a resistor "uses" more energy when it resists more. But with a
@@ -175,6 +197,7 @@
   lessons: [phys2.u3.l2]
 
 - id: wrong-baseline
+  name: "Compared against the wrong starting circuit"
   short: "That uses the parallel-vs-series factor, but the baseline here is the single resistor."
   explain: |
     Always check what you are comparing against. A ratio between two circuits only applies
@@ -182,6 +205,7 @@
   lessons: [phys2.u3.l2]
 
 - id: current-takes-easiest-path
+  name: "Thought current picks the easiest path in a single loop"
   short: "With only one path, the current can't choose — it goes through everything."
   explain: |
     "Current takes the easiest path" is only meaningful at a junction, and even there current
@@ -1109,54 +1133,63 @@
 
 # ── phys2.u3.l2: Ohm's law and electrical power (reference lesson) ──
 - id: parallel-gets-more
+  name: "Gave a parallel branch the full current"
   short: "Each parallel branch carries only part of the current that feeds it."
   explain: |
     The current splits at the junction; a resistor carrying all of it dissipates more (P = I²R).
   lessons: [phys2.u3.l2]
 
 - id: ohm-rearrange
+  name: "Rearranged V = IR wrongly"
   short: "Rearrange V = IR carefully: V is already on its own."
   explain: |
     V = IR; I = V/R; R = V/I.
   lessons: [phys2.u3.l2]
 
 - id: computed-power-instead
+  name: "Computed the power instead of the resistance"
   short: "V × I is the power in watts, not the resistance."
   explain: |
     Resistance is R = V/I.
   lessons: [phys2.u3.l2]
 
 - id: largest-only
+  name: "Counted only the largest series resistor"
   short: "In series every resistor adds to the total, not just the largest."
   explain: |
     R_tot = R₁ + R₂ + R₃.
   lessons: [phys2.u3.l2]
 
 - id: average-resistance
+  name: "Averaged parallel resistances"
   short: "Parallel resistance is not the average — it is smaller than the smallest resistor."
   explain: |
     1/R = 1/R₁ + 1/R₂, or product over sum for two.
   lessons: [phys2.u3.l2]
 
 - id: power-rearrange
+  name: "Rearranged P = VI as V/P"
   short: "From P = VI, the current is I = P/V — not V/P."
   explain: |
     Check the units: watts ÷ volts = amperes.
   lessons: [phys2.u3.l2]
 
 - id: divider-swapped
+  name: "Used the other resistor of the divider"
   short: "That is the voltage across the other resistor."
   explain: |
     In series, each resistor gets V × (its R) / R_tot — the bigger resistor gets the bigger share.
   lessons: [phys2.u3.l2]
 
 - id: equal-split
+  name: "Split the voltage equally between unequal parts"
   short: "The split is equal only when the parts are identical."
   explain: |
     Series voltages and parallel currents divide in proportion to resistance (or its inverse).
   lessons: [phys2.u3.l2]
 
 - id: parallel-dimmer
+  name: "Thought parallel bulbs are dimmer"
   short: "Bulbs in parallel each get the full battery voltage, so each is as bright as a single bulb."
   explain: |
     It is series bulbs that share the voltage and glow dimmer.

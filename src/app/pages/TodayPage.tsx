@@ -1,9 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import {
   Badge,
   buttonClass,
   ChartIcon,
-  Chip,
   ErrorState,
   Loading,
   ProgressBattery,
@@ -12,8 +12,8 @@ import {
   StreakPill,
 } from '../../components/ui';
 import { FEATURES } from '../../config';
-import { allLessons, findLesson, useContentIndex } from '../../content/loader';
-import type { ContentIndex } from '../../content/types';
+import { allLessons, findLesson, loadSubject, useContentIndex } from '../../content/loader';
+import { nsId, type ContentIndex } from '../../content/types';
 import { isDue } from '../../engine/memory';
 import { streakNow, xpToday } from '../../engine/motivation';
 import { useProgress } from '../../storage/progress';
@@ -27,17 +27,80 @@ function nextLesson(index: ContentIndex, progress: Progress) {
   return undefined;
 }
 
-/** "series-resistance" → "Series resistance". */
-function titleOf(conceptKey: string): string {
-  const slug = conceptKey.split('/').pop() ?? conceptKey;
-  const t = slug.replace(/-/g, ' ');
-  return t.charAt(0).toUpperCase() + t.slice(1);
+/** Concept titles from the subjects' concepts.yaml, keyed "<subject>/<slug>" (loaded on demand). */
+function useConceptTitles(keys: string[]): Map<string, string> {
+  const subjects = [...new Set(keys.map((k) => k.split('/')[0]))].sort().join(',');
+  const [titles, setTitles] = useState(() => new Map<string, string>());
+  useEffect(() => {
+    if (!subjects) return;
+    let alive = true;
+    Promise.all(subjects.split(',').map((id) => loadSubject(id).catch(() => null))).then((list) => {
+      if (!alive) return;
+      const m = new Map<string, string>();
+      for (const sc of list) for (const c of sc?.concepts ?? []) if (sc) m.set(nsId(sc.id, c.id), c.title);
+      setTitles(m);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [subjects]);
+  return titles;
+}
+
+/** The first playable lesson that teaches a concept, to review it from. */
+function lessonFor(index: ContentIndex, key: string): string | undefined {
+  const [sid, slug] = key.split('/');
+  const subject = index.subjects.find((s) => s.id === sid);
+  return subject ? allLessons(subject).find((l) => l.available && l.concepts.includes(slug))?.id : undefined;
+}
+
+function ConceptLinks({
+  keys,
+  titles,
+  index,
+}: {
+  keys: string[];
+  titles: Map<string, string>;
+  index: ContentIndex;
+}) {
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {keys.map((k) => {
+        const lesson = lessonFor(index, k);
+        const title = titles.get(k) ?? '…';
+        const cls =
+          'inline-flex min-h-[44px] items-center rounded-full border-2 border-outline bg-surface-tint px-4 text-small font-semibold text-ink no-underline';
+        return (
+          <li key={k}>
+            {lesson ? (
+              <Link
+                to={`/l/${lesson}`}
+                className={`${cls} hover:bg-surface`}
+                aria-label={`${title}: open the lesson`}
+              >
+                {title}
+              </Link>
+            ) : (
+              <span className={cls}>{title}</span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 /** `#/`: Today (§10.1): daily goal, continue lesson, daily practice and puzzle, fading concepts. */
 export function TodayPage() {
   const { data: index, error } = useContentIndex();
   const progress = useProgress((s) => s.progress);
+  const now = new Date();
+  // Two reasons a concept comes back (§3.3): its recall estimate has dropped below 0.8 ("fading"),
+  // or a missed step that builds on it marked it due now ("due for review").
+  const dueNow = Object.entries(progress.memory).filter(([, m]) => isDue(m, now));
+  const markedDue = dueNow.filter(([, m]) => m.dueOverride).map(([k]) => k);
+  const fading = dueNow.filter(([, m]) => !m.dueOverride).map(([k]) => k);
+  const titles = useConceptTitles([...markedDue, ...fading]);
   if (error) return <ErrorState error={error} />;
   if (!index) return <Loading what="Loading" />;
 
@@ -51,10 +114,6 @@ export function TodayPage() {
   const today = xpToday(progress);
   const left = Math.max(0, goal - today);
   const streak = streakNow(progress);
-  const now = new Date();
-  const fading = Object.entries(progress.memory)
-    .filter(([, m]) => isDue(m, now))
-    .map(([k]) => k);
   const unitNumber = next ? next.subject.units.findIndex((u) => u.id === next.unit.id) + 1 : 0;
 
   return (
@@ -151,13 +210,25 @@ export function TodayPage() {
             Nothing yet. Concepts you’ve practised show up here when they’re due for a refresh.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {fading.map((k) => (
-              <Chip key={k}>{titleOf(k)}</Chip>
-            ))}
-          </div>
+          <ConceptLinks keys={fading} titles={titles} index={index} />
         )}
       </section>
+
+      {markedDue.length > 0 && (
+        <section
+          className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-4"
+          aria-labelledby="due-h"
+          data-testid="due-for-review"
+        >
+          <h2 id="due-h" className="text-h3">
+            Due for review
+          </h2>
+          <p className="text-small font-semibold text-ink-2">
+            A question that builds on these went wrong, so they’re worth a quick look before moving on.
+          </p>
+          <ConceptLinks keys={markedDue} titles={titles} index={index} />
+        </section>
+      )}
 
       <Link to="/subjects" className={buttonClass('secondary', 'self-start')}>
         Browse all {index.subjects.length} subjects

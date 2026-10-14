@@ -320,6 +320,10 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
     else
       for (const m of unused)
         c.warn(join(ctx.dir, 'misconceptions.yaml'), `misconception "${m}" is defined but never used`);
+    // Learners see a misconception's name in the recap and on the profile: one a lesson uses needs one.
+    for (const m of ctx.usedMisconceptions)
+      if (!ctx.misconceptions.get(m)?.name)
+        c.warn(join(ctx.dir, 'misconceptions.yaml'), `misconception "${m}" is used but has no name`);
     // The profile's "Revisit" links come from `lessons`: add every lesson that actually tags the
     // misconception, in syllabus order, after the ones listed by hand.
     for (const mis of ctx.misconceptions.values()) {

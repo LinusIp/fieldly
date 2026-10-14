@@ -288,6 +288,8 @@ export const ConceptsSchema = z.array(
 export const MisconceptionsSchema = z.array(
   z.strictObject({
     id,
+    /** A short name for lists (recap, profile): "Multiplied V and R instead of dividing". */
+    name: z.string().min(1).optional(),
     short: z.string().min(1),
     explain: z.string().min(1),
     lessons: z.array(id).default([]),

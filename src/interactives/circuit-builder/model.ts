@@ -550,6 +550,15 @@ function valueText(e: NetElement): string {
   return '';
 }
 
+/**
+ * A meter or current reading for people: 3 significant figures, and solver round-off (anything
+ * below a nanoamp or nanovolt) shown as 0, never "7.25 × 10⁻¹³".
+ */
+export function meterText(x: number): string {
+  if (!Number.isFinite(x)) return '—';
+  return Math.abs(x) < 1e-9 ? '0' : formatNumber(x, { sig: 3 });
+}
+
 export function describeState(state: State, config: Config): string {
   const net = toNetlist(state, config);
   const r = solveCircuit(net);
@@ -558,7 +567,7 @@ export function describeState(state: State, config: Config): string {
     ? 'Short circuit.'
     : r.isOpen
       ? 'No complete loop; no current flows.'
-      : `Battery current ${formatNumber(r.I)} A.`;
+      : `Battery current ${meterText(r.I)} A.`;
   const meters = config.hideReadings
     ? []
     : net.elements
@@ -566,8 +575,8 @@ export function describeState(state: State, config: Config): string {
         .map((e) => {
           const x = r.elements[e.label];
           return e.kind === 'ammeter'
-            ? `${e.label} reads ${formatNumber(x?.I ?? 0)} A`
-            : `${e.label} reads ${formatNumber(x?.V ?? 0)} V`;
+            ? `${e.label} reads ${meterText(x?.I ?? 0)} A`
+            : `${e.label} reads ${meterText(x?.V ?? 0)} V`;
         });
   // Sentences without their own full stops, joined once (no "1 A..").
   return [
@@ -576,7 +585,7 @@ export function describeState(state: State, config: Config): string {
     config.hideReadings ? '' : status,
     ...meters,
   ]
-    .map((x) => x.replace(/.+$/, ''))
+    .map((x) => x.replace(/\.+$/, ''))
     .filter(Boolean)
     .join('. ')
     .concat('.');

@@ -230,6 +230,15 @@ body {
   outline-offset: 3px;
 }
 
+/* Sliders: the whole 44 px-tall box is the touch area, not just the thin track (§10.2, §11). */
+input[type='range'] {
+  min-height: 44px;
+  cursor: pointer;
+}
+input[type='range']:disabled {
+  cursor: default;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }
