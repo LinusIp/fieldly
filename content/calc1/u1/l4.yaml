@@ -1,0 +1,644 @@
+id: calc1.u1.l4
+title: "Limits at infinity & asymptotes"
+version: 1
+concepts: [end-behaviour, asymptotes, dominant-terms]
+estimatedMinutes: 25
+
+# Scenario: the rational function f(x) = (a x² − 1) / (b x (x − c)).
+params:
+  sets:
+    - { a: 6, b: 2, c: 4 }
+    - { a: 4, b: 8, c: 2 }
+    - { a: 10, b: 4, c: 2 }
+
+intro: |
+  $\lim_{x \to \infty} f(x) = L$ means $f(x)$ gets close to $L$ as $x$ grows without bound. Then the
+  line $y = L$ is a **horizontal asymptote**.
+
+  For large $x$, the **dominant terms** decide everything: $x^3$ beats $100x^2$, which beats
+  $10^6 x$. For a rational function, divide top and bottom by the highest power of $x$ in the
+  denominator:
+
+  - same degree → $y = \frac{\text{leading coefficients}}{\ }$ ratio;
+  - top degree lower → $y = 0$;
+  - top degree higher → no horizontal asymptote (the function grows without bound).
+
+  $\frac{\infty}{\infty}$ is indeterminate — it is **not** 1.
+
+  A **vertical asymptote** $x = c$ appears where $f$ blows up: typically a zero of the denominator
+  that is **not** cancelled by the numerator. The sign of the blow-up comes from the signs of the
+  factors on each side of $c$.
+
+workedExample: |
+  $g(x) = \dfrac{5x^2 + 7}{2x^2 - 8}$:
+
+  - Divide by $x^2$: $\frac{5 + 7/x^2}{2 - 8/x^2} \to \frac{5}{2}$, so $y = 2.5$ is a horizontal asymptote.
+  - Denominator $2(x - 2)(x + 2)$ is 0 at $x = \pm 2$, where the numerator is $27 \ne 0$: vertical asymptotes $x = 2$ and $x = -2$.
+  - Just right of 2: numerator $+$, denominator $+ \cdot 0^+$, so $g \to +\infty$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: end-behaviour
+    clueFor: [s2]
+    establishes: "For large |x| the highest power dominates: polynomials follow their leading term."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: 'What is $\lim_{x \to \infty} \dfrac{1}{x}$?'
+        answer: { expr: "0" }
+        distractors:
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "-1", misconception: sign-slip }
+          - { expr: "0.5", misconception: limit-average }
+        hints:
+          nudge: "What is 1/1000? 1/1 000 000?"
+          partial: "The fraction keeps shrinking."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** $\frac{1}{x}$ gets as small as we like as $x$ grows.
+
+          **Common mistakes:**
+          - 1 — nothing keeps it near 1.
+          - −1 — for positive $x$ it stays positive.
+          - 0.5 — it doesn't level off at any positive value.
+
+          **Connects to:** Q2 — dividing by the highest power.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: 'What does $p(x) = -2x^3 + {{a*50}}x^2 + 7$ do as $x \to \infty$?'
+        options:
+          - { text: 'It goes to $-\infty$', correct: true }
+          - { text: 'It goes to $+\infty$', misconception: dominant-term-biggest-coefficient }
+          - { text: 'It approaches 7', misconception: end-behaviour-constant }
+          - { text: 'It approaches $-2$', misconception: end-behaviour-coefficient }
+        hints:
+          nudge: "Which term wins for x = 1000? For x = 1 000 000?"
+          partial: "x³ beats x², whatever the coefficients."
+        explanation: |
+          **Answer:** $-\infty$.
+
+          **Why:** $p(x) = x^3\left(-2 + \frac{ {{a*50}} }{x} + \frac{7}{x^3}\right)$; the bracket tends to $-2$ while $x^3 \to \infty$.
+
+          **Common mistakes:**
+          - $+\infty$ — the big coefficient ${{a*50}}$ loses to the higher power eventually.
+          - 7 — the constant matters least.
+          - $-2$ — that's the bracket's limit, not $p$'s.
+
+          **Connects to:** Q2 — ratios of dominant terms.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: 'What does $p(x) = -2x^3 + {{a*50}}x^2 + 7$ do as $x \to -\infty$?'
+        options:
+          - { text: 'It goes to $+\infty$', correct: true }
+          - { text: 'It goes to $-\infty$', misconception: end-behaviour-sign-ignored }
+          - { text: 'It approaches 7', misconception: end-behaviour-constant }
+          - { text: 'It approaches 0', misconception: blowup-is-zero }
+        hints:
+          nudge: "What is the sign of x³ when x is very negative?"
+          partial: "−2 × (large negative) = large positive."
+        explanation: |
+          **Answer:** $+\infty$.
+
+          **Why:** The leading term $-2x^3$ dominates; for very negative $x$, $x^3$ is very negative, so $-2x^3$ is very positive.
+
+          **Common mistakes:**
+          - $-\infty$ — that's the right-hand end; odd powers flip sign.
+          - 7 — the constant term is negligible.
+          - 0 — polynomials of degree ≥ 1 don't level off.
+
+          **Connects to:** Q2 — ratios of dominant terms.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: dominant-terms
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "(ax² − 1)/(bx² − bcx) → a/b = {{a/b}} as x → ∞ — the ratio of leading coefficients, not 1."
+    standaloneContext: "As x → ∞, the highest powers dominate; lower-order terms become negligible."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'Find $\lim_{x \to \infty} \dfrac{3x^2 + 1}{x^2 + 5}$.'
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "0.2", misconception: dominant-terms-constants }
+          - { expr: "4", misconception: dominant-term-adds }
+        hints:
+          nudge: "Divide top and bottom by x²."
+          partial: "(3 + 1/x²)/(1 + 5/x²)"
+        explanation: |
+          **Answer:** 3
+
+          **Why:** $\frac{3 + 1/x^2}{1 + 5/x^2} \to \frac{3}{1}$.
+
+          **Common mistakes:**
+          - 1 — $\frac{\infty}{\infty}$ isn't 1.
+          - 0.2 — the constants $\frac{1}{5}$ matter least for large $x$.
+          - 4 — the leading terms divide; they don't add.
+
+          **Connects to:** Q3 — horizontal asymptotes.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'Find $\lim_{x \to \infty} \dfrac{ {{a}}x^2 - 1}{ {{b}}x^2 - {{b*c}}x}$.'
+        answer: { expr: "a/b" }
+        distractors:
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "b/a", misconception: quotient-law-inverted }
+          - { expr: "a/(b*c)", misconception: dominant-terms-wrong-power }
+        hints:
+          nudge: "Both are degree 2. Divide by x²."
+          buildsOn: "Q1: the highest powers dominate."
+          partial: "({{a}} − 1/x²)/({{b}} − {{b*c}}/x)"
+        explanation: |
+          **Answer:** $\frac{ {{a}} }{ {{b}} } = {{a/b}}$
+
+          **Why:** Dividing by $x^2$ gives $\frac{ {{a}} - 1/x^2}{ {{b}} - {{b*c}}/x} \to \frac{ {{a}} }{ {{b}} }$ — the leading terms win (Q1).
+
+          **Common mistakes:**
+          - 1 — $\frac{\infty}{\infty}$ is indeterminate, not 1.
+          - $\frac{ {{b}} }{ {{a}} }$ — that's upside down.
+          - $\frac{ {{a}} }{ {{b*c}} }$ — that pairs $x^2$ on top with $x$ below.
+
+          **Connects to:** Q3 — that's the horizontal asymptote.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to \infty} \dfrac{ {{a}}x + 1}{ {{b}}x^2 - 3}$.'
+        answer: { expr: "0" }
+        distractors:
+          - { expr: "a/b", misconception: dominant-terms-ignore-degree }
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "-1/3", misconception: dominant-terms-constants }
+        hints:
+          nudge: "Which grows faster: x or x²?"
+          buildsOn: "Q1: compare the highest powers."
+          partial: "Divide by x²: ({{a}}/x + 1/x²)/({{b}} − 3/x²)."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** The denominator's $x^2$ outgrows the numerator's $x$: $\frac{ {{a}}/x + 1/x^2}{ {{b}} - 3/x^2} \to \frac{0}{ {{b}} } = 0$.
+
+          **Common mistakes:**
+          - $\frac{ {{a}} }{ {{b}} }$ — that's only for equal degrees.
+          - 1 — $\frac{\infty}{\infty}$ isn't 1.
+          - $-\frac{1}{3}$ — the constants are what matter *least*.
+
+          **Connects to:** Q3 — horizontal asymptotes.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: asymptotes
+    uses: [s2]
+    clueFor: [s6]
+    establishes: "f has horizontal asymptote y = {{a/b}} (as x → ±∞)."
+    standaloneContext: "For a rational function, the limit at ±∞ is set by the leading terms."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'Which function has the horizontal asymptote $y = 0$?'
+        options:
+          - { text: '$\dfrac{x + 4}{x^2 + 1}$', correct: true }
+          - { text: '$\dfrac{x^2 + 4}{x^2 + 1}$', misconception: dominant-terms-ignore-degree }
+          - { text: '$\dfrac{x^3}{x^2 + 1}$', misconception: higher-degree-zero }
+          - { text: '$\dfrac{4x}{x + 1}$', misconception: dominant-terms-constants }
+        hints:
+          nudge: "y = 0 needs the denominator to win."
+          partial: "Top degree lower than bottom."
+        explanation: |
+          **Answer:** $\frac{x + 4}{x^2 + 1}$.
+
+          **Why:** Degree 1 over degree 2 tends to 0.
+
+          **Common mistakes:**
+          - $\frac{x^2 + 4}{x^2 + 1}$ — equal degrees give $y = 1$.
+          - $\frac{x^3}{x^2 + 1}$ — the top wins; no horizontal asymptote.
+          - $\frac{4x}{x + 1}$ — equal degrees give $y = 4$.
+
+          **Connects to:** Q6 — the whole picture.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: 'What is the horizontal asymptote of $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$?'
+        options:
+          - { text: '$y = {{a/b}}$', correct: true }
+          - { text: '$y = {{c}}$', misconception: asymptote-from-denominator-root }
+          - { text: '$y = 0$', misconception: higher-degree-zero }
+          - { text: 'None: the degrees are equal', misconception: asymptote-equal-degree-none }
+        hints:
+          nudge: "Expand the denominator: what's its degree?"
+          buildsOn: "Q2: equal degrees → ratio of leading coefficients."
+          partial: "{{b}}x(x − {{c}}) = {{b}}x² − {{b*c}}x."
+        explanation: |
+          **Answer:** $y = {{a/b}}$.
+
+          **Why:** The denominator is $ {{b}}x^2 - {{b*c}}x$, degree 2 like the top, so $f \to \frac{ {{a}} }{ {{b}} }$ (Q2) at both ends.
+
+          **Common mistakes:**
+          - $y = {{c}}$ — $x = {{c}}$ is a vertical feature.
+          - $y = 0$ — that needs a lower degree on top.
+          - "None" — equal degrees give the ratio.
+
+          **Connects to:** Q6 — the whole picture.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'Find $\lim_{x \to -\infty} \dfrac{\sqrt{x^2 + 1}}{x}$.'
+        answer: { expr: "-1" }
+        distractors:
+          - { expr: "1", misconception: sqrt-x-squared-is-x }
+          - { expr: "0", misconception: higher-degree-zero }
+          - { expr: "0.5", misconception: limit-average }
+        hints:
+          nudge: "For negative x, √(x²) = |x| = −x."
+          buildsOn: "Q2: divide by the dominant power."
+          partial: "√(x² + 1) ≈ |x| = −x."
+        explanation: |
+          **Answer:** $-1$
+
+          **Why:** $\sqrt{x^2 + 1} \approx |x| = -x$ for very negative $x$, so the quotient tends to $\frac{-x}{x} = -1$. As $x \to +\infty$ it tends to $+1$: two horizontal asymptotes.
+
+          **Common mistakes:**
+          - 1 — $\sqrt{x^2} = |x|$, not $x$.
+          - 0 — the degrees match ($\sqrt{x^2}$ behaves like degree 1).
+          - 0.5 — no averaging of the two ends.
+
+          **Connects to:** Q6 — the whole picture.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: asymptotes
+    clueFor: [s5]
+    establishes: "Vertical asymptotes of f: x = 0 and x = {{c}} (denominator zero, numerator not)."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: 'Where is the vertical asymptote of $\dfrac{1}{x - 2}$?'
+        options:
+          - { text: '$x = 2$', correct: true }
+          - { text: '$x = -2$', misconception: shift-direction }
+          - { text: '$y = 0$', misconception: asymptote-axis-confusion }
+          - { text: '$x = 0$', misconception: asymptote-always-at-zero }
+        hints:
+          nudge: "Where is the denominator zero?"
+          partial: "x − 2 = 0."
+        explanation: |
+          **Answer:** $x = 2$.
+
+          **Why:** The denominator vanishes at 2 while the numerator is 1: the function blows up there.
+
+          **Common mistakes:**
+          - $x = -2$ — solve $x - 2 = 0$.
+          - $y = 0$ — that's the horizontal asymptote.
+          - $x = 0$ — the denominator is $-2$ there.
+
+          **Connects to:** Q5 — which way it blows up.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Where are the vertical asymptotes of $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$?'
+        options:
+          - { text: '$x = 0$ and $x = {{c}}$', correct: true }
+          - { text: '$x = {{c}}$ only', misconception: asymptote-factor-missed }
+          - { text: '$x = \pm\sqrt{1/{{a}}}$', misconception: asymptote-from-numerator }
+          - { text: '$y = {{a/b}}$', misconception: asymptote-axis-confusion }
+        hints:
+          nudge: "Find the zeros of the denominator; check the numerator there."
+          partial: "x = 0 and x = {{c}}; the numerator is −1 and {{a*c^2 - 1}}."
+        explanation: |
+          **Answer:** $x = 0$ and $x = {{c}}$.
+
+          **Why:** The denominator is 0 at both; the numerator is $-1$ and ${{a*c^2-1}}$ there — not 0 — so both are blow-ups.
+
+          **Common mistakes:**
+          - Only $x = {{c}}$ — the factor $x$ gives $x = 0$.
+          - Numerator zeros — those are where $f = 0$.
+          - $y = {{a/b}}$ — that's horizontal.
+
+          **Connects to:** Q5 — signs near each asymptote.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: 'Where are the vertical asymptotes of $g(x) = \dfrac{x^2 - {{c^2}}}{x(x - {{c}})}$?'
+        options:
+          - { text: '$x = 0$ only', correct: true }
+          - { text: '$x = 0$ and $x = {{c}}$', misconception: asymptote-hole-confusion }
+          - { text: '$x = {{c}}$ only', misconception: asymptote-factor-missed }
+          - { text: '$x = \pm {{c}}$', misconception: asymptote-from-numerator }
+        hints:
+          nudge: "Is the numerator also zero at x = {{c}}?"
+          buildsOn: "From L3: a shared factor means 0/0 — a hole, not an asymptote."
+          partial: "g(x) = (x + {{c}})/x for x ≠ {{c}}."
+        explanation: |
+          **Answer:** only $x = 0$.
+
+          **Why:** $(x - {{c}})$ cancels: $g = \frac{x + {{c}}}{x}$ for $x \ne {{c}}$, so $x = {{c}}$ is a hole (the limit is 2). Only $x = 0$ blows up.
+
+          **Common mistakes:**
+          - Including $x = {{c}}$ — a cancelled factor gives a hole.
+          - Only $x = {{c}}$ — that's the one that cancels.
+          - $\pm{{c}}$ — numerator zeros aren't asymptotes.
+
+          **Connects to:** Q5 — signs near the asymptote.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: asymptotes
+    uses: [s4]
+    clueFor: [s6]
+    establishes: "Just right of x = {{c}}, f → +∞; just left, f → −∞."
+    standaloneContext: "A vertical asymptote sits where the denominator is 0 and the numerator isn't."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: 'What does $\dfrac{1}{x - 2}$ do as $x \to 2^+$?'
+        options:
+          - { text: 'It goes to $+\infty$', correct: true }
+          - { text: 'It goes to $-\infty$', misconception: one-sided-direction }
+          - { text: 'It approaches 0', misconception: blowup-is-zero }
+          - { text: 'It approaches 1', misconception: blowup-is-one }
+        hints:
+          nudge: "Try x = 2.01."
+          partial: "1/0.01 = 100."
+        explanation: |
+          **Answer:** $+\infty$.
+
+          **Why:** For $x$ slightly above 2, $x - 2$ is a tiny positive number, so the fraction is huge and positive.
+
+          **Common mistakes:**
+          - $-\infty$ — that's from the left.
+          - 0 or 1 — dividing by tiny numbers gives huge ones.
+
+          **Connects to:** Q6 — the whole picture.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'As $x \to {{c}}^-$, what does $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$ do?'
+        options:
+          - { text: 'It goes to $-\infty$', correct: true }
+          - { text: 'It goes to $+\infty$', misconception: one-sided-direction }
+          - { text: 'It approaches ${{a/b}}$', misconception: asymptote-axis-confusion }
+          - { text: 'It approaches 0', misconception: blowup-is-zero }
+        hints:
+          nudge: "Find the sign of each factor just left of {{c}}."
+          buildsOn: "Q4: x = {{c}} is a vertical asymptote."
+          partial: "Numerator +, {{b}}x +, (x − {{c}}) tiny negative."
+        explanation: |
+          **Answer:** $-\infty$.
+
+          **Why:** Near ${{c}}$ the numerator is about ${{a*c^2-1}} > 0$ and ${{b}}x > 0$, but $x - {{c}}$ is a tiny negative number: positive ÷ tiny negative → $-\infty$.
+
+          **Common mistakes:**
+          - $+\infty$ — that's from the right.
+          - ${{a/b}}$ — that's the behaviour far away.
+          - 0 — dividing by tiny numbers gives huge ones.
+
+          **Connects to:** Q6 — the whole picture.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: 'As $x \to 0^+$, what does $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$ do?'
+        options:
+          - { text: 'It goes to $+\infty$', correct: true }
+          - { text: 'It goes to $-\infty$', misconception: sign-count-error }
+          - { text: 'It approaches $-1$', misconception: substitute-one-term }
+          - { text: 'It approaches 0', misconception: blowup-is-zero }
+        hints:
+          nudge: "Three signs: the numerator, x, and x − {{c}}."
+          buildsOn: "Q4: x = 0 is a vertical asymptote."
+          partial: "(−) / (+ · −) = (−)/(−)."
+        explanation: |
+          **Answer:** $+\infty$.
+
+          **Why:** Numerator $\to -1$ (negative); ${{b}}x$ is tiny positive; $x - {{c}}$ is about $-{{c}}$ (negative). Negative ÷ (tiny negative) → $+\infty$.
+
+          **Common mistakes:**
+          - $-\infty$ — count the negative factors: two of them.
+          - $-1$ — that's just the numerator's limit.
+          - 0 — the denominator is what goes to 0.
+
+          **Connects to:** Q6 — the whole picture.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: asymptotes
+    uses: [s3, s5]
+    establishes: "f approaches y = {{a/b}} at both ends — and can still cross it; asymptotes describe limits, not barriers."
+    standaloneContext: |
+      Horizontal asymptotes describe behaviour as x → ±∞; vertical asymptotes, the blow-ups at finite x.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: 'How many asymptotes (horizontal and vertical) does $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$ have?'
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "2", misconception: asymptote-factor-missed }
+          - { expr: "4", misconception: asymptote-from-numerator }
+          - { expr: "1", misconception: asymptote-axis-confusion }
+        hints:
+          nudge: "One horizontal; how many vertical?"
+          buildsOn: "Q3: y = {{a/b}}. Q5: x = 0 and x = {{c}}."
+          partial: "1 + 2"
+        explanation: |
+          **Answer:** 3
+
+          **Why:** $y = {{a/b}}$ (Q3) plus $x = 0$ and $x = {{c}}$ (Q4, Q5).
+
+          **Common mistakes:**
+          - 2 — the factor $x$ gives $x = 0$ too.
+          - 4 — numerator zeros are not asymptotes.
+          - 1 — vertical asymptotes count too.
+
+          **Connects to:** the challenge — placing asymptotes.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: 'Can the graph of $f(x) = \dfrac{ {{a}}x^2 - 1}{ {{b}}x(x - {{c}})}$ cross its horizontal asymptote $y = {{a/b}}$?'
+        options:
+          - { text: 'Yes, at $x = \frac{1}{ {{a*c}} }$', correct: true }
+          - { text: 'No, a graph can never cross an asymptote', misconception: asymptote-never-crossed }
+          - { text: 'Yes, at $x = {{c}}$', misconception: asymptote-axis-confusion }
+          - { text: 'Only as $x \to \infty$', misconception: asymptote-crossing-at-infinity }
+        verify:
+          - { lhs: "(a * (1/(a*c))^2 - 1) / (b * (1/(a*c)) * ((1/(a*c)) - c))", rhs: "a / b" }
+        hints:
+          nudge: "Solve f(x) = {{a/b}}."
+          buildsOn: "Q3: the asymptote describes x → ±∞ only. Q5: blow-ups happen at finite x."
+          partial: "{{a}}x² − 1 = {{a}}x² − {{a*c}}x."
+        explanation: |
+          **Answer:** yes, at $x = \frac{1}{ {{a*c}} }$.
+
+          **Why:** Setting $f(x) = \frac{ {{a}} }{ {{b}} }$ gives ${{a}}x^2 - 1 = {{a}}x^2 - {{a*c}}x$, so $x = \frac{1}{ {{a*c}} }$. A horizontal asymptote
+          only describes the ends (Q3).
+
+          **Common mistakes:**
+          - "Never" — only vertical asymptotes are never crossed.
+          - $x = {{c}}$ — $f$ isn't defined there (Q5).
+          - "Only at ∞" — it crosses at a finite point.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: 'What is the slant asymptote of $h(x) = \dfrac{x^2 + {{c}}x + 1}{x}$?'
+        options:
+          - { text: '$y = x + {{c}}$', correct: true }
+          - { text: '$y = x$', misconception: slant-drops-constant }
+          - { text: '$y = 1$', misconception: infinity-over-infinity-one }
+          - { text: 'None: there is no horizontal asymptote', misconception: slant-none }
+        verify:
+          - { lhs: "(x^2 + c*x + 1)/x - (x + c)", rhs: "1/x", vars: { x: [1, 50] } }
+        hints:
+          nudge: "Divide each term by x."
+          buildsOn: "Q3: higher top degree → no horizontal asymptote. Q5: near 0 it blows up."
+          partial: "h(x) = x + {{c}} + 1/x."
+        explanation: |
+          **Answer:** $y = x + {{c}}$.
+
+          **Why:** $h(x) = x + {{c}} + \frac{1}{x}$, and $\frac{1}{x} \to 0$, so $h$ hugs the line $y = x + {{c}}$ at both ends. No horizontal asymptote
+          (Q3), one vertical at $x = 0$ (Q5).
+
+          **Common mistakes:**
+          - $y = x$ — the ${{c}}$ survives the division.
+          - $y = 1$ — $\frac{\infty}{\infty}$ isn't 1.
+          - "None" — a line other than horizontal can still be an asymptote.
+
+          **Connects to:** the challenge.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: dominant-terms
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'For $x = 1000$, what is $\dfrac{2x^2 + 3}{x^2 + 1}$, to two decimal places?'
+        answer: { expr: "2" }
+        distractors:
+          - { expr: "1", misconception: infinity-over-infinity-one }
+          - { expr: "3", misconception: dominant-terms-constants }
+          - { expr: "5", misconception: dominant-term-adds }
+        hints:
+          nudge: "2 000 003 / 1 000 001."
+          partial: "The +3 and +1 barely matter."
+        explanation: |
+          **Answer:** 2.00
+
+          **Why:** $\frac{2\,000\,003}{1\,000\,001} = 2.000001\ldots$ — the leading terms $2x^2$ and $x^2$ set the value.
+
+          **Common mistakes:**
+          - 1 — both being huge doesn't make the ratio 1.
+          - 3 — the constants matter least.
+          - 5 — leading terms divide, they don't add.
+
+          **Connects to:** Q2 — ratios of leading terms.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l4.ch
+  type: graph-manipulator
+  title: "Place the asymptotes"
+  concept: asymptotes
+  uses: [s3, s4]
+  params:
+    sets:
+      - { L: 2, V: 3 }
+      - { L: -1, V: 2 }
+      - { L: 3, V: 1 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: 'Set $A$ so that $f(x) = \dfrac{Ax^2 + 1}{x^2 + 1}$ has the dashed horizontal asymptote $y = {{L}}$.'
+      config:
+        f: "(A*x^2 + 1) / (x^2 + 1)"
+        view: { x: [-12, 12], y: [-4, 5] }
+        controls:
+          - { name: A, min: -4, max: 4, step: 0.5, initial: 0 }
+        overlays: { band: { y: "L", eps: 0 } }
+      check: { expr: "A == L" }
+      feedback:
+        - { if: "true", say: "Look far left and far right: where does the curve level off? That height is A/1.", misconception: infinity-over-infinity-one }
+      hints:
+        nudge: "Equal degrees: the asymptote is the ratio of leading coefficients."
+        buildsOn: "From Q3: y = (leading coefficient on top) / (leading coefficient below)."
+        partial: "A/1 = {{L}}."
+      solution: { A: L }
+      explanation: |
+        $\frac{A + 1/x^2}{1 + 1/x^2} \to A$: the curve levels off at height $A$ at both ends.
+    standard:
+      difficulty: 3
+      goal: |
+        Set $A$ and $C$ so that $f(x) = \dfrac{Ax^2 + x}{2x^2 - C}$ has horizontal asymptote $y = {{L}}$ and vertical asymptotes
+        $x = \pm {{V}}$ (dashed).
+      config:
+        f: "(A*x^2 + x) / (2*x^2 - C)"
+        view: { x: [-8, 8], y: [-8, 8] }
+        controls:
+          - { name: A, min: -6, max: 6, step: 0.5, initial: 1 }
+          - { name: C, min: 0.5, max: 20, step: 0.5, initial: 0.5 }
+        overlays: { band: { y: "L", eps: 0, x: "V" } }
+      check: { expr: "A == 2*L and C == 2*V^2" }
+      feedback:
+        - { if: "A == L", say: "Close — but the leading coefficient below is 2, so the asymptote is A/2.", misconception: dominant-terms-ignore-coefficient }
+        - { if: "C == V^2", say: "2x² − C = 0 means x² = C/2.", misconception: asymptote-factor-missed }
+        - { if: "A == 2*L", say: "The horizontal asymptote is right. Now move the blow-ups with C." }
+        - { if: "true", say: "Set the level first (A), then the blow-ups (C)." }
+      hints:
+        nudge: "Horizontal: A/2. Vertical: where 2x² − C = 0."
+        buildsOn: "From Q3 and Q4: leading-coefficient ratio; denominator zeros."
+        partial: "A/2 = {{L}} and C/2 = {{V^2}}."
+      solution: { A: "2*L", C: "2*V^2" }
+      explanation: |
+        $A = {{2*L}}$ gives $\frac{A}{2} = {{L}}$; $C = {{2*V^2}}$ puts the denominator's zeros at $x^2 = {{V^2}}$, i.e. $x = \pm{{V}}$ (the numerator
+        isn't 0 there).
+    harder:
+      difficulty: 4
+      goal: |
+        $f(x) = \dfrac{ {{L}}x^2 + 5x}{x^2 + 1}$ approaches $y = {{L}}$ slowly. Find $x_0$ so that **every** $x$ from $x_0$ to 10 000 has
+        $|f(x) - {{L}}| < 0.01$ — with $x_0$ no more than 25% past the smallest such point. Zoom out with $w$.
+      config:
+        f: "(L*x^2 + 5*x) / (x^2 + 1)"
+        view: { x: [0, "w"], y: ["L - 0.05", "L + 0.15"] }
+        controls:
+          - { name: x0, label: "x₀", min: 1, max: 2000, step: 1, initial: 50, drag: true }
+          - { name: w, label: "window w", min: 100, max: 2000, step: 50, initial: 100 }
+        overlays: { band: { y: "L", eps: 0.01 } }
+      check: { expr: "maxDev(x0, 10000, L) < 0.01 and maxDev(0.8 * x0, 10000, L) >= 0.01" }
+      feedback:
+        - { if: "maxDev(x0, 10000, L) >= 0.01", say: "Some x beyond x₀ is still more than 0.01 away. Move x₀ right — zoom out to see.", misconception: asymptote-fast-approach }
+        - { if: "true", say: "That works, but you could start earlier — find where the curve first enters the band." }
+      hints:
+        nudge: "The gap f(x) − {{L}} shrinks like 5/x."
+        buildsOn: "From Q2: f − {{L}} = (5x − {{L}})/(x² + 1) ≈ 5/x for large x."
+        partial: "5/x < 0.01 when x > 500."
+      solution: { x0: 520, w: 1000 }
+      explanation: |
+        $f(x) - {{L}} = \frac{5x - {{L}}}{x^2 + 1} \approx \frac{5}{x}$, so it takes $x \approx 500$ to get within 0.01. "Approaching an
+        asymptote" can be very slow.
+
+summary:
+  keyTakeaways:
+    - "As x → ±∞ the highest powers dominate; ∞/∞ is indeterminate, not 1."
+    - "Rational functions: equal degrees → ratio of leading coefficients; lower top degree → y = 0; higher → no horizontal asymptote."
+    - "Vertical asymptotes: denominator zeros that the numerator doesn't cancel; signs of the factors give ±∞."
+    - "Graphs may cross horizontal asymptotes; the asymptote describes only the ends."
+  next: calc1.u1.l5

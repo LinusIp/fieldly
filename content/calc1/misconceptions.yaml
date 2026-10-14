@@ -471,3 +471,335 @@
   explain: |
     Evaluate powers carefully before judging the form.
   lessons: [calc1.u1.l3]
+
+# ── calc1.u1.l4: limits at infinity & asymptotes ──
+- id: infinity-over-infinity-one
+  short: "∞/∞ isn't 1 — it's indeterminate. Compare how fast the top and bottom grow."
+  explain: |
+    Divide top and bottom by the highest power of x in the denominator.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-term-biggest-coefficient
+  short: "For large x the highest power wins, whatever the coefficients."
+  explain: |
+    x³ eventually beats 300x²: at x = 1000, x³ is already larger.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-term-adds
+  short: "The leading terms divide; their coefficients don't add."
+  explain: |
+    (3x² + 1)/(x² + 5) → 3/1.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-terms-constants
+  short: "The constant terms matter least for large x — the leading terms decide."
+  explain: |
+    Divide by the highest power: constants become c/xⁿ → 0.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-terms-ignore-degree
+  short: "Compare degrees first: the ratio of leading coefficients only applies when the degrees are equal."
+  explain: |
+    A lower degree on top gives 0.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-terms-wrong-power
+  short: "Pair the leading terms of the same power: x² on top with x² below."
+  explain: |
+    Divide every term by the same highest power.
+  lessons: [calc1.u1.l4]
+
+- id: dominant-terms-ignore-coefficient
+  short: "Use both leading coefficients: Ax² over 2x² tends to A/2, not A."
+  explain: |
+    Divide top and bottom by x².
+  lessons: [calc1.u1.l4]
+
+- id: end-behaviour-constant
+  short: "The constant term is negligible for large |x|; the leading term decides the end behaviour."
+  explain: |
+    A polynomial of degree ≥ 1 never levels off.
+  lessons: [calc1.u1.l4]
+
+- id: end-behaviour-coefficient
+  short: "The leading coefficient sets the sign, but x³ still grows without bound."
+  explain: |
+    x³(−2 + …) → −∞, not −2.
+  lessons: [calc1.u1.l4]
+
+- id: end-behaviour-sign-ignored
+  short: "Odd powers change sign: x³ is negative for negative x."
+  explain: |
+    Check the sign of the leading term at each end separately.
+  lessons: [calc1.u1.l4]
+
+- id: higher-degree-zero
+  short: "A higher degree on top makes the function grow, not tend to 0."
+  explain: |
+    y = 0 comes from a *lower* degree on top.
+  lessons: [calc1.u1.l4]
+
+- id: sqrt-x-squared-is-x
+  short: "√(x²) = |x|, which is −x for negative x."
+  explain: |
+    Signs matter at x → −∞.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-from-denominator-root
+  short: "Denominator roots give vertical asymptotes (x = c), not horizontal ones."
+  explain: |
+    Horizontal asymptotes come from x → ±∞.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-equal-degree-none
+  short: "Equal degrees do give a horizontal asymptote: the ratio of leading coefficients."
+  explain: |
+    Only a higher degree on top rules one out.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-axis-confusion
+  short: "Horizontal asymptotes are lines y = L (behaviour at the ends); vertical ones are x = c (blow-ups)."
+  explain: |
+    Name the right kind of line.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-always-at-zero
+  short: "Vertical asymptotes are where the denominator is zero — not automatically at x = 0."
+  explain: |
+    Solve "denominator = 0".
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-factor-missed
+  short: "Every uncancelled zero of the denominator gives a vertical asymptote — check each factor."
+  explain: |
+    b·x·(x − c) is zero at x = 0 and at x = c.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-from-numerator
+  short: "Zeros of the numerator are where f = 0 (x-intercepts), not asymptotes."
+  explain: |
+    Asymptotes come from the denominator.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-hole-confusion
+  short: "A factor that cancels gives a hole, not a vertical asymptote."
+  explain: |
+    Check whether the numerator is also zero there.
+  lessons: [calc1.u1.l4]
+
+- id: sign-count-error
+  short: "Count the negative factors: two negatives make a positive."
+  explain: |
+    Find the sign of each factor on the side you approach from.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-never-crossed
+  short: "Graphs can cross horizontal asymptotes; only the ends must approach them."
+  explain: |
+    Solve f(x) = L to find crossings.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-crossing-at-infinity
+  short: "A crossing happens at a finite x — solve f(x) = L."
+  explain: |
+    The asymptote itself describes x → ±∞.
+  lessons: [calc1.u1.l4]
+
+- id: slant-drops-constant
+  short: "Divide every term: (x² + cx + 1)/x = x + c + 1/x, so the line is y = x + c."
+  explain: |
+    Only the 1/x part vanishes.
+  lessons: [calc1.u1.l4]
+
+- id: slant-none
+  short: "No horizontal asymptote doesn't mean no asymptote: a slanted line can still fit the ends."
+  explain: |
+    When the top degree is one more, divide to find y = mx + k.
+  lessons: [calc1.u1.l4]
+
+- id: asymptote-fast-approach
+  short: "Approaching an asymptote can be very slow: a gap like 5/x needs x ≈ 500 to drop below 0.01."
+  explain: |
+    Estimate the gap f(x) − L, then solve for x.
+  lessons: [calc1.u1.l4]
+
+# ── calc1.u1.l5: continuity ──
+- id: continuity-limit-only
+  short: "A limit existing isn't enough for continuity — f(a) must exist and equal it."
+  explain: |
+    Check all three: defined, limit exists, equal.
+  lessons: [calc1.u1.l5]
+
+- id: continuity-defined-only
+  short: "Being defined at a isn't enough — the limit must exist and equal f(a)."
+  explain: |
+    A jump or a misplaced point is defined but discontinuous.
+  lessons: [calc1.u1.l5]
+
+- id: continuity-ignores-denominator
+  short: "A quotient is discontinuous where its denominator is 0."
+  explain: |
+    Remove those points from the set where f is continuous.
+  lessons: [calc1.u1.l5]
+
+- id: continuity-one-side
+  short: "Continuity holds on every interval where the formula is defined — both sides of a gap."
+  explain: |
+    Only the gap itself is excluded.
+  lessons: [calc1.u1.l5]
+
+- id: continuity-needs-both-sides
+  short: "At an endpoint of the domain, continuity uses only the side where f is defined."
+  explain: |
+    √(x − a) is continuous at a from the right.
+  lessons: [calc1.u1.l5]
+
+- id: zero-is-undefined
+  short: "A value of 0 is a perfectly good value — \"undefined\" means no value at all."
+  explain: |
+    √0 = 0 is defined.
+  lessons: [calc1.u1.l5]
+
+- id: root-discontinuous
+  short: "Square roots are continuous on their domain."
+  explain: |
+    They're only undefined for negative arguments.
+  lessons: [calc1.u1.l5]
+
+- id: hole-is-jump
+  short: "A hole has the same limit from both sides; a jump has different one-sided limits."
+  explain: |
+    Compare the left and right limits.
+  lessons: [calc1.u1.l5]
+
+- id: jump-is-removable
+  short: "A jump can't be fixed by redefining one point — the sides disagree."
+  explain: |
+    Removable means the two-sided limit exists.
+  lessons: [calc1.u1.l5]
+
+- id: jump-is-infinite
+  short: "A jump has finite one-sided limits; an infinite discontinuity blows up."
+  explain: |
+    Check whether the values stay bounded near the point.
+  lessons: [calc1.u1.l5]
+
+- id: piecewise-match-slope
+  short: "Continuity needs the pieces to meet (equal values), not equal slopes."
+  explain: |
+    Set the two pieces equal at the join.
+  lessons: [calc1.u1.l5]
+
+- id: piecewise-forget-x
+  short: "Substitute x = a into each piece: m·x becomes m·a."
+  explain: |
+    Then solve for m.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-needs-formula
+  short: "The IVT needs only continuity and the end values — no formula."
+  explain: |
+    A continuous graph can't skip values.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-polynomial-only
+  short: "The IVT holds for every continuous function, not just polynomials — and it's about the interval given."
+  explain: |
+    Check continuity on [p, q] and the end values.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-gives-location
+  short: "The IVT says a value is reached somewhere in the interval — not where."
+  explain: |
+    Bisection or other methods are needed to locate it.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-sign-change-needed
+  short: "For a root, the IVT needs a sign change: 0 must lie between f(p) and f(q)."
+  explain: |
+    Two values of the same sign guarantee nothing.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-ignores-continuity
+  short: "The IVT requires continuity on the whole closed interval."
+  explain: |
+    A blow-up or a gap lets the function skip values.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-interval-size
+  short: "The width of the interval doesn't matter; continuity does."
+  explain: |
+    Check the hypothesis, not the size.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-positive-only
+  short: "The IVT works for any value between f(p) and f(q), including 0 across a sign change."
+  explain: |
+    Sign changes are its main use.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-outside-range
+  short: "The IVT only guarantees values between f(p) and f(q)."
+  explain: |
+    Values outside that range may never be reached.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-root-only
+  short: "The IVT isn't only about roots: any value N between the end values is taken."
+  explain: |
+    Roots are the case N = 0.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-uniqueness
+  short: "The IVT guarantees at least one solution, not exactly one."
+  explain: |
+    A wiggly continuous function can cross a value several times.
+  lessons: [calc1.u1.l5]
+
+- id: ivt-monotone
+  short: "Continuity doesn't make a function increasing."
+  explain: |
+    Only the end values are known.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-wrong-half
+  short: "Keep the half whose endpoints have opposite signs — that's where the IVT traps the root."
+  explain: |
+    Compare the sign at the midpoint with the sign at an end.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-no-halving
+  short: "After testing the midpoint, the bracket shrinks to one half; the next test is that half's midpoint."
+  explain: |
+    Each step halves the bracket.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-endpoint
+  short: "Bisection tests midpoints, not endpoints."
+  explain: |
+    The endpoints are already known.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-linear
+  short: "Bisection halves the bracket; it doesn't creep along in fixed steps."
+  explain: |
+    After n steps the length is L/2ⁿ.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-off-by-one
+  short: "Check the boundary case: the length must be *below* the tolerance."
+  explain: |
+    Compute L/2ⁿ for n and n − 1.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-halves-tolerance
+  short: "Halving the interval isn't halving the tolerance — count steps until L/2ⁿ < tolerance."
+  explain: |
+    1/2⁷ ≈ 0.0078 < 0.01.
+  lessons: [calc1.u1.l5]
+
+- id: bisection-ignores-length
+  short: "Start from the actual bracket length: L/2ⁿ, not 1/2ⁿ."
+  explain: |
+    A length-4 bracket needs two extra halvings compared with length 1.
+  lessons: [calc1.u1.l5]

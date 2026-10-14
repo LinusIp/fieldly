@@ -1,0 +1,657 @@
+id: calc1.u1.l5
+title: "Continuity"
+version: 1
+concepts: [continuity, discontinuity-types, intermediate-value-theorem]
+estimatedMinutes: 25
+
+# Scenario: a function with a possible gap at x = a, and the cubic x³ + x − c whose root the IVT traps.
+params:
+  sets:
+    - { a: 3, c: 4 }
+    - { a: 4, c: 5 }
+    - { a: 5, c: 8 }
+
+intro: |
+  $f$ is **continuous at $a$** when three things hold:
+
+  1. $f(a)$ is defined;
+  2. $\lim_{x \to a} f(x)$ exists;
+  3. they are equal: $\lim_{x \to a} f(x) = f(a)$.
+
+  Polynomials, $\sin$, $\cos$, $e^x$, and sums, products, quotients (where the denominator isn't 0) and
+  compositions of continuous functions are continuous.
+
+  When continuity fails, the discontinuity is
+
+  - **removable** — the limit exists but $f(a)$ is missing or wrong (a hole);
+  - **jump** — the one-sided limits exist but differ;
+  - **infinite** — $f$ blows up (a vertical asymptote).
+
+  **Intermediate Value Theorem (IVT).** If $f$ is continuous on $[p, q]$ and $N$ lies between $f(p)$ and
+  $f(q)$, then $f(x) = N$ for some $x$ in $(p, q)$. In particular, a sign change traps a root.
+  Repeatedly halving the interval (**bisection**) pins the root down.
+
+workedExample: |
+  $h(x) = x^3 - 7$ on $[1, 3]$: $h(1) = -6 < 0$ and $h(3) = 20 > 0$, and $h$ is continuous, so it has a root in $(1, 3)$.
+
+  - Midpoint 2: $h(2) = 1 > 0$, so the root is in $(1, 2)$.
+  - Midpoint 1.5: $h(1.5) = -3.625 < 0$, so it's in $(1.5, 2)$.
+  - Each step halves the interval: after $n$ steps it has length $2/2^n$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: continuity
+    clueFor: [s2, s3]
+    establishes: "(x² − {{a^2}})/(x − {{a}}) with f({{a}}) = k is continuous at {{a}} only if k = {{2*a}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          $f(x) = \dfrac{x^2 - 1}{x - 1}$ (undefined at $x = 1$). Which condition for continuity at 1 fails?
+        options:
+          - { text: '$f(1)$ is not defined', correct: true }
+          - { text: 'The limit at 1 does not exist', misconception: undefined-no-limit }
+          - { text: 'None: it is continuous', misconception: continuity-limit-only }
+          - { text: 'The graph has a jump', misconception: hole-is-jump }
+        hints:
+          nudge: "Check the three conditions in order."
+          partial: "Can you compute f(1)?"
+        explanation: |
+          **Answer:** $f(1)$ isn't defined.
+
+          **Why:** The limit exists ($x + 1 \to 2$), but $f(1)$ gives $\frac{0}{0}$ — there's a hole.
+
+          **Common mistakes:**
+          - "No limit" — the limit is 2.
+          - "Continuous" — a limit alone isn't enough.
+          - "Jump" — both sides approach the same value.
+
+          **Connects to:** Q2 — naming the discontinuity.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          $f(x) = \dfrac{x^2 - {{a^2}}}{x - {{a}}}$ for $x \ne {{a}}$, and $f({{a}}) = {{a}}$. Is $f$ continuous at ${{a}}$?
+        options:
+          - { text: 'No: the limit is ${{2*a}}$ but $f({{a}}) = {{a}}$', correct: true }
+          - { text: 'Yes: $f({{a}})$ is defined', misconception: continuity-defined-only }
+          - { text: 'Yes: the limit exists', misconception: continuity-limit-only }
+          - { text: 'No: the limit does not exist', misconception: limit-must-match-value }
+        hints:
+          nudge: "Compute the limit and compare with f({{a}})."
+          partial: "For x ≠ {{a}}, f(x) = x + {{a}}."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** $\lim_{x \to {{a}}} f(x) = {{2*a}} \ne {{a}} = f({{a}})$ — condition 3 fails.
+
+          **Common mistakes:**
+          - "Defined" — conditions 2 and 3 matter too.
+          - "Limit exists" — it must also equal $f({{a}})$.
+          - "No limit" — the limit is ${{2*a}}$.
+
+          **Connects to:** Q2 — a removable discontinuity.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          $f(x) = \dfrac{x^2 - {{a^2}}}{x - {{a}}}$ for $x \ne {{a}}$, and $f({{a}}) = k$. Which $k$ makes $f$ continuous everywhere?
+        answer: { expr: "2*a" }
+        distractors:
+          - { expr: "0", misconception: zero-over-zero-zero }
+          - { expr: "a", misconception: limit-is-input }
+          - { expr: "a^2", misconception: limit-substitute-part }
+        hints:
+          nudge: "k must equal the limit at {{a}}."
+          partial: "lim (x + {{a}}) as x → {{a}}."
+        explanation: |
+          **Answer:** $k = {{2*a}}$
+
+          **Why:** Continuity at ${{a}}$ needs $f({{a}}) = \lim_{x \to {{a}}} (x + {{a}}) = {{2*a}}$; elsewhere $f$ is a quotient with non-zero denominator.
+
+          **Common mistakes:**
+          - 0 — $\frac{0}{0}$ isn't 0.
+          - ${{a}}$ — that's the input.
+          - ${{a^2}}$ — substituting into part of the formula.
+
+          **Connects to:** Q2 — removable discontinuities.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: discontinuity-types
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "At x = {{a}} the gap is removable (a hole): redefining one value fixes it."
+    standaloneContext: "Continuity at a needs f(a) defined, the limit to exist, and the two to be equal."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: 'The step function ($0$ for $x < 0$, $1$ for $x \ge 0$) is discontinuous at 0. What type?'
+        options:
+          - { text: 'Jump', correct: true }
+          - { text: 'Removable', misconception: jump-is-removable }
+          - { text: 'Infinite', misconception: jump-is-infinite }
+          - { text: 'It is continuous: $f(0) = 1$ is defined', misconception: continuity-defined-only }
+        hints:
+          nudge: "Compare the one-sided limits."
+          partial: "0 from the left, 1 from the right."
+        explanation: |
+          **Answer:** jump.
+
+          **Why:** The one-sided limits exist but differ.
+
+          **Common mistakes:**
+          - Removable — no single value fixes a jump.
+          - Infinite — nothing blows up.
+          - "Continuous" — defined isn't enough.
+
+          **Connects to:** Q6 — fixing discontinuities.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: 'What type of discontinuity does $\dfrac{x^2 - {{a^2}}}{x - {{a}}}$ have at $x = {{a}}$?'
+        options:
+          - { text: 'Removable', correct: true }
+          - { text: 'Infinite', misconception: asymptote-hole-confusion }
+          - { text: 'Jump', misconception: hole-is-jump }
+          - { text: 'None: it is continuous', misconception: continuity-limit-only }
+        hints:
+          nudge: "Does the limit exist at {{a}}?"
+          buildsOn: "Q1: the limit is {{2*a}}, but f({{a}}) is undefined."
+          partial: "A single missing point."
+        explanation: |
+          **Answer:** removable.
+
+          **Why:** The limit exists (${{2*a}}$, Q1); only the value is missing. Defining $f({{a}}) = {{2*a}}$ removes it.
+
+          **Common mistakes:**
+          - Infinite — the factor $(x - {{a}})$ cancels; nothing blows up.
+          - Jump — both sides approach ${{2*a}}$.
+          - "Continuous" — $f({{a}})$ is undefined.
+
+          **Connects to:** Q6 — fixing discontinuities.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: 'What kind of discontinuity does $g(x) = \dfrac{x - {{a}}}{(x - {{a}})^2}$ have at $x = {{a}}$?'
+        options:
+          - { text: 'Infinite: after cancelling, $\frac{1}{x - {{a}}}$ still blows up', correct: true }
+          - { text: 'Removable: a factor cancels', misconception: cancel-all-factors }
+          - { text: 'Jump', misconception: jump-is-infinite }
+          - { text: 'None', misconception: continuity-limit-only }
+        hints:
+          nudge: "Cancel one (x − {{a}}). What's left?"
+          buildsOn: "Q1: check whether the limit exists."
+          partial: "1/(x − {{a}}) near {{a}}."
+        explanation: |
+          **Answer:** infinite.
+
+          **Why:** One factor cancels, but $\frac{1}{x - {{a}}}$ remains: $-\infty$ from the left, $+\infty$ from the right. No limit (Q1).
+
+          **Common mistakes:**
+          - Removable — cancelling one factor still leaves one below.
+          - Jump — jumps have finite one-sided limits.
+          - "None" — $g({{a}})$ is undefined.
+
+          **Connects to:** Q6 — fixing discontinuities.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: continuity
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "x² (x < {{a}}) and mx + 1 (x ≥ {{a}}) join continuously when m = ({{a^2}} − 1)/{{a}}."
+    standaloneContext: "Continuity at a needs f(a) defined, the limit to exist, and the two to be equal."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: 'Where is $\dfrac{x + 1}{x - {{a}}}$ continuous?'
+        options:
+          - { text: 'Everywhere except $x = {{a}}$', correct: true }
+          - { text: 'Everywhere except $x = -1$', misconception: asymptote-from-numerator }
+          - { text: 'Everywhere', misconception: continuity-ignores-denominator }
+          - { text: 'Only for $x > {{a}}$', misconception: continuity-one-side }
+        hints:
+          nudge: "A quotient of continuous functions is continuous where…"
+          partial: "…the denominator isn't 0."
+        explanation: |
+          **Answer:** everywhere except $x = {{a}}$.
+
+          **Why:** Quotients of polynomials are continuous wherever the denominator is non-zero.
+
+          **Common mistakes:**
+          - $x = -1$ — that's where $f = 0$, which is fine.
+          - Everywhere — $f({{a}})$ is undefined.
+          - Only $x > {{a}}$ — the left part is continuous too.
+
+          **Connects to:** Q6 — fixing gaps.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          $f(x) = x^2$ for $x < {{a}}$ and $f(x) = mx + 1$ for $x \ge {{a}}$. Which $m$ makes $f$ continuous?
+        answer: { expr: "(a^2 - 1)/a" }
+        distractors:
+          - { expr: "a", misconception: piecewise-match-slope }
+          - { expr: "a^2 - 1", misconception: piecewise-forget-x }
+          - { expr: "(a^2 + 1)/a", misconception: sign-slip }
+        hints:
+          nudge: "Both pieces must meet at x = {{a}}."
+          buildsOn: "Q1: the limit must equal f({{a}})."
+          partial: "{{a}}² = m · {{a}} + 1."
+        explanation: |
+          **Answer:** $m = \frac{ {{a^2-1}} }{ {{a}} } \approx {{(a^2-1)/a}}$
+
+          **Why:** Left limit ${{a^2}}$; right value $f({{a}}) = {{a}}m + 1$ (Q1). Equal when $m = \frac{ {{a^2}} - 1}{ {{a}} }$.
+
+          **Common mistakes:**
+          - $m = {{a}}$ — continuity needs equal *values*, not equal slopes.
+          - ${{a^2-1}}$ — divide by ${{a}}$: the term is $m \cdot {{a}}$.
+          - $\frac{ {{a^2+1}} }{ {{a}} }$ — subtract the 1.
+
+          **Connects to:** Q6 — fixing gaps.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: 'Is $f(x) = \sqrt{x - {{a}}}$ continuous at $x = {{a}}$?'
+        options:
+          - { text: 'Yes, from the right — the only side where it is defined', correct: true }
+          - { text: 'No: the left-hand limit does not exist', misconception: continuity-needs-both-sides }
+          - { text: 'No: $f({{a}}) = 0$ makes it undefined', misconception: zero-is-undefined }
+          - { text: 'No: square roots are discontinuous', misconception: root-discontinuous }
+        hints:
+          nudge: "The domain is x ≥ {{a}}. What does continuity mean at an endpoint?"
+          buildsOn: "Q1: compare the limit with f({{a}})."
+          partial: "lim from the right = 0 = f({{a}})."
+        explanation: |
+          **Answer:** yes, from the right.
+
+          **Why:** At an endpoint of the domain, continuity uses the one-sided limit: $\lim_{x \to {{a}}^+} \sqrt{x - {{a}}} = 0 = f({{a}})$.
+
+          **Common mistakes:**
+          - Left limit — $f$ isn't defined to the left, so only the right side counts.
+          - "0 is undefined" — $\sqrt{0} = 0$ is a fine value.
+          - "Roots are discontinuous" — they're continuous on their domain.
+
+          **Connects to:** Q6 — fixing gaps.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: intermediate-value-theorem
+    clueFor: [s5]
+    establishes: "x³ + x − {{c}} is continuous, negative at 1 and positive at 2, so it has a root in (1, 2)."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: '$f$ is continuous on $[1, 2]$ with $f(1) = -2$ and $f(2) = 3$. Must $f$ have a root in $(1, 2)$?'
+        options:
+          - { text: 'Yes, by the IVT: 0 is between −2 and 3', correct: true }
+          - { text: 'No: we need a formula for $f$', misconception: ivt-needs-formula }
+          - { text: 'Only if $f$ is a polynomial', misconception: ivt-polynomial-only }
+          - { text: 'Yes, and exactly at $x = 1.4$', misconception: ivt-gives-location }
+        hints:
+          nudge: "Can a continuous graph get from −2 to 3 without crossing 0?"
+          partial: "No gaps, no jumps."
+        explanation: |
+          **Answer:** yes, by the IVT.
+
+          **Why:** A continuous function takes every value between $f(1)$ and $f(2)$ — including 0.
+
+          **Common mistakes:**
+          - "Need a formula" — continuity and the signs are enough.
+          - "Polynomials only" — any continuous function.
+          - $x = 1.4$ — the IVT says a root exists, not where.
+
+          **Connects to:** Q5 — locating it.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: 'Why must $f(x) = x^3 + x - {{c}}$ have a root between 1 and 2?'
+        options:
+          - { text: '$f(1) = {{2-c}} < 0$, $f(2) = {{10-c}} > 0$, and $f$ is continuous', correct: true }
+          - { text: 'Because $f$ is a cubic', misconception: ivt-polynomial-only }
+          - { text: '$f(1)$ and $f(2)$ are both non-zero', misconception: ivt-sign-change-needed }
+          - { text: 'Because $f(1.5) = 0$', misconception: ivt-gives-location }
+        hints:
+          nudge: "Evaluate f at both ends."
+          partial: "1 + 1 − {{c}} and 8 + 2 − {{c}}."
+        explanation: |
+          **Answer:** the sign changes and $f$ is continuous.
+
+          **Why:** $f(1) = {{2-c}}$ and $f(2) = {{10-c}}$ have opposite signs; the IVT gives a root in between.
+
+          **Common mistakes:**
+          - "A cubic" — every cubic has a root, but not necessarily in $(1, 2)$.
+          - "Both non-zero" — a sign change is what matters.
+          - $f(1.5) = 0$ — check: $f(1.5) = {{4.875-c}}$.
+
+          **Connects to:** Q5 — narrowing it down.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: '$\frac{1}{x}$ is $-1$ at $x = -1$ and $1$ at $x = 1$. Why doesn''t the IVT give a root in $(-1, 1)$?'
+        options:
+          - { text: '$\frac{1}{x}$ is not continuous on $[-1, 1]$ (it blows up at 0)', correct: true }
+          - { text: 'It does: the root is at $x = 0$', misconception: ivt-ignores-continuity }
+          - { text: 'The interval is too wide', misconception: ivt-interval-size }
+          - { text: 'The IVT only works for positive values', misconception: ivt-positive-only }
+        hints:
+          nudge: "Check the IVT's hypothesis."
+          partial: "Is 1/x defined at 0?"
+        explanation: |
+          **Answer:** $\frac{1}{x}$ isn't continuous on $[-1, 1]$.
+
+          **Why:** The IVT needs continuity on the whole closed interval. $\frac{1}{x}$ jumps from $-\infty$ to $+\infty$ at 0 without ever being 0.
+
+          **Common mistakes:**
+          - Root at 0 — $\frac{1}{0}$ is undefined.
+          - "Too wide" — width doesn't matter; continuity does.
+          - "Positive only" — sign changes are its main use.
+
+          **Connects to:** Q5 — bisection needs continuity too.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: intermediate-value-theorem
+    uses: [s4]
+    clueFor: [s6]
+    establishes: "Bisection halves the bracket each step: after n steps on [1, 2] the root is pinned to within 1/2ⁿ."
+    standaloneContext: "If f is continuous and changes sign on [p, q], the IVT traps a root in between."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 1
+        prompt: |
+          Bisection on $[1, 2]$ for $f(x) = x^3 + x - {{c}}$: $f(1) < 0 < f(2)$ and $f(1.5) = {{4.875 - c}}$. You keep the half with the sign
+          change. Which point do you test next (its midpoint)?
+        answer: { expr: "c < 4.875 ? 1.25 : 1.75" }
+        distractors:
+          - { expr: "c < 4.875 ? 1.75 : 1.25", misconception: bisection-wrong-half }
+          - { expr: "1.5", misconception: bisection-no-halving }
+          - { expr: "2", misconception: bisection-endpoint }
+        hints:
+          nudge: "Keep the half whose ends have opposite signs."
+          partial: "f(1) < 0; compare with the sign of f(1.5) = {{4.875 - c}}."
+        explanation: |
+          **Answer:** ${{c < 4.875 ? 1.25 : 1.75}}$
+
+          **Why:** $f(1.5) = {{4.875-c}}$. Keep the half whose endpoints have opposite signs — with $f(1) < 0$ and $f(2) > 0$, that is
+          $[{{c < 4.875 ? 1 : 1.5}}, {{c < 4.875 ? 1.5 : 2}}]$ — and test its midpoint.
+
+          **Common mistakes:**
+          - The other half's midpoint — that half has no sign change.
+          - 1.5 — it was already tested; the bracket must shrink.
+          - 2 — test midpoints, not endpoints.
+
+          **Connects to:** Q6 — and the challenge.
+      standard:
+        id: s5-s
+        difficulty: 2
+        prompt: 'Bisection starts on $[1, 2]$. How many halvings guarantee the root is pinned to an interval shorter than 0.01?'
+        answer: { expr: "7" }
+        distractors:
+          - { expr: "100", misconception: bisection-linear }
+          - { expr: "6", misconception: bisection-off-by-one }
+          - { expr: "50", misconception: bisection-halves-tolerance }
+        hints:
+          nudge: "After n steps the length is 1/2ⁿ."
+          buildsOn: "Q4: the root is in (1, 2), length 1."
+          partial: "1/64 ≈ 0.0156, 1/128 ≈ 0.0078."
+        explanation: |
+          **Answer:** 7
+
+          **Why:** The bracket starts with length 1 (Q4) and halves each step: $\frac{1}{2^6} = 0.0156$ is not enough, $\frac{1}{2^7} = 0.0078$ is.
+
+          **Common mistakes:**
+          - 100 — that's cutting into hundredths one by one.
+          - 6 — $\frac{1}{64}$ is still above 0.01.
+          - 50 — halving isn't the same as dividing 0.01 in two.
+
+          **Connects to:** Q6 — and the challenge.
+      harder:
+        id: s5-h
+        difficulty: 3
+        prompt: 'Bisection starts on an interval of length 4. How many halvings guarantee an interval shorter than 0.001?'
+        answer: { expr: "12" }
+        distractors:
+          - { expr: "10", misconception: bisection-ignores-length }
+          - { expr: "11", misconception: bisection-off-by-one }
+          - { expr: "4000", misconception: bisection-linear }
+        hints:
+          nudge: "Find the smallest n with 4/2ⁿ < 0.001."
+          buildsOn: "Q4: each step keeps the half with the sign change."
+          partial: "2ⁿ > 4000."
+        explanation: |
+          **Answer:** 12
+
+          **Why:** $2^{11} = 2048$ gives $\frac{4}{2048} \approx 0.00195$; $2^{12} = 4096$ gives $\approx 0.00098$.
+
+          **Common mistakes:**
+          - 10 — that's for length 1 ($2^{10} = 1024$).
+          - 11 — $\frac{4}{2048}$ is still too long.
+          - 4000 — bisection halves; it doesn't step by 0.001.
+
+          **Connects to:** Q6 — and the challenge.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: intermediate-value-theorem
+    uses: [s2, s3, s5]
+    establishes: "The IVT gives existence of a value, not its location or uniqueness — and only for continuous f."
+    standaloneContext: |
+      The IVT: a continuous f on [p, q] takes every value between f(p) and f(q). Removable, jump and infinite discontinuities break it.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: '$f$ is continuous on $[0, 3]$ with $f(0) = 1$ and $f(3) = 7$. Which value must $f$ take somewhere in $(0, 3)$?'
+        options:
+          - { text: '5', correct: true }
+          - { text: '8', misconception: ivt-outside-range }
+          - { text: '0', misconception: ivt-root-only }
+          - { text: 'None is guaranteed', misconception: ivt-needs-formula }
+        hints:
+          nudge: "Which value lies between 1 and 7?"
+          partial: "The IVT works for any N between f(0) and f(3)."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** 5 lies between 1 and 7, so the IVT guarantees it.
+
+          **Common mistakes:**
+          - 8 — outside $[1, 7]$; $f$ might never reach it.
+          - 0 — roots are just the case $N = 0$, and 0 isn't between 1 and 7.
+          - "None" — continuity guarantees every value in between.
+
+          **Connects to:** the challenge — trapping a root.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          $f(x) = \dfrac{x^2 - {{a^2}}}{x - {{a}}}$ for $x \ne {{a}}$ and $f({{a}}) = 0$. On $[{{a-1}}, {{a+1}}]$, $f$ goes from ${{2*a-1}}$ to ${{2*a+1}}$.
+          Does $f$ take the value ${{2*a}}$?
+        options:
+          - { text: 'No: it is discontinuous at ${{a}}$, and that is exactly the value it skips', correct: true }
+          - { text: 'Yes, by the IVT', misconception: ivt-ignores-continuity }
+          - { text: 'Yes, at $x = {{a}}$', misconception: limit-equals-value }
+          - { text: 'Yes, at $x = {{a+1}}$', misconception: ivt-gives-location }
+        hints:
+          nudge: "What is f({{a}})? What would continuity need?"
+          buildsOn: "Q2: removable discontinuity at {{a}}. Q3: continuity needs the pieces to meet."
+          partial: "f(x) = x + {{a}} for x ≠ {{a}}, which equals {{2*a}} only at x = {{a}}."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** $x + {{a}} = {{2*a}}$ only at $x = {{a}}$, where $f$ is 0 instead. The removable discontinuity (Q2) breaks the IVT's hypothesis.
+
+          **Common mistakes:**
+          - "Yes, by the IVT" — the IVT needs continuity on the whole interval.
+          - "At ${{a}}$" — $f({{a}}) = 0$.
+          - "At ${{a+1}}$" — $f({{a+1}}) = {{2*a+1}}$.
+
+          **Connects to:** the challenge — trapping a root.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: '$f$ is continuous on $[0, 4]$ with $f(0) = -1$ and $f(4) = 2$. Which statement is guaranteed?'
+        options:
+          - { text: '$f$ has at least one root in $(0, 4)$', correct: true }
+          - { text: '$f$ has exactly one root in $(0, 4)$', misconception: ivt-uniqueness }
+          - { text: '$f$ has a root at $x = \frac{4}{3}$, where the chord crosses 0', misconception: ivt-gives-location }
+          - { text: '$f$ is increasing on $[0, 4]$', misconception: ivt-monotone }
+        hints:
+          nudge: "Draw a continuous curve from (0, −1) to (4, 2) that wiggles."
+          buildsOn: "Q5: bisection finds *a* root — maybe one of several."
+          partial: "It can cross zero three times."
+        explanation: |
+          **Answer:** at least one root.
+
+          **Why:** The IVT gives existence only. A wiggly curve can cross 0 several times; bisection (Q5) homes in on one of them.
+
+          **Common mistakes:**
+          - "Exactly one" — uniqueness needs more (e.g. $f$ increasing).
+          - The chord — $f$ need not be a straight line.
+          - Increasing — nothing forces that.
+
+          **Connects to:** the challenge — trapping a root.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s4
+    concept: intermediate-value-theorem
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: 'A continuous $f$ has $f(2) = -3$ and $f(5) = -1$. Does the IVT guarantee a root in $(2, 5)$?'
+        options:
+          - { text: 'No: both values are negative, so 0 is not between them', correct: true }
+          - { text: 'Yes: $f$ is continuous', misconception: ivt-sign-change-needed }
+          - { text: 'Yes: $f$ is increasing', misconception: ivt-monotone }
+          - { text: 'Yes, at $x = 3.5$', misconception: ivt-gives-location }
+        hints:
+          nudge: "Is 0 between −3 and −1?"
+          partial: "No sign change."
+        explanation: |
+          **Answer:** no.
+
+          **Why:** The IVT guarantees values *between* $f(2)$ and $f(5)$; 0 isn't between $-3$ and $-1$. (There might still be roots — just no guarantee.)
+
+          **Common mistakes:**
+          - "Continuous" — continuity alone doesn't force a root.
+          - "Increasing" — we don't know that, and it wouldn't help.
+          - "3.5" — the IVT never gives a location.
+
+          **Connects to:** Q4 — sign changes.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: calc1.u1.l5.ch
+  type: graph-manipulator
+  title: "Trap the root"
+  concept: intermediate-value-theorem
+  uses: [s4, s5]
+  params:
+    sets:
+      - { k: 3 }
+      - { k: 5 }
+      - { k: 9 }
+  derived:
+    # A few Newton steps from 1.5 give the root of x³ + x − k to machine precision (for the reference solution only).
+    r1: "1.5 - (1.5^3 + 1.5 - k) / (3 * 1.5^2 + 1)"
+    r2: "r1 - (r1^3 + r1 - k) / (3 * r1^2 + 1)"
+    r3: "r2 - (r2^3 + r2 - k) / (3 * r2^2 + 1)"
+    r4: "r3 - (r3^3 + r3 - k) / (3 * r3^2 + 1)"
+    r5: "r4 - (r4^3 + r4 - k) / (3 * r4^2 + 1)"
+    root: "r5 - (r5^3 + r5 - k) / (3 * r5^2 + 1)"
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        $f(x) = x^3 + x - {{k}}$ has a root in $(1, 2)$. Move $x$ until $f$ changes sign between $x - 0.05$ and $x + 0.05$ — then a root
+        lies within 0.05 of $x$. Zoom with $w$.
+      config:
+        f: "x^3 + x - k"
+        view: { x: ["x0 - w", "x0 + w"], y: ["-(3*x0^2 + 1) * w * 1.2", "(3*x0^2 + 1) * w * 1.2"] }
+        controls:
+          - { name: x0, label: "x", min: 1, max: 2, step: 0.001, initial: 1 }
+          - { name: w, label: "zoom w", min: 0.01, max: 1, step: 0.01, initial: 1 }
+        overlays: { band: { y: 0, eps: 0, x: "x0" } }
+      check: { expr: "f(x0 - 0.05) * f(x0 + 0.05) < 0" }
+      feedback:
+        - { if: "fx0 < 0", say: "f(x) is still negative here: the root is further right.", misconception: bisection-wrong-half }
+        - { if: "true", say: "f(x) is positive here: the root is further left.", misconception: bisection-wrong-half }
+      hints:
+        nudge: "The sign of f(x) tells you which side the root is on."
+        buildsOn: "From Q4: a sign change between two points traps a root."
+        partial: "f is increasing: negative → move right; positive → move left."
+      solution: { x0: "root", w: 0.1 }
+      explanation: |
+        A sign change between $x - 0.05$ and $x + 0.05$ means (by the IVT) a root in that interval of length 0.1.
+    standard:
+      difficulty: 3
+      goal: |
+        Same $f(x) = x^3 + x - {{k}}$, but pin the root to within **0.01**: $f$ must change sign between $x - 0.01$ and $x + 0.01$.
+      config:
+        f: "x^3 + x - k"
+        view: { x: ["x0 - w", "x0 + w"], y: ["-(3*x0^2 + 1) * w * 1.2", "(3*x0^2 + 1) * w * 1.2"] }
+        controls:
+          - { name: x0, label: "x", min: 1, max: 2, step: 0.001, initial: 2 }
+          - { name: w, label: "zoom w", min: 0.005, max: 1, step: 0.005, initial: 1 }
+        overlays: { band: { y: 0, eps: 0, x: "x0" } }
+      check: { expr: "f(x0 - 0.01) * f(x0 + 0.01) < 0" }
+      feedback:
+        - { if: "f(x0 - 0.05) * f(x0 + 0.05) < 0", say: "Within 0.05 — now zoom in further and halve your bracket a few more times." }
+        - { if: "fx0 < 0", say: "f(x) is negative: the root is to the right.", misconception: bisection-wrong-half }
+        - { if: "true", say: "f(x) is positive: the root is to the left.", misconception: bisection-wrong-half }
+      hints:
+        nudge: "Bisect: check the sign at the midpoint, keep the half with the sign change."
+        buildsOn: "From Q5: seven halvings take a length-1 bracket below 0.01."
+        partial: "Zoom in (smaller w) as the bracket shrinks."
+      solution: { x0: "root", w: 0.02 }
+      explanation: |
+        Seven halvings of $[1, 2]$ get below 0.01 — the IVT guarantees the root stays trapped at every step.
+    harder:
+      difficulty: 4
+      goal: |
+        $g(x) = x^3 - 3x + 1$ has **three** roots. Trap the one in $(1, 2)$ to within **0.005**: $g$ must change sign between
+        $x - 0.005$ and $x + 0.005$.
+      config:
+        f: "x^3 - 3*x + 1"
+        view: { x: ["x0 - w", "x0 + w"], y: ["-(abs(3*x0^2 - 3) + 1) * w * 1.2", "(abs(3*x0^2 - 3) + 1) * w * 1.2"] }
+        controls:
+          - { name: x0, label: "x", min: -2, max: 2, step: 0.001, initial: -2 }
+          - { name: w, label: "zoom w", min: 0.005, max: 2, step: 0.005, initial: 2 }
+        overlays: { band: { y: 0, eps: 0, x: "x0" } }
+      check: { expr: "x0 > 1 and f(x0 - 0.005) * f(x0 + 0.005) < 0" }
+      feedback:
+        - { if: "x0 <= 1 and f(x0 - 0.005) * f(x0 + 0.005) < 0", say: "That's a root — but not the one in (1, 2).", misconception: ivt-uniqueness }
+        - { if: "true", say: "Check g(1) and g(2): where is the sign change between them?" }
+      hints:
+        nudge: "g(1) = −1 and g(2) = 3."
+        buildsOn: "From Q6: the IVT promises a root in (1, 2) — not that it's the only root overall."
+        partial: "g(1.5) = −0.125, so the root is in (1.5, 2)."
+      solution: { x0: "2 * cos(2 * pi / 9)", w: 0.01 }
+      explanation: |
+        The three roots are $2\cos\frac{2\pi}{9} \approx 1.532$, $2\cos\frac{4\pi}{9}$ and $2\cos\frac{8\pi}{9}$. Bisection on $[1, 2]$ finds the
+        first — the IVT promised one there, nothing more.
+
+summary:
+  keyTakeaways:
+    - "Continuous at a: f(a) defined, the limit exists, and they're equal."
+    - "Removable (hole), jump (sides differ), infinite (blow-up) discontinuities."
+    - "IVT: a continuous f on [p, q] takes every value between f(p) and f(q) — at least once, location unknown."
+    - "Bisection halves a sign-change bracket each step: n steps shrink length L to L/2ⁿ."
+  next: calc1.u1.l6
