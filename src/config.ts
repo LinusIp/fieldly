@@ -10,6 +10,8 @@ export const DEFAULTS = {
   theme: 'system' as 'system' | 'light' | 'dark',
   fontScale: 1,
   reducedMotion: false,
+  dailyGoal: 100 as 50 | 100 | 200,
+  confidencePrompts: false,
   codeLang: 'python' as 'python' | 'javascript',
 };
 

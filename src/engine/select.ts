@@ -1,47 +1,36 @@
-import { expectedScore } from './elo';
+/** Variant selection (§3.2). */
 
 export type VariantKey = 'easier' | 'standard' | 'harder';
 export const VARIANT_KEYS: VariantKey[] = ['easier', 'standard', 'harder'];
 
-export const DEFAULT_TARGET = 0.78;
-export const STRUGGLE_TARGET = 0.9;
-export const STRETCH_TARGET = 0.65;
+export interface Selection {
+  variant: VariantKey;
+  /** Last two graded steps both scored < 0.5: insert the remediation step for the missed step. */
+  remediate: boolean;
+  /** Last three graded steps all scored ≥ 0.8: offer the bonus step (the learner may skip it). */
+  offerBonus: boolean;
+}
 
-export type Mode = 'default' | 'struggle' | 'stretch';
+/** The default band rule on p_std, the expected success on the standard variant. */
+export function defaultVariant(pStd: number): VariantKey {
+  if (pStd > 0.92) return 'harder';
+  if (pStd < 0.6) return 'easier';
+  return 'standard';
+}
 
 /**
- * Situation from the scores of the steps answered so far in this attempt (§3.2):
- * last 2 both < 0.5 → struggle; last 3 all ≥ 0.8 → stretch.
+ * Choose the variant for the next core step.
+ * - `recent`: scores of the graded steps answered so far in this attempt, oldest first.
+ * - `firstStepOfFirstLesson`: the very first core step of the first lesson a learner opens in a subject.
  */
-export function modeFromHistory(scores: number[]): Mode {
-  const n = scores.length;
-  if (n >= 2 && scores[n - 1] < 0.5 && scores[n - 2] < 0.5) return 'struggle';
-  if (n >= 3 && scores[n - 1] >= 0.8 && scores[n - 2] >= 0.8 && scores[n - 3] >= 0.8) return 'stretch';
-  return 'default';
-}
-
-export function targetP(mode: Mode): number {
-  return mode === 'struggle' ? STRUGGLE_TARGET : mode === 'stretch' ? STRETCH_TARGET : DEFAULT_TARGET;
-}
-
-/** Pick the variant whose expected success is closest to the target. Ties go to the easier one. */
-export function chooseVariant(
-  variants: Partial<Record<VariantKey, { difficulty: number }>>,
-  rating: number,
-  target: number,
-  opts: { forceStandard?: boolean } = {},
-): VariantKey {
-  if (opts.forceStandard && variants.standard) return 'standard';
-  let best: VariantKey = 'standard';
-  let bestGap = Infinity;
-  for (const key of VARIANT_KEYS) {
-    const v = variants[key];
-    if (!v) continue;
-    const gap = Math.abs(expectedScore(rating, v.difficulty) - target);
-    if (gap < bestGap - 1e-12) {
-      best = key;
-      bestGap = gap;
-    }
-  }
-  return best;
+export function selectVariant(pStd: number, recent: number[], firstStepOfFirstLesson = false): Selection {
+  const n = recent.length;
+  const struggling = n >= 2 && recent[n - 1] < 0.5 && recent[n - 2] < 0.5;
+  const flying = n >= 3 && recent[n - 1] >= 0.8 && recent[n - 2] >= 0.8 && recent[n - 3] >= 0.8;
+  if (firstStepOfFirstLesson) return { variant: 'standard', remediate: false, offerBonus: false };
+  if (struggling)
+    return { variant: pStd > 0.8 ? defaultVariant(pStd) : 'easier', remediate: true, offerBonus: false };
+  if (flying)
+    return { variant: pStd > 0.8 ? 'harder' : defaultVariant(pStd), remediate: false, offerBonus: true };
+  return { variant: defaultVariant(pStd), remediate: false, offerBonus: false };
 }

@@ -1,15 +1,21 @@
+/** Elo-style ratings (§3.1). */
+
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export const INITIAL_RATING = 1000;
 
-/** Question rating from its difficulty band: D = 700 + 150 × difficulty. */
-export function questionRating(difficulty: number): number {
-  return 700 + 150 * difficulty;
+/** Question rating from its band, centred on the unit's base difficulty b: D = 780 + 150 × (difficulty − b). */
+export function questionRating(difficulty: number, base: number): number {
+  return 780 + 150 * (difficulty - base);
 }
 
-/** Expected success p = 1 / (1 + 10^((D − R) / 400)). */
-export function expectedScore(rating: number, difficulty: number): number {
-  return 1 / (1 + 10 ** ((questionRating(difficulty) - rating) / 400));
+/**
+ * Expected success p = 1 / (1 + 10^((D − R) / 400)). For an mcq with k options, correct for
+ * guessing: p' = 1/k + (1 − 1/k) × p.
+ */
+export function expectedScore(rating: number, difficulty: number, base: number, options?: number): number {
+  const p = 1 / (1 + 10 ** ((questionRating(difficulty, base) - rating) / 400));
+  return options && options > 1 ? 1 / options + (1 - 1 / options) * p : p;
 }
 
 export function kFactor(answersInConcept: number): number {
@@ -22,11 +28,15 @@ export interface RatingState {
 }
 
 /**
- * Update after one scored step (§3.1). The expected score is computed from the concept rating,
- * which is what drove the variant choice.
+ * Update after one graded step (§3.1). The expected score uses the concept rating, which is what
+ * drove the variant choice; the subject rating moves by K/2.
  */
-export function updateRatings(state: RatingState, difficulty: number, score: number): RatingState {
-  const p = expectedScore(state.concept.r, difficulty);
+export function updateRatings(
+  state: RatingState,
+  item: { difficulty: number; base: number; options?: number },
+  score: number,
+): RatingState {
+  const p = expectedScore(state.concept.r, item.difficulty, item.base, item.options);
   const k = kFactor(state.concept.n);
   return {
     concept: { r: state.concept.r + k * (score - p), n: state.concept.n + 1 },

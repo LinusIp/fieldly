@@ -3,22 +3,22 @@ import { Link } from 'react-router';
 import { Markdown } from '../../components/Markdown';
 import { Badge, Button, ErrorState, Loading } from '../../components/ui';
 import { findLesson, loadSubject, useContentIndex } from '../../content/loader';
-import type { SubjectContent } from '../../content/types';
-import { dueCount } from '../../engine/review';
-import { conceptStatus, type ConceptStatus } from '../../engine/scoring';
+import { nsId, type SubjectContent } from '../../content/types';
+import { recall } from '../../engine/memory';
+import { needsReview, type MasteryLevel } from '../../engine/mastery';
 import {
   downloadProgress,
   parseImport,
   summarizeProgress,
   type ImportSummary,
 } from '../../storage/exportImport';
-import { streak, useProgress } from '../../storage/progress';
+import { useProgress } from '../../storage/progress';
 import type { Progress } from '../../storage/schema';
 
-const STATUS_TONE: Record<ConceptStatus, 'ok' | 'warn' | 'bad'> = {
-  Strong: 'ok',
-  Developing: 'warn',
-  'Needs work': 'bad',
+const LEVEL: Record<MasteryLevel, { label: string; tone: 'neutral' | 'accent' | 'ok' }> = {
+  practised: { label: 'Practised', tone: 'neutral' },
+  proficient: { label: 'Proficient', tone: 'accent' },
+  mastered: { label: 'Mastered', tone: 'ok' },
 };
 
 export default function ProfilePage() {
@@ -42,16 +42,26 @@ export default function ProfilePage() {
   if (!index || !subjects) return <Loading what="Loading your profile" />;
 
   const s = summarizeProgress(progress);
-  const days = streak(progress.activity);
-  const due = dueCount(progress.review, new Date());
+  const now = new Date();
 
-  // Concept ratings grouped by subject (a concept belongs to the subject whose concepts.yaml lists it).
+  // Concept levels per subject (§3.4): shown only after ≥ 3 graded answers.
   const groups = index.subjects
     .map((subj) => {
       const content = subjects.get(subj.id);
       const rows = (content?.concepts ?? [])
-        .filter((c) => progress.ratings.concept[c.id])
-        .map((c) => ({ ...c, ...progress.ratings.concept[c.id] }));
+        .map((c) => {
+          const key = nsId(subj.id, c.id);
+          const rating = progress.ratings.concept[key];
+          const mem = progress.memory[key];
+          return {
+            id: key,
+            title: c.title,
+            n: rating?.n ?? 0,
+            level: progress.mastery[key]?.level,
+            review: mem ? needsReview(recall(mem, now)) : false,
+          };
+        })
+        .filter((r) => r.n > 0);
       return { subj, rows };
     })
     .filter((g) => g.rows.length > 0);
@@ -60,24 +70,22 @@ export default function ProfilePage() {
     .sort((a, b) => b[1].count - a[1].count || b[1].lastSeen.localeCompare(a[1].lastSeen))
     .slice(0, 8)
     .map(([id, m]) => {
-      for (const content of subjects.values()) {
-        const found = content.misconceptions.find((x) => x.id === id);
-        if (found) return { id, ...m, info: found };
-      }
-      return { id, ...m, info: undefined };
+      const [sid, slug] = id.includes('/') ? id.split('/', 2) : ['', id];
+      const content = subjects.get(sid);
+      const found = content?.misconceptions.find((x) => x.id === slug);
+      return { id, ...m, info: found };
     });
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <h1 className="text-2xl font-semibold">Your progress</h1>
 
-      <section aria-label="Totals" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <section aria-label="Totals" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ['Lessons completed', s.lessonsCompleted],
           ['Stars', s.stars],
           ['Questions answered', s.questionsAnswered],
-          ['Day streak', days],
-          ['Review due', due],
+          ['XP', s.xp],
         ].map(([label, value]) => (
           <div key={label} className="rounded-xl border border-border bg-surface p-4">
             <div className="text-2xl font-semibold">{value}</div>
@@ -89,8 +97,8 @@ export default function ProfilePage() {
       <section className="rounded-xl border border-border bg-surface p-5">
         <h2 className="font-semibold">Concepts</h2>
         <p className="text-sm text-muted">
-          A rating appears once you've answered at least 3 questions on a concept. Strong ≥ 1250 · Developing
-          1050–1249 · Needs work &lt; 1050.
+          A level appears after 3 graded answers: Practised → Proficient → Mastered. “Needs review” means it's
+          time to practise it again.
         </p>
         {groups.length === 0 && (
           <p className="mt-3 text-sm text-muted">Answer some questions to see your concepts here.</p>
@@ -99,36 +107,19 @@ export default function ProfilePage() {
           <div key={subj.id} className="mt-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{subj.title}</h3>
             <ul className="mt-2 space-y-2" data-testid={`concepts-${subj.id}`}>
-              {rows.map((c) => {
-                const st = conceptStatus(c.r, c.n);
-                const pct = Math.max(2, Math.min(100, ((c.r - 800) / 800) * 100));
-                return (
-                  <li
-                    key={c.id}
-                    className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[14rem_1fr_auto]"
-                  >
-                    <span className="truncate">{c.title}</span>
-                    <span className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                      <span
-                        className="block h-full rounded-full"
-                        style={{
-                          width: `${pct}%`,
-                          background: st ? `var(--c-${STATUS_TONE[st]})` : 'var(--c-border)',
-                        }}
-                      />
-                    </span>
-                    <span className="w-36 text-right">
-                      {st ? (
-                        <Badge tone={STATUS_TONE[st]}>
-                          {st} · {Math.round(c.r)}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted">{c.n} of 3 answers</span>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
+              {rows.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span>{c.title}</span>
+                  <span className="flex gap-2">
+                    {c.review && <Badge tone="warn">Needs review</Badge>}
+                    {c.level ? (
+                      <Badge tone={LEVEL[c.level].tone}>{LEVEL[c.level].label}</Badge>
+                    ) : (
+                      <span className="text-xs text-muted">{Math.min(c.n, 3)} of 3 answers</span>
+                    )}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         ))}
@@ -247,7 +238,7 @@ function BackupSection({ progress }: { progress: Progress }) {
                 {pending.summary.lessonsStarted} started
               </li>
               <li>{pending.summary.questionsAnswered} questions answered</li>
-              <li>{pending.summary.reviewItems} questions in the review queue</li>
+              <li>{pending.summary.xp} XP</li>
             </ul>
             <div className="mt-3 flex gap-3">
               <Button
@@ -271,7 +262,9 @@ function BackupSection({ progress }: { progress: Progress }) {
       <details className="mt-5">
         <summary className="cursor-pointer text-sm font-semibold text-bad">Reset all progress…</summary>
         <div className="mt-3 space-y-2 text-sm">
-          <p>This deletes every rating, star, answer and review item in this browser. It can't be undone.</p>
+          <p>
+            This deletes every rating, star, answer and puzzle result in this browser. It can't be undone.
+          </p>
           <label className="block">
             Type <strong>RESET</strong> to confirm:
             <input

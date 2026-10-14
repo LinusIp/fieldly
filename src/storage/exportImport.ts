@@ -20,7 +20,7 @@ export interface ImportSummary {
   lessonsCompleted: number;
   stars: number;
   questionsAnswered: number;
-  reviewItems: number;
+  xp: number;
 }
 
 export function summarizeProgress(p: Progress): ImportSummary {
@@ -30,8 +30,8 @@ export function summarizeProgress(p: Progress): ImportSummary {
     lessonsStarted: lessons.filter((l) => l.status !== 'not-started').length,
     lessonsCompleted: lessons.filter((l) => l.status === 'completed').length,
     stars: lessons.reduce((a, l) => a + l.stars, 0),
-    questionsAnswered: Object.values(p.questions).reduce((a, q) => a + q.attempts, 0),
-    reviewItems: Object.keys(p.review).length,
+    questionsAnswered: Object.values(p.items).reduce((a, q) => a + q.attempts, 0),
+    xp: p.xp.total,
   };
 }
 

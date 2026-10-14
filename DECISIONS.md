@@ -65,3 +65,6 @@ One line each: date — decision — reason.
 - 2026-10-14 — Concept and misconception ids stay bare slugs in the content files and JSON; the app namespaces them as `<subject>/<slug>` (`nsId`) wherever they key progress (§7.3). Cross-subject `requires` already use the full form.
 - 2026-10-14 — Path-map nodes and navigation for features not built yet (practice sets, checkpoints, hard mode, puzzle packs) show "Coming soon" via `FEATURES` in `config.ts`, rather than linking to pages that don't exist.
 - 2026-10-14 — While a subject has no lesson files, its unused misconceptions are summarised in one validator warning instead of one per id.
+- 2026-10-14 — Progress is stored as version 2 (the spec's `ProgressV1` shape) because version 1 was the pre-v2 store; the 1 → 2 migration keeps lesson results, subject ratings, misconception counts and settings, and drops v1 attempts, un-namespaced concept ratings and the Leitner review queue (spaced review is now the memory model).
+- 2026-10-14 — `AttemptState` adds `sequence` (screen and inserted-step ids in play order), `skipped`, `firstInSubject` and `startedAt` to §12's fields; answer records add `correct`, `misconception` and `variant`. Lessons keep `lastOpenedAt` for "Continue lesson".
+- 2026-10-14 — Mastery levels only rise; a fading concept shows "Needs review" (recall < 0.5) instead of dropping a level (§3.4).
