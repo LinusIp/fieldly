@@ -1,0 +1,732 @@
+id: phys2.u3.l6
+title: "Meters in circuits"
+version: 1
+concepts: [ammeters-voltmeters, meter-loading]
+estimatedMinutes: 20
+
+# A battery V drives R1 and R2 in series. We measure the current and the voltage across R2,
+# first with ideal meters, then with a real voltmeter of resistance Rv.
+params:
+  sets:
+    - { V: 12, R1: 4, R2: 8, Rv: 24 }
+    - { V: 9, R1: 6, R2: 12, Rv: 24 }
+    - { V: 20, R1: 10, R2: 30, Rv: 60 }
+derived:
+  I: "V / (R1 + R2)"
+  V2: "I * R2"
+  R2v: "R2 * Rv / (R2 + Rv)"
+  V2m: "V * R2v / (R1 + R2v)"
+
+intro: |
+  **Ammeters** measure current — the charge flowing *through* a wire — so the current must
+  pass through the meter: connect it **in series**. To avoid changing the current it measures,
+  an ideal ammeter has **zero resistance**.
+
+  **Voltmeters** measure the potential difference *between two points*, so they are connected
+  **in parallel**, across the component. To avoid stealing current from it, an ideal voltmeter
+  has **infinite resistance**.
+
+  Get them the wrong way round and the circuit changes:
+
+  - a voltmeter in series is like a break in the wire, so the current almost stops;
+  - an ammeter in parallel is like a wire across the component, so it shorts it out.
+
+  Real meters aren't ideal. A voltmeter with resistance $R_V$ placed across a resistor $R$
+  forms a parallel pair, $R \parallel R_V$, which is smaller than $R$. That changes the
+  circuit, and the meter reads *less* than the true voltage. This is **meter loading**. It is
+  small when $R_V$ is much larger than the resistances in the circuit, which is why good
+  voltmeters have resistances of megaohms.
+
+workedExample: |
+  A 10 V battery drives 5 Ω and 15 Ω in series.
+
+  - True current: $I = 10/(5 + 15) = 0.5$ A, so the true voltage across the 15 Ω is $0.5 \times 15 = 7.5$ V
+  - A voltmeter of resistance 15 Ω across the 15 Ω resistor makes $15 \parallel 15 = 7.5$ Ω
+  - New total: $5 + 7.5 = 12.5$ Ω, so $I = 0.8$ A and the meter reads $0.8 \times 7.5 = 6$ V, not 7.5 V
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: ammeters-voltmeters
+    clueFor: [s3]
+    establishes: "An ammeter goes in series, and ideally has zero resistance."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: "An ammeter measures the current flowing through a wire. How must the current get to the meter?"
+        options:
+          - { text: "It must flow *through* the meter, so the meter is in series", correct: true }
+          - { text: "The meter just touches both ends of the component", misconception: ammeter-in-parallel }
+          - { text: "The meter is connected across the battery", misconception: ammeter-across-source }
+          - { text: "It doesn't matter how the meter is connected", misconception: meter-placement-irrelevant }
+        hints:
+          nudge: "To count cars on a road, where do you stand?"
+          partial: "The charge has to pass through the meter, so the meter sits in the same path."
+        explanation: |
+          **Answer:** through the meter — in series.
+
+          **Why:** Current is the charge passing a point each second. To count it, the meter must be
+          *part* of the path, so you break the wire and insert the ammeter.
+
+          **Common mistakes:**
+          - "Touching both ends" — that's how a voltmeter is connected.
+          - "Across the battery" — a low-resistance meter there is a short circuit.
+          - "Doesn't matter" — the connection decides what the meter measures.
+
+          **Connects to:** Q3 reads the ammeter in our circuit.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A {{V}} V battery drives $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series. Where should an
+          ammeter go to measure the current through $R_2$?
+        options:
+          - { text: "In series with $R_2$, in the same wire", correct: true }
+          - { text: "In parallel, across the ends of $R_2$", misconception: ammeter-in-parallel }
+          - { text: "Across the battery's terminals", misconception: ammeter-across-source }
+          - { text: "Between any two points of the circuit", misconception: meter-placement-irrelevant }
+        hints:
+          nudge: "What has to pass through an ammeter for it to measure current?"
+          partial: "The current through $R_2$ must also pass through the meter."
+        explanation: |
+          **Answer:** in series with $R_2$.
+
+          **Why:** Break the wire next to $R_2$ and insert the meter, so the same charge flows through
+          both. (Because this circuit is one loop, anywhere *in series* in the loop gives the same reading.)
+
+          **Common mistakes:**
+          - "Across $R_2$" — a near-zero-resistance meter across $R_2$ shorts it out.
+          - "Across the battery" — that's a short circuit across the source.
+          - "Any two points" — a meter connected between two points measures the voltage between them, and only a voltmeter should do that.
+
+          **Connects to:** Q3 works out what this ammeter reads.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: "Why is a good ammeter designed to have a very **low** resistance?"
+        options:
+          - { text: "So that inserting it in series barely changes the current it measures", correct: true }
+          - { text: "So that more current flows through it than through the circuit", misconception: ammeter-in-parallel }
+          - { text: "So that it doesn't use up any of the current", misconception: current-used-up }
+          - { text: "So that it can be connected straight across a battery safely", misconception: ammeter-across-source }
+        hints:
+          nudge: "The meter becomes part of the circuit's series path. What does extra series resistance do?"
+          partial: "Any resistance in series adds to the total and lowers the current."
+        explanation: |
+          **Answer:** so it barely changes the current.
+
+          **Why:** In series, the meter's resistance adds to the circuit's. A meter with resistance
+          $R_A$ makes the current $V/(R_{tot} + R_A)$ instead of $V/R_{tot}$. Small $R_A$, small error.
+
+          **Common mistakes:**
+          - "More current through it" — in series there's only one path, so the current is the same everywhere.
+          - "Doesn't use up current" — no component uses up current; the issue is extra resistance.
+          - "Across a battery" — low resistance makes that a short circuit, the opposite of safe.
+
+          **Connects to:** Q3 — and its hard version uses a real ammeter.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: ammeters-voltmeters
+    clueFor: [s4]
+    establishes: "A voltmeter goes in parallel, across the part, and ideally has infinite resistance."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: "A voltmeter measures the potential difference between two points. How is it connected to measure the voltage across a resistor?"
+        options:
+          - { text: "Its two leads touch the two ends of the resistor (in parallel)", correct: true }
+          - { text: "In series, in the wire next to the resistor", misconception: voltmeter-in-series }
+          - { text: "Across the battery, whatever you want to measure", misconception: voltmeter-across-source }
+          - { text: "In series with the battery", misconception: meters-swapped }
+        hints:
+          nudge: "A *difference* between two points needs a lead on each point."
+          partial: "Put one lead on each end of the resistor."
+        explanation: |
+          **Answer:** across the resistor, in parallel.
+
+          **Why:** A potential difference is between two points, so the meter's two leads go on the
+          two ends of the resistor. Nothing needs to be disconnected.
+
+          **Common mistakes:**
+          - "In series" — then the meter measures across itself and blocks the current.
+          - "Across the battery" — that measures the battery's voltage, not the resistor's.
+          - "In series with the battery" — same problem as in series anywhere.
+
+          **Connects to:** Q4 reads a voltmeter across $R_2$.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          In the same circuit ({{V}} V battery, $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series),
+          how should a voltmeter be connected to measure the voltage across $R_2$?
+        options:
+          - { text: "In parallel: one lead on each end of $R_2$", correct: true }
+          - { text: "In series with $R_2$", misconception: voltmeter-in-series }
+          - { text: "Across the battery terminals", misconception: voltmeter-across-source }
+          - { text: "Across $R_1$, since the current is the same", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "What two points is the voltage of $R_2$ measured *between*?"
+          partial: "The two ends of $R_2$."
+        explanation: |
+          **Answer:** in parallel across $R_2$.
+
+          **Why:** The voltage across $R_2$ is the potential difference between its two ends, so the
+          leads go there. An ideal voltmeter draws no current, so the circuit is unchanged.
+
+          **Common mistakes:**
+          - "In series" — a voltmeter has a huge resistance, so in series it nearly stops the current.
+          - "Across the battery" — that reads all {{V}} V, shared by both resistors.
+          - "Across $R_1$" — same current, but a different resistance, so a different voltage.
+
+          **Connects to:** Q4 works out what the voltmeter reads.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A student connects a voltmeter (very high resistance) **in series** with $R_1$ and $R_2$
+          by mistake. What happens?
+        options:
+          - { text: "The current almost stops, and the meter reads about {{V}} V", correct: true }
+          - { text: "The meter reads the voltage across $R_2$, {{V2}} V", misconception: voltmeter-in-series }
+          - { text: "The meter reads 0 V, because no current flows", misconception: meter-reads-zero-open }
+          - { text: "The meter shows the current, {{I}} A", misconception: voltmeter-reads-current }
+        hints:
+          nudge: "The meter's resistance is enormous compared with $R_1 + R_2$. How does the battery's voltage divide?"
+          partial: "In series, voltage divides in proportion to resistance — and the meter has almost all of it."
+        explanation: |
+          **Answer:** almost no current flows, and the meter reads about {{V}} V.
+
+          **Why:** In series, the battery's voltage divides in proportion to resistance. The meter's
+          resistance is huge, so it takes nearly all {{V}} V, and the current falls to almost zero.
+          It's like a break in the wire with the meter measuring across the gap.
+
+          **Common mistakes:**
+          - "{{V2}} V" — the meter isn't across $R_2$; it's in the path.
+          - "0 V" — with almost no current, $R_1$ and $R_2$ drop almost nothing, so the meter gets nearly everything.
+          - "Shows the current" — a voltmeter only ever reads volts.
+
+          **Connects to:** Q4 — the correct, parallel connection.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: ammeters-voltmeters
+    uses: [s1]
+    clueFor: [s4]
+    establishes: "The ideal ammeter in the loop reads I = {{V}}/({{R1}} + {{R2}}) = {{I}} A."
+    standaloneContext: "A {{V}} V battery drives $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series. An ammeter is in series with $R_2$."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          The circuit's total resistance is {{R1+R2}} Ω and the battery gives {{V}} V. What does an
+          ideal ammeter in series with $R_2$ read?
+        answer: { expr: "V / (R1 + R2)", unit: "A" }
+        distractors:
+          - { expr: "V * (R1 + R2)", unit: "A", misconception: ohm-multiply }
+          - { expr: "V / R2", unit: "A", misconception: each-gets-full-voltage }
+          - { expr: "V / (R1 + R2) / 2", unit: "A", misconception: series-current-splits }
+        hints:
+          nudge: "An ideal ammeter adds no resistance, so the current is the circuit's current."
+          partial: "$I = V/R_{tot}$"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** $I = {{V}}/{{R1+R2}} = {{I}}$ A. A zero-resistance ammeter doesn't change it.
+
+          **Common mistakes:**
+          - {{V*(R1+R2)}} A — multiplied instead of dividing.
+          - {{V/R2}} A — that puts the whole battery voltage across $R_2$ alone.
+          - {{V/(R1+R2)/2}} A — the current doesn't halve between series resistors.
+
+          **Connects to:** Q4 uses this current.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          What does an ideal ammeter in series with $R_2$ read?
+        answer: { expr: "V / (R1 + R2)", unit: "A" }
+        distractors:
+          - { expr: "V / R2", unit: "A", misconception: each-gets-full-voltage }
+          - { expr: "V / R1", unit: "A", misconception: wrong-resistor-drop }
+          - { expr: "V / (R1 + R2) / 2", unit: "A", misconception: series-current-splits }
+        hints:
+          nudge: "Does an ideal ammeter add any resistance? What's the current in the loop?"
+          buildsOn: "From Q1: an ideal ammeter goes in series and has zero resistance."
+          partial: "$I = {{V}}/({{R1}} + {{R2}})$"
+        explanation: |
+          **Answer:** {{I}} A
+
+          **Why:** The ideal ammeter (Q1) adds no resistance, so it reads the loop current:
+          $I = {{V}}/({{R1}} + {{R2}}) = {{I}}$ A.
+
+          **Common mistakes:**
+          - {{V/R2}} A — $R_2$ doesn't have the full battery voltage; it shares it with $R_1$.
+          - {{V/R1}} A — same mistake with $R_1$.
+          - {{V/(R1+R2)/2}} A — series resistors carry the same current, not half each.
+
+          **Connects to:** Q4 uses this current to predict the voltmeter reading.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          A real ammeter with a resistance of 1 Ω is inserted in series with $R_2$. What does it read?
+        answer: { expr: "V / (R1 + R2 + 1)", unit: "A" }
+        distractors:
+          - { expr: "V / (R1 + R2)", unit: "A", misconception: meter-loading-ignored }
+          - { expr: "V / (R1 + R2 - 1)", unit: "A", misconception: ammeter-resistance-subtract }
+          - { expr: "V / 1", unit: "A", misconception: ammeter-only-resistance }
+        hints:
+          nudge: "The meter is now part of the series path. What is the new total resistance?"
+          buildsOn: "From Q1: an ammeter goes in series, so its resistance adds to the circuit's."
+          partial: "$R_{tot} = {{R1}} + {{R2}} + 1$ Ω"
+        explanation: |
+          **Answer:** {{V/(R1+R2+1)}} A
+
+          **Why:** In series, the meter's 1 Ω adds: $I = {{V}}/({{R1}} + {{R2}} + 1) = {{V/(R1+R2+1)}}$ A — a little
+          less than the {{I}} A that flows without the meter. That's ammeter loading.
+
+          **Common mistakes:**
+          - {{I}} A — that's the ideal-meter reading; this meter adds 1 Ω.
+          - {{V/(R1+R2-1)}} A — series resistance adds; it doesn't subtract.
+          - {{V}} A — the meter isn't the only resistance in the loop.
+
+          **Connects to:** Q4 — the voltage across $R_2$.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: ammeters-voltmeters
+    uses: [s2, s3]
+    clueFor: [s5]
+    establishes: 'An ideal voltmeter across $R_2$ reads the true value, $IR_2 = {{V2}}$ V.'
+    standaloneContext: "A {{V}} V battery drives {{I}} A through $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series. An ideal voltmeter is connected across $R_2$."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          {{I}} A flows through $R_2 = {{R2}}$ Ω. What does an ideal voltmeter across $R_2$ read?
+        answer: { expr: "I * R2", unit: "V" }
+        distractors:
+          - { expr: "I / R2", unit: "V", misconception: v-equals-i-over-r }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "I * R1", unit: "V", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "An ideal voltmeter changes nothing, so use Ohm's law for $R_2$."
+          partial: "$V_2 = I R_2$"
+        explanation: |
+          **Answer:** {{V2}} V
+
+          **Why:** $V_2 = IR_2 = {{I}} \times {{R2}} = {{V2}}$ V.
+
+          **Common mistakes:**
+          - {{I/R2}} V — voltage is $IR$, not $I/R$.
+          - {{V}} V — that's the whole battery voltage.
+          - {{I*R1}} V — that's across $R_1$.
+
+          **Connects to:** Q5 asks what a *real* voltmeter reads.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          An ideal voltmeter is connected across $R_2$. What does it read?
+        answer: { expr: "I * R2", unit: "V" }
+        distractors:
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+          - { expr: "I * R1", unit: "V", misconception: wrong-resistor-drop }
+          - { expr: "V / 2", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "An ideal voltmeter draws no current. What's the voltage across $R_2$ with the current from Q3?"
+          buildsOn: "From Q2: a voltmeter goes across $R_2$ in parallel. From Q3: I = {{I}} A."
+          partial: "$V_2 = {{I}} \\times {{R2}}$"
+        explanation: |
+          **Answer:** {{V2}} V
+
+          **Why:** The ideal voltmeter draws no current, so the circuit is unchanged: $V_2 = IR_2 = {{I}} \times {{R2}} = {{V2}}$ V.
+          $R_1$ takes the other {{V-V2}} V.
+
+          **Common mistakes:**
+          - {{V}} V — the battery voltage is shared.
+          - {{I*R1}} V — that's $R_1$'s share.
+          - {{V/2}} V — the split follows resistance ({{R1}} : {{R2}}), not 50 : 50.
+
+          **Connects to:** Q5 replaces the ideal voltmeter with a real one.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          The voltmeter is moved so that it spans **both** $R_1$ and $R_2$. What does it read now?
+        answer: { expr: "V", unit: "V" }
+        distractors:
+          - { expr: "I * R2", unit: "V", misconception: voltmeter-reads-total }
+          - { expr: "I * R1", unit: "V", misconception: wrong-resistor-drop }
+          - { expr: "V / 2", unit: "V", misconception: voltage-splits-equally }
+        hints:
+          nudge: "Which two points are the leads on now? What's the potential difference between them?"
+          buildsOn: "From Q2: a voltmeter reads the difference between the two points it touches. From Q3: I = {{I}} A."
+          partial: "Across both resistors: $V_1 + V_2 = I(R_1 + R_2)$."
+        explanation: |
+          **Answer:** {{V}} V
+
+          **Why:** The leads span both resistors, so the meter reads $V_1 + V_2 = {{I}} \times ({{R1}} + {{R2}}) = {{V}}$ V —
+          all of the (ideal) battery's voltage.
+
+          **Common mistakes:**
+          - {{V2}} V — that's $R_2$ alone; the meter now spans both.
+          - {{I*R1}} V — that's $R_1$ alone.
+          - {{V/2}} V — the drops add; they don't average.
+
+          **Connects to:** Q5 — what a real voltmeter across $R_2$ reads.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: meter-loading
+    uses: [s4]
+    clueFor: [s6]
+    establishes: 'A {{Rv}} Ω voltmeter across $R_2$ makes $R_2 parallel R_V = {{R2v}}$ Ω and reads {{V2m}} V, not {{V2}} V.'
+    standaloneContext: "A {{V}} V battery drives $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series. The true voltage across $R_2$ is {{V2}} V. A voltmeter of resistance {{Rv}} Ω is connected across $R_2$."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          A real voltmeter with resistance {{Rv}} Ω is connected across $R_2 = {{R2}}$ Ω. What is the
+          resistance of $R_2$ and the meter together?
+        answer: { expr: "R2 * Rv / (R2 + Rv)", unit: "Ω" }
+        distractors:
+          - { expr: "R2 + Rv", unit: "Ω", misconception: series-parallel-confusion }
+          - { expr: "R2", unit: "Ω", misconception: meter-loading-ignored }
+          - { expr: "Rv", unit: "Ω", misconception: wrong-resistor-drop }
+        hints:
+          nudge: "How are $R_2$ and the voltmeter connected to each other?"
+          partial: "They're in parallel: $\\dfrac{R_2 R_V}{R_2 + R_V}$."
+        explanation: |
+          **Answer:** {{R2v}} Ω
+
+          **Why:** The meter sits across $R_2$, in parallel: $\frac{{{R2}} \times {{Rv}}}{{{R2}} + {{Rv}}} = {{R2v}}$ Ω —
+          less than $R_2$. So the meter changes the circuit it's measuring.
+
+          **Common mistakes:**
+          - {{R2+Rv}} Ω — they're in parallel, not series.
+          - {{R2}} Ω — that ignores the current the meter draws.
+          - {{Rv}} Ω — parallel gives less than either resistance.
+
+          **Connects to:** Q6 compares voltmeters with different resistances.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The ideal meter is replaced by a real voltmeter with a resistance of {{Rv}} Ω, still across
+          $R_2$. What does it read?
+        answer: { expr: "V2m", unit: "V" }
+        distractors:
+          - { expr: "V2", unit: "V", misconception: meter-loading-ignored }
+          - { expr: "2 * V2 - V2m", unit: "V", misconception: loading-raises-reading }
+          - { expr: "V * R2 / (R1 + R2 + Rv)", unit: "V", misconception: voltmeter-in-series }
+        hints:
+          nudge: "The meter and $R_2$ form a parallel pair. Redo the circuit with that pair."
+          buildsOn: "From Q4: with an ideal meter, $R_2$ has {{V2}} V across it."
+          partial: "$R_2 \\parallel R_V = {{R2v}}$ Ω. Total: {{R1}} + {{R2v}} Ω. Then $V = I \\times {{R2v}}$."
+        explanation: |
+          **Answer:** {{V2m}} V
+
+          **Why:** $R_2 \parallel R_V = {{R2v}}$ Ω, so the circuit is now {{R1}} + {{R2v}} = {{R1+R2v}} Ω,
+          the current is {{V/(R1+R2v)}} A and the pair's voltage is {{V/(R1+R2v)}} × {{R2v}} = {{V2m}} V —
+          less than the true {{V2}} V. The meter has *loaded* the circuit.
+
+          **Common mistakes:**
+          - {{V2}} V — that assumes an ideal (infinite-resistance) meter.
+          - {{2*V2-V2m}} V — loading lowers the reading; it doesn't raise it.
+          - {{V*R2/(R1+R2+Rv)}} V — that treats the meter as if it were in series.
+
+          **Connects to:** Q6 — how to choose a better voltmeter.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A real voltmeter with a resistance of {{Rv}} Ω is connected across $R_2$. By what
+          percentage is its reading below the true voltage?
+        answer: { expr: "100 * (V2 - V2m) / V2", unit: "%" }
+        distractors:
+          - { expr: "100 * (V2 - V2m) / V2m", unit: "%", misconception: error-wrong-base }
+          - { expr: "100 * R2 / Rv", unit: "%", misconception: loading-ratio-guess }
+          - { expr: "0", unit: "%", misconception: meter-loading-ignored }
+        hints:
+          nudge: "Find the reading with the meter in place, then compare with the true value from Q4."
+          buildsOn: "From Q4: the true voltage across $R_2$ is {{V2}} V."
+          partial: "$R_2 \\parallel R_V = {{R2v}}$ Ω, so the reading is {{V2m}} V."
+        explanation: |
+          **Answer:** {{100*(V2-V2m)/V2}} %
+
+          **Why:** With the meter, $R_2 \parallel R_V = {{R2v}}$ Ω and the reading is {{V2m}} V. The error is
+          $({{V2}} - {{V2m}})/{{V2}} = {{100*(V2-V2m)/V2}}$ % of the true value.
+
+          **Common mistakes:**
+          - {{100*(V2-V2m)/V2m}} % — percentage error is measured against the *true* value.
+          - {{100*R2/Rv}} % — the error depends on the whole circuit, not just this ratio.
+          - 0 % — a voltmeter with finite resistance always draws some current.
+
+          **Connects to:** Q6 — how to choose a better voltmeter.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: meter-loading
+    uses: [s1, s5]
+    establishes: "The more resistive the voltmeter, the closer its reading to the true {{V2}} V."
+    standaloneContext: |
+      A {{V}} V battery drives $R_1 = {{R1}}$ Ω and $R_2 = {{R2}}$ Ω in series; the true voltage across $R_2$ is {{V2}} V.
+      A {{Rv}} Ω voltmeter across $R_2$ reads only {{V2m}} V.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The {{Rv}} Ω voltmeter is swapped for one with **ten times** the resistance, {{10*Rv}} Ω.
+          What does it read across $R_2$?
+        answer: { expr: "V * (R2*10*Rv/(R2 + 10*Rv)) / (R1 + R2*10*Rv/(R2 + 10*Rv))", unit: "V" }
+        distractors:
+          - { expr: "V2m", unit: "V", misconception: loading-unchanged }
+          - { expr: "10 * V2m", unit: "V", misconception: loading-scales }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "Repeat the parallel calculation with the new meter."
+          partial: "$R_2 \\parallel {{10*Rv}} = {{R2*10*Rv/(R2+10*Rv)}}$ Ω"
+        explanation: |
+          **Answer:** {{V * (R2*10*Rv/(R2 + 10*Rv)) / (R1 + R2*10*Rv/(R2 + 10*Rv))}} V
+
+          **Why:** $R_2 \parallel {{10*Rv}} = {{R2*10*Rv/(R2+10*Rv)}}$ Ω — almost $R_2$ itself — so the reading
+          is much closer to the true {{V2}} V than the {{V2m}} V before.
+
+          **Common mistakes:**
+          - {{V2m}} V — the meter's resistance changed, so the loading changed.
+          - {{10*V2m}} V — the reading can never exceed the battery's {{V}} V.
+          - {{V}} V — the meter is across $R_2$ only.
+
+          **Connects to:** the challenge — measure without disturbing the circuit.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          You can swap the {{Rv}} Ω voltmeter for another one. Which choice reads closest to the true
+          voltage across $R_2$?
+        options:
+          - { text: "A voltmeter with ten times more resistance", correct: true }
+          - { text: "A voltmeter with ten times less resistance", misconception: low-resistance-voltmeter }
+          - { text: "Any voltmeter — meters don't change the circuit", misconception: meter-loading-ignored }
+          - { text: "The same voltmeter, connected in series with $R_2$", misconception: voltmeter-in-series }
+        hints:
+          nudge: "What makes $R_2 \\parallel R_V$ closer to $R_2$?"
+          buildsOn: "From Q5: the {{Rv}} Ω meter made $R_2 \\parallel R_V = {{R2v}}$ Ω and read {{V2m}} V. From Q1: an ammeter should change nothing — the same goal applies to voltmeters."
+          partial: "As $R_V \\to \\infty$, $R_2 \\parallel R_V \\to R_2$."
+        explanation: |
+          **Answer:** ten times more resistance.
+
+          **Why:** A larger $R_V$ draws less current, so $R_2 \parallel R_V$ approaches $R_2$ and the
+          reading approaches {{V2}} V. With {{10*Rv}} Ω it reads
+          {{V * (R2*10*Rv/(R2 + 10*Rv)) / (R1 + R2*10*Rv/(R2 + 10*Rv))}} V instead of {{V2m}} V. An ideal
+          voltmeter has infinite resistance, just as an ideal ammeter (Q1) has none.
+
+          **Common mistakes:**
+          - "Less resistance" — that draws *more* current and loads the circuit more.
+          - "Any" — Q5 showed a real meter reading {{V2m}} V instead of {{V2}} V.
+          - "In series" — a voltmeter in series nearly stops the current.
+
+          **Connects to:** the challenge — measure without disturbing the circuit.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          A digital multimeter has a resistance of 10 MΩ ($10^7$ Ω). What does it read across $R_2$?
+        answer: { expr: "V * (R2*1e7/(R2 + 1e7)) / (R1 + R2*1e7/(R2 + 1e7))", unit: "V" }
+        distractors:
+          - { expr: "V2m", unit: "V", misconception: loading-unchanged }
+          - { expr: "0", unit: "V", misconception: high-resistance-blocks }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "Compare $10^7$ Ω with the resistances in the circuit."
+          buildsOn: "From Q5: a {{Rv}} Ω meter read {{V2m}} V because $R_2 \\parallel R_V$ was only {{R2v}} Ω. From Q1: meters should disturb the circuit as little as possible."
+          partial: "$R_2 \\parallel 10^7 \\approx R_2$ to within a millionth."
+        explanation: |
+          **Answer:** {{V2}} V (to 3 significant figures).
+
+          **Why:** $R_2 \parallel 10^7$ Ω differs from $R_2 = {{R2}}$ Ω by about a millionth, so the meter
+          barely loads the circuit: it reads the true {{V2}} V. That's why digital meters use megaohm inputs.
+
+          **Common mistakes:**
+          - {{V2m}} V — that was the {{Rv}} Ω meter.
+          - 0 V — a high resistance in *parallel* doesn't block anything; it just draws almost no current.
+          - {{V}} V — the meter is across $R_2$ only.
+
+          **Connects to:** the challenge — measure without disturbing the circuit.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: ammeters-voltmeters
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Which pair of connections is correct?"
+        options:
+          - { text: "Ammeter in series; voltmeter in parallel", correct: true }
+          - { text: "Ammeter in parallel; voltmeter in series", misconception: meters-swapped }
+          - { text: "Both in series", misconception: voltmeter-in-series }
+          - { text: "Both in parallel", misconception: ammeter-in-parallel }
+        hints:
+          nudge: "Current flows *through* things; voltage is *across* things."
+          partial: "Through → in the path (series). Across → between two points (parallel)."
+        explanation: |
+          **Answer:** ammeter in series; voltmeter in parallel.
+
+          **Why:** An ammeter counts charge flowing through it, so it must be in the path. A voltmeter
+          compares the potential at two points, so its leads go on those points.
+
+          **Common mistakes:**
+          - "Swapped" — an ammeter across a part shorts it; a voltmeter in the path blocks the current.
+          - "Both in series" — the voltmeter would block the current.
+          - "Both in parallel" — the ammeter would short the part out.
+
+          **Connects to:** Q2 — connecting the voltmeter across $R_2$.
+
+# ───────────────────────── challenge ─────────────────────────
+# A preset loop: battery → R1 (top) → R2 (right side, top cell) → back along the bottom.
+# The connecting wires are not locked, so a wire can be removed to insert an ammeter.
+challenge:
+  id: phys2.u3.l6.ch
+  type: circuit-builder
+  title: "Measure without disturbing"
+  concept: ammeters-voltmeters
+  uses: [s1, s2]
+  params:
+    sets:
+      - { V: 12, R1: 4, R2: 8, r: 1 }
+      - { V: 9, R1: 3, R2: 6, r: 0.5 }
+      - { V: 6, R1: 2, R2: 4, r: 1 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "The circuit is built. Add the voltmeter so that **V1 reads the voltage across R2** ({{V*R2/(R1+R2)}} V), without changing the current."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: voltmeter, count: 1 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+        preset: &loop
+          - { kind: wire, a: [0, 0], b: [1, 0], locked: false }
+          - { kind: resistor, a: [1, 0], b: [2, 0], resistance: "R1", label: "R1" }
+          - { kind: wire, a: [2, 0], b: [3, 0], locked: false }
+          - { kind: wire, a: [3, 0], b: [4, 0], locked: false }
+          - { kind: resistor, a: [4, 0], b: [4, 1], resistance: "R2", label: "R2" }
+          - { kind: wire, a: [4, 1], b: [4, 2], locked: false }
+          - { kind: wire, a: [4, 2], b: [4, 3], locked: false }
+          - { kind: wire, a: [4, 3], b: [4, 4], locked: false }
+          - { kind: wire, a: [4, 4], b: [3, 4], locked: false }
+          - { kind: wire, a: [3, 4], b: [2, 4], locked: false }
+          - { kind: wire, a: [2, 4], b: [1, 4], locked: false }
+          - { kind: wire, a: [1, 4], b: [0, 4], locked: false }
+      check: { expr: "near(V_V1, V_R2) and near(I, V / (R1 + R2))" }
+      feedback:
+        - { if: "V_V1 == 0", say: "V1 reads 0 V. Are both its leads on the same wire? Put one on each end of R2." }
+        - { if: "near(V_V1, V)", say: "V1 is across both resistors — the battery's full voltage. Move it so it spans R2 only." }
+        - { if: "near(V_V1, V_R1)", say: "V1 is measuring R1. You want R2.", misconception: wrong-resistor-drop }
+      hints:
+        nudge: "A voltmeter needs a lead on each end of R2. R2's segment is taken — how can wires reach its ends?"
+        buildsOn: "From Q2: a voltmeter goes in parallel, across the part."
+        partial: "Run a wire from R2's top end one step right, put V1 down from there, and wire back to R2's bottom end."
+      solution:
+        grid:
+          add:
+            - { kind: wire, a: [4, 0], b: [5, 0] }
+            - { kind: voltmeter, a: [5, 0], b: [5, 1] }
+            - { kind: wire, a: [5, 1], b: [4, 1] }
+      explanation: |
+        V1 sits in parallel with R2: its leads touch R2's two ends, so it reads
+        $IR_2 = {{V/(R1+R2)}} \times {{R2}} = {{V*R2/(R1+R2)}}$ V. An ideal voltmeter draws no current, so the
+        circuit's {{V/(R1+R2)}} A is unchanged.
+    standard:
+      difficulty: 4
+      goal: "Measure **both** the current through R2 (with ammeter A1) and the voltage across R2 (with voltmeter V1), leaving the circuit's current unchanged at {{V/(R1+R2)}} A."
+      config:
+        battery: { voltage: "V" }
+        palette:
+          - { kind: ammeter, count: 1 }
+          - { kind: voltmeter, count: 1 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+        preset: *loop
+      check: { expr: "near(I_A1, I_R2) and near(V_V1, V_R2) and near(I, V / (R1 + R2))" }
+      feedback:
+        - { if: "I_A1 == 0", say: "A1 reads nothing. It must be *in* the loop: remove a wire and put the ammeter in its place.", misconception: ammeter-in-parallel }
+        - { if: "near(V_V1, V_R1)", say: "V1 is across R1. Move it across R2.", misconception: wrong-resistor-drop }
+        - { if: "V_V1 == 0", say: "V1 reads 0 V — put one lead on each end of R2." }
+        - { if: "near(V_V1, V)", say: "V1 spans both resistors. Move it so it spans R2 only." }
+      hints:
+        nudge: "Which meter needs a gap in the wire, and which needs leads on two points?"
+        buildsOn: "From Q1: ammeters go in series. From Q2: voltmeters go in parallel."
+        partial: "Swap the wire just below R2 for A1. Then add V1 across R2 with two short wires."
+      solution:
+        grid:
+          remove: [[[4, 1], [4, 2]]]
+          add:
+            - { kind: ammeter, a: [4, 1], b: [4, 2] }
+            - { kind: wire, a: [4, 0], b: [5, 0] }
+            - { kind: voltmeter, a: [5, 0], b: [5, 1] }
+            - { kind: wire, a: [5, 1], b: [4, 1] }
+      explanation: |
+        A1 replaces a wire in the loop, so the current passes through it: {{V/(R1+R2)}} A. V1's leads
+        are on R2's ends, so it reads {{V*R2/(R1+R2)}} V. Ideal meters (zero and infinite resistance)
+        leave the circuit unchanged.
+    harder:
+      difficulty: 5
+      goal: "This battery has internal resistance {{r}} Ω. Use A1 to measure the current and V1 to measure the battery's **terminal voltage** ({{V - V/(R1+R2+r)*r}} V)."
+      config:
+        battery: { voltage: "V", internalResistance: "r" }
+        palette:
+          - { kind: ammeter, count: 1 }
+          - { kind: voltmeter, count: 1 }
+          - { kind: wire, count: unlimited }
+        grid: { cols: 6, rows: 4 }
+        preset: *loop
+      check: { expr: "near(I_A1, I) and near(V_V1, V - I * r) and near(I, V / (R1 + R2 + r))" }
+      feedback:
+        - { if: "I_A1 == 0", say: "A1 must be in the loop, in series." }
+        - { if: "near(V_V1, V_R2)", say: "V1 reads R2's voltage only. The terminal voltage is across the whole external circuit." }
+        - { if: "near(V_V1, V_R1)", say: "V1 reads R1's voltage only." }
+        - { if: "near(V_V1, V)", say: "That would be the EMF, which you can't see while current flows — check where V1 is connected.", misconception: terminal-equals-emf }
+      hints:
+        nudge: "The terminal voltage is the potential difference between the battery's + and − terminals."
+        buildsOn: "From Q2: a voltmeter reads the difference between the two points it touches."
+        partial: "Connect V1 between the top wire (at R1's left end) and the bottom wire — e.g. straight down column 1."
+      solution:
+        grid:
+          remove: [[[4, 1], [4, 2]]]
+          add:
+            - { kind: ammeter, a: [4, 1], b: [4, 2] }
+            - { kind: wire, a: [1, 0], b: [1, 1] }
+            - { kind: wire, a: [1, 1], b: [1, 2] }
+            - { kind: voltmeter, a: [1, 2], b: [1, 3] }
+            - { kind: wire, a: [1, 3], b: [1, 4] }
+      explanation: |
+        V1 connects the + side (top wire) to the − side (bottom wire), so it reads the terminal voltage
+        $\varepsilon - Ir = {{V}} - {{V/(R1+R2+r)}} \times {{r}} = {{V - V/(R1+R2+r)*r}}$ V, less than the EMF
+        because current is flowing. A1 in the loop reads {{V/(R1+R2+r)}} A.
+
+summary:
+  keyTakeaways:
+    - "Ammeters go in series (current flows through them) and ideally have zero resistance."
+    - "Voltmeters go in parallel (across two points) and ideally have infinite resistance."
+    - "A voltmeter in series nearly stops the current; an ammeter in parallel shorts the part out."
+    - "A real voltmeter forms $R \\parallel R_V$ and reads low — choose $R_V$ much larger than the circuit's resistances."
+  next: phys2.u3.l7

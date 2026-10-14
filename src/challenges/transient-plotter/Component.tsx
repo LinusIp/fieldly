@@ -4,6 +4,13 @@ import type { ChallengeComponentProps } from '../types';
 import { currentValues, fracAt, isRC, rising, tauOf, UNITS, yAt, type Config, type State } from './logic';
 
 const W = 640;
+
+/** Show capacitances in μF and large resistances in kΩ. */
+function friendly(name: string, x: number): string {
+  if (name === 'C' && Math.abs(x) < 1e-3) return `${formatNumber(x * 1e6)} μF`;
+  if (name === 'R' && Math.abs(x) >= 1000) return `${formatNumber(x / 1000)} kΩ`;
+  return `${formatNumber(x)} ${UNITS[name as keyof typeof UNITS]}`;
+}
 const H = 300;
 const M = { l: 56, r: 16, t: 16, b: 40 };
 
@@ -133,7 +140,7 @@ export function TransientPlotter({
             <span className="flex justify-between">
               <span className="font-medium">{s.name}</span>
               <span className="font-mono">
-                {formatNumber(v[s.name])} {UNITS[s.name]}
+                {formatNumber(v[s.name] / s.scale)} {s.unit}
               </span>
             </span>
             <input
@@ -145,7 +152,9 @@ export function TransientPlotter({
               value={v[s.name]}
               disabled={disabled}
               onChange={(e) =>
-                onStateChange({ values: { ...state.values, [s.name]: Number(e.target.value) } })
+                onStateChange({
+                  values: { ...state.values, [s.name]: Number(Number(e.target.value).toPrecision(12)) },
+                })
               }
               className="accent-[var(--c-accent)]"
               data-slider={s.name}
@@ -157,7 +166,7 @@ export function TransientPlotter({
         Fixed:{' '}
         {Object.entries(config.fixed)
           .filter(([k]) => !config.sliders.some((s) => s.name === k))
-          .map(([k, x]) => `${k} = ${formatNumber(x as number)} ${UNITS[k as keyof typeof UNITS]}`)
+          .map(([k, x]) => `${k} = ${friendly(k, x as number)}`)
           .join(', ') || 'nothing'}
         . Time constant τ = {rc ? 'RC' : 'L/R'} = <strong>{formatNumber(tau)} s</strong>.
       </p>

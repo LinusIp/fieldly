@@ -759,3 +759,350 @@
   explain: |
     Node potentials come from solving the whole circuit; altering any EMF changes them.
   lessons: [phys2.u3.l5]
+
+# ── phys2.u3.l6: meters in circuits ──
+- id: ammeter-in-parallel
+  short: "An ammeter must be *in* the path (series) — across a part it acts like a wire and shorts it."
+  explain: |
+    An ammeter measures the current flowing through it, and has almost no resistance. In series it
+    counts the current; in parallel it bypasses the component.
+  lessons: [phys2.u3.l6]
+
+- id: ammeter-across-source
+  short: "A near-zero-resistance meter across the battery is a short circuit."
+  explain: |
+    Ammeters go in series with the part whose current you want, never directly across a source.
+  lessons: [phys2.u3.l6]
+
+- id: meter-placement-irrelevant
+  short: "How a meter is connected decides what it measures."
+  explain: |
+    In series a meter sees the current through the path; across two points it sees the voltage
+    between them. Ammeters belong in series; voltmeters across.
+  lessons: [phys2.u3.l6]
+
+- id: voltmeter-in-series
+  short: "A voltmeter goes *across* the part (in parallel); in series it nearly blocks the current."
+  explain: |
+    A voltmeter has a very high resistance. In series it takes almost all the voltage and the
+    current almost stops. Across a component it reads that component's voltage and changes little.
+  lessons: [phys2.u3.l6]
+
+- id: voltmeter-across-source
+  short: "Across the battery, the voltmeter reads the battery's voltage, not the resistor's."
+  explain: |
+    A voltmeter reads the potential difference between the two points its leads touch. Put the
+    leads on the ends of the part you want.
+  lessons: [phys2.u3.l6]
+
+- id: meters-swapped
+  short: "The meters are swapped: ammeters in series, voltmeters in parallel."
+  explain: |
+    Current flows *through* things (series); voltage is *across* things (parallel).
+  lessons: [phys2.u3.l6]
+
+- id: meter-reads-zero-open
+  short: "With almost no current, the resistors drop almost nothing — so the voltmeter gets nearly all of it."
+  explain: |
+    In series, voltage divides in proportion to resistance. A voltmeter's enormous resistance takes
+    almost the whole battery voltage.
+  lessons: [phys2.u3.l6]
+
+- id: voltmeter-reads-current
+  short: "A voltmeter only ever reads volts."
+  explain: |
+    Whatever its connection, a voltmeter shows the potential difference between its leads.
+  lessons: [phys2.u3.l6]
+
+- id: meter-loading-ignored
+  short: "A real meter has resistance, so it changes the circuit a little."
+  explain: |
+    A voltmeter with resistance $R_V$ across $R$ makes $R \parallel R_V < R$; an ammeter with
+    resistance $R_A$ adds to the series path. Both shift the readings.
+  lessons: [phys2.u3.l6]
+
+- id: ammeter-resistance-subtract
+  short: "A meter's resistance in series adds to the total."
+  explain: |
+    Series resistances add, so a real ammeter slightly lowers the current it measures.
+  lessons: [phys2.u3.l6]
+
+- id: ammeter-only-resistance
+  short: "The meter isn't the only resistance in the loop."
+  explain: |
+    The total is the circuit's resistance *plus* the meter's: $I = V/(R_{tot} + R_A)$.
+  lessons: [phys2.u3.l6]
+
+- id: loading-raises-reading
+  short: "Loading makes a voltmeter read *low*, never high."
+  explain: |
+    $R \parallel R_V$ is smaller than $R$, so the part takes a smaller share of the voltage.
+  lessons: [phys2.u3.l6]
+
+- id: error-wrong-base
+  short: "Percentage error is measured against the true value."
+  explain: |
+    Error $= (\text{true} - \text{measured})/\text{true} \times 100\%$.
+  lessons: [phys2.u3.l6]
+
+- id: loading-ratio-guess
+  short: "The error depends on the whole circuit — work it out."
+  explain: |
+    Recompute the circuit with $R \parallel R_V$ in place of $R$, then compare the readings.
+  lessons: [phys2.u3.l6]
+
+- id: loading-unchanged
+  short: "A different meter resistance gives a different loading, so a different reading."
+  explain: |
+    The reading depends on $R \parallel R_V$, which changes whenever $R_V$ does.
+  lessons: [phys2.u3.l6]
+
+- id: loading-scales
+  short: "A better meter can't read more than the true voltage — let alone ten times it."
+  explain: |
+    As $R_V$ grows, the reading rises *toward* the true value and stops there.
+  lessons: [phys2.u3.l6]
+
+- id: low-resistance-voltmeter
+  short: "Less resistance draws *more* current and loads the circuit more."
+  explain: |
+    The ideal voltmeter has infinite resistance; the higher $R_V$, the smaller the error.
+  lessons: [phys2.u3.l6]
+
+- id: high-resistance-blocks
+  short: "A huge resistance in *parallel* doesn't block anything — it just draws almost no current."
+  explain: |
+    Across a component, a very high-resistance meter barely changes the circuit and reads the true voltage.
+  lessons: [phys2.u3.l6]
+
+# ── phys2.u3.l7: capacitors ──
+- id: q-c-divide
+  short: "Q = CV — the charge grows with the voltage, so multiply."
+  explain: |
+    Capacitance is charge per volt, $C = Q/V$, so $Q = CV$.
+  lessons: [phys2.u3.l7]
+
+- id: q-inverted
+  short: "That's upside down — Q = CV."
+  explain: |
+    Check the units: μF × V = μC.
+  lessons: [phys2.u3.l7]
+
+- id: charge-energy-confusion
+  short: "½CV² is the stored *energy*; the charge is Q = CV."
+  explain: |
+    $Q = CV$ (coulombs) and $U = \tfrac12 CV^2$ (joules) measure different things.
+  lessons: [phys2.u3.l7]
+
+- id: charge-unchanged-connected
+  short: "With the battery connected, V stays fixed — so the charge follows C."
+  explain: |
+    Connected: $V$ is fixed and $Q = CV$ changes with $C$. Disconnected: $Q$ is fixed and $V = Q/C$ changes.
+  lessons: [phys2.u3.l7]
+
+- id: separation-raises-C
+  short: "A wider gap *lowers* the capacitance: C = ε₀A/d."
+  explain: |
+    Moving the plates apart weakens their influence on each other, so less charge is stored per volt.
+  lessons: [phys2.u3.l7]
+
+- id: capacitor-series-parallel-swap
+  short: "Capacitor rules are the reverse of resistors': parallel adds, series uses reciprocals."
+  explain: |
+    Parallel: $C = C_1 + C_2$ (same voltage, charges add). Series: $1/C = 1/C_1 + 1/C_2$ (same charge, voltages add).
+  lessons: [phys2.u3.l7]
+
+- id: capacitor-average
+  short: "Capacitances don't average — they add in parallel, and combine as reciprocals in series."
+  explain: |
+    Parallel gives more than either; series gives less than either.
+  lessons: [phys2.u3.l7]
+
+- id: multiply-capacitances
+  short: "Multiplying gives μF², not a capacitance."
+  explain: |
+    In parallel, capacitances simply add: $C_1 + C_2$.
+  lessons: [phys2.u3.l7]
+
+- id: total-as-component
+  short: "That's the total — subtract the known capacitor to find the unknown."
+  explain: |
+    In parallel, $C_{total} = C_1 + C_2$, so $C_2 = C_{total} - C_1$.
+  lessons: [phys2.u3.l7]
+
+- id: units-mixed
+  short: "Charges (μC) and capacitances (μF) can't be subtracted from each other."
+  explain: |
+    Convert to the same quantity first: find the total capacitance $Q/V$, then subtract.
+  lessons: [phys2.u3.l7]
+
+- id: capacitor-forgot-reciprocal
+  short: "That's 1/C — take the reciprocal."
+  explain: |
+    Adding $1/C_1 + 1/C_2$ gives $1/C$ for capacitors in series.
+  lessons: [phys2.u3.l7]
+
+- id: added-capacitor-ignored
+  short: "Every capacitor in the combination counts."
+  explain: |
+    Include all of them: each added parallel capacitor raises $C$; each added series capacitor lowers it.
+  lessons: [phys2.u3.l7]
+
+- id: series-charge-splits
+  short: "In series, each capacitor holds the *whole* charge, not a share."
+  explain: |
+    The charge leaving one plate of $C_1$ lands on a plate of $C_2$, so both hold the same $Q = C_s V$.
+  lessons: [phys2.u3.l7]
+
+- id: series-charge-full-C
+  short: "In series, each capacitor gets only part of the battery's voltage."
+  explain: |
+    Use the combined capacitance: $Q = C_s V$, the same on each capacitor.
+  lessons: [phys2.u3.l7]
+
+- id: series-voltage-swap
+  short: "In series, the *smaller* capacitor takes the larger voltage."
+  explain: |
+    Same charge on each, so $V_k = Q/C_k$: less capacitance means more voltage.
+  lessons: [phys2.u3.l7]
+
+- id: energy-missing-half
+  short: "Stored energy is ½CV² — don't forget the half."
+  explain: |
+    The voltage rises from 0 to $V$ while charge is added, so the average voltage is $V/2$: $U = \tfrac12 QV$.
+  lessons: [phys2.u3.l7]
+
+- id: energy-not-squared
+  short: "Energy goes as V², not V."
+  explain: |
+    $U = \tfrac12 CV^2$: double the voltage and the stored energy quadruples.
+  lessons: [phys2.u3.l7]
+
+- id: energy-unchanged-isolated
+  short: "Pulling the plates apart takes work, and that work is stored."
+  explain: |
+    Isolated, $Q$ is fixed and $U = Q^2/2C$. Halving $C$ doubles $U$ — the extra comes from the work done separating the plates.
+  lessons: [phys2.u3.l7]
+
+- id: energy-fixed-by-battery
+  short: "The battery fixes the voltage, not the energy stored."
+  explain: |
+    At a fixed voltage, $U = \tfrac12 CV^2$ grows with the capacitance.
+  lessons: [phys2.u3.l7]
+
+- id: capacitor-passes-dc
+  short: "A capacitor blocks steady DC — current flows only while it charges."
+  explain: |
+    The plates are separated by an insulator. Once the capacitor's voltage matches the battery's, the current stops.
+  lessons: [phys2.u3.l7, phys2.u3.l8]
+
+- id: charging-current-increases
+  short: "The charging current is largest at the start and falls to zero."
+  explain: |
+    As charge builds up, the capacitor's voltage opposes the battery's, so less and less current flows.
+  lessons: [phys2.u3.l7, phys2.u3.l8]
+
+- id: capacitor-as-wire
+  short: "An uncharged capacitor acts like a wire only for an instant."
+  explain: |
+    At first there's no voltage across it, so current flows freely; as it charges, the current falls to zero.
+  lessons: [phys2.u3.l7, phys2.u3.l8]
+
+# ── phys2.u3.l8: RC circuits ──
+- id: capacitor-blocks-initially
+  short: "An *uncharged* capacitor lets current flow freely at first — it only blocks once charged."
+  explain: |
+    With no charge, $V_C = 0$, so at the instant of switching the capacitor behaves like a wire:
+    $I_0 = V/R$. The current then falls as the capacitor charges.
+  lessons: [phys2.u3.l8]
+
+- id: capacitor-instant-charge
+  short: "Charging takes time — the voltage builds up as charge arrives."
+  explain: |
+    $V_C = Q/C$ and charge arrives at a finite rate through the resistor, so $V_C$ starts at 0 and rises
+    over a few time constants.
+  lessons: [phys2.u3.l8]
+
+- id: capacitor-instant-charge-back
+  short: "A capacitor only pushes back once it holds charge."
+  explain: |
+    At first $V_C = 0$; its opposing voltage grows as it charges.
+  lessons: [phys2.u3.l8]
+
+- id: initial-charge-ignored
+  short: "The capacitor already has some voltage, which opposes the battery."
+  explain: |
+    Loop rule: $V_R = V - V_C$. Existing charge on the capacitor reduces the initial current.
+  lessons: [phys2.u3.l8]
+
+- id: tau-ratio
+  short: "τ = RC is a product — more R *or* more C slows the charging."
+  explain: |
+    Bigger $R$ means less current; bigger $C$ means more charge to deliver. Both lengthen $\tau$.
+  lessons: [phys2.u3.l8]
+
+- id: tau-ratio-inverted
+  short: "Then more resistance would speed charging up — τ = RC."
+  explain: |
+    The time constant grows with both $R$ and $C$.
+  lessons: [phys2.u3.l8]
+
+- id: tau-full-charge
+  short: "τ is not the time to charge fully — after one τ it's only at 63%."
+  explain: |
+    $V_C(\tau) = 0.632\,V$. It takes about $5\tau$ to reach 99%, and strictly it never quite finishes.
+  lessons: [phys2.u3.l7, phys2.u3.l8]
+
+- id: rc-unit-prefix
+  short: "Check the prefixes: kΩ × μF = ms, not s."
+  explain: |
+    $10^3 \times 10^{-6} = 10^{-3}$, so kilo-ohms times microfarads gives milliseconds.
+  lessons: [phys2.u3.l8]
+
+- id: tau-depends-on-v
+  short: "The battery voltage isn't in τ = RC."
+  explain: |
+    A bigger $V$ charges the capacitor to a higher voltage, but the *pace* (the time constant) depends only on $R$ and $C$.
+  lessons: [phys2.u3.l8]
+
+- id: tau-half
+  short: "50% comes at τ ln 2 ≈ 0.69τ; after one τ it's 63%."
+  explain: |
+    Solve $1 - e^{-t/\tau} = \tfrac12$: $t = \tau \ln 2$.
+  lessons: [phys2.u3.l8]
+
+- id: charge-decay-confusion
+  short: "Charging rises to 63%; decaying quantities (the current, a discharge) fall to 37%."
+  explain: |
+    $V_C = V(1 - e^{-t/\tau})$ when charging; $I = I_0 e^{-t/\tau}$ and $V_C = V_0 e^{-t/\tau}$ when decaying.
+  lessons: [phys2.u3.l8]
+
+- id: linear-charging
+  short: "The curve isn't a straight line — it slows down as it goes."
+  explain: |
+    Each time constant closes 63% of the *remaining* gap, so progress gets slower and slower.
+  lessons: [phys2.u3.l8]
+
+- id: tau-only
+  short: "That's after one time constant; the question asks about a later time."
+  explain: |
+    Count time constants: $t/\tau$. Then use $1 - e^{-t/\tau}$ (charging) or $e^{-t/\tau}$ (decay).
+  lessons: [phys2.u3.l8]
+
+- id: log-base
+  short: "Exponentials in e need the natural log, ln."
+  explain: |
+    $e^{-t/\tau} = \tfrac12$ gives $t = \tau \ln 2 = 0.693\tau$; $\log_{10} 2 = 0.301$ is the wrong base.
+  lessons: [phys2.u3.l8]
+
+- id: tau-63-misapplied
+  short: "63% is the voltage at t = τ — it doesn't scale the time."
+  explain: |
+    To reach 63% at $T$, simply set $\tau = T$.
+  lessons: [phys2.u3.l8]
+
+- id: log-inverted
+  short: "τ = T / ln 2, not T × ln 2."
+  explain: |
+    From $T = \tau \ln 2$, divide: $\tau = T/\ln 2$.
+  lessons: [phys2.u3.l8]

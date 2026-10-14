@@ -1,0 +1,724 @@
+id: phys2.u3.l7
+title: "Capacitors"
+version: 1
+concepts: [capacitance, capacitor-combinations, capacitor-energy]
+estimatedMinutes: 25
+
+# Two capacitors C1, C2 (in μF) and a battery V. Charges in μC, energies in mJ.
+params:
+  sets:
+    - { C1: 20, C2: 30, V: 12 }
+    - { C1: 10, C2: 40, V: 9 }
+    - { C1: 6, C2: 12, V: 24 }
+derived:
+  Cp: "C1 + C2"
+  Cs: "C1 * C2 / (C1 + C2)"
+  Q1: "C1 * V"
+  Qs: "Cs * V"
+  Up: "0.5 * Cp * 1e-6 * V^2 * 1000"
+  Us: "0.5 * Cs * 1e-6 * V^2 * 1000"
+
+intro: |
+  A **capacitor** is two conducting plates separated by an insulator. Connected to a battery,
+  it charges: $+Q$ builds up on one plate and $-Q$ on the other. The charge is proportional to
+  the voltage across it:
+
+  $$Q = CV$$
+
+  The constant $C$ is the **capacitance**, in farads (F); practical values are microfarads,
+  1 μF $= 10^{-6}$ F. For parallel plates, $C = \varepsilon_0 A/d$: bigger plates or a
+  smaller gap mean more capacitance.
+
+  **Combinations** work the opposite way to resistors:
+
+  - **Parallel** — same voltage, charges add: $C_{par} = C_1 + C_2$.
+  - **Series** — same charge on each, voltages add: $\dfrac{1}{C_{ser}} = \dfrac{1}{C_1} + \dfrac{1}{C_2}$, so the series value is smaller than either.
+
+  A charged capacitor stores **energy** in the electric field between its plates:
+
+  $$U = \tfrac{1}{2} CV^2 = \tfrac{1}{2} QV$$
+
+  Once a capacitor is fully charged, no current flows through it in a steady DC circuit. The
+  gap between the plates is an insulator, so charge only flows while the capacitor charges.
+
+workedExample: |
+  A 5 μF and a 15 μF capacitor are connected to a 10 V battery.
+
+  - In parallel: $C = 5 + 15 = 20$ μF, $Q = 20 \times 10 = 200$ μC, $U = \tfrac12 (20 \times 10^{-6})(10^2) = 1$ mJ
+  - In series: $C = (5 \times 15)/(5 + 15) = 3.75$ μF, so each holds $Q = 3.75 \times 10 = 37.5$ μC
+  - The 5 μF then has $37.5/5 = 7.5$ V and the 15 μF has $2.5$ V (total 10 V ✓)
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: capacitance
+    clueFor: [s4]
+    establishes: "Q = CV: C₁ = {{C1}} μF at {{V}} V holds {{Q1}} μC."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A capacitor of capacitance $C$ is charged to a voltage $V$. Which expression gives the
+          charge on its positive plate?
+        options:
+          - { text: '$Q = CV$', correct: true }
+          - { text: '$Q = C/V$', misconception: q-c-divide }
+          - { text: '$Q = V/C$', misconception: q-inverted }
+          - { text: '$Q = \tfrac12 CV^2$', misconception: charge-energy-confusion }
+        hints:
+          nudge: "Capacitance means 'charge stored per volt'."
+          partial: "$C = Q/V$. Rearrange for $Q$."
+        explanation: |
+          **Answer:** $Q = CV$
+
+          **Why:** Capacitance is charge per volt, $C = Q/V$, so $Q = CV$. Double the voltage and the
+          capacitor holds twice the charge.
+
+          **Common mistakes:**
+          - $C/V$ — then a higher voltage would store *less* charge.
+          - $V/C$ — upside down.
+          - $\tfrac12 CV^2$ — that's the stored *energy*.
+
+          **Connects to:** Q4 finds the charge on capacitors in series.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A {{C1}} μF capacitor is connected to a {{V}} V battery and allowed to charge fully. What
+          charge does it store?
+        answer: { expr: "C1 * V", unit: "μC" }
+        distractors:
+          - { expr: "C1 / V", unit: "μC", misconception: q-c-divide }
+          - { expr: "V / C1", unit: "μC", misconception: q-inverted }
+          - { expr: "0.5 * C1 * V^2", unit: "μC", misconception: charge-energy-confusion }
+        hints:
+          nudge: "Capacitance is charge per volt."
+          partial: "$Q = CV$, with $C$ in μF giving $Q$ in μC."
+        explanation: |
+          **Answer:** {{Q1}} μC
+
+          **Why:** $Q = CV = {{C1}} \text{ μF} \times {{V}} \text{ V} = {{Q1}}$ μC.
+
+          **Common mistakes:**
+          - {{C1/V}} μC — divided instead of multiplying.
+          - {{V/C1}} μC — upside down.
+          - {{0.5*C1*V^2}} — $\tfrac12 CV^2$ is energy (in μJ here), not charge.
+
+          **Connects to:** Q4 — charge in a series combination.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A {{C1}} μF parallel-plate capacitor stays connected to the {{V}} V battery while its plate
+          separation is **doubled**. How much charge does it hold now?
+        answer: { expr: "C1 * V / 2", unit: "μC" }
+        distractors:
+          - { expr: "C1 * V", unit: "μC", misconception: charge-unchanged-connected }
+          - { expr: "2 * C1 * V", unit: "μC", misconception: separation-raises-C }
+          - { expr: "C1 * V / 4", unit: "μC", misconception: square-law }
+        hints:
+          nudge: "What does a bigger gap do to $C = \\varepsilon_0 A/d$? What stays fixed while the battery is connected?"
+          partial: "$d \\to 2d$ halves $C$; $V$ stays at {{V}} V because the battery is still connected."
+        explanation: |
+          **Answer:** {{C1*V/2}} μC
+
+          **Why:** $C = \varepsilon_0 A/d$, so doubling $d$ halves $C$ to {{C1/2}} μF. The battery holds
+          $V$ at {{V}} V, so $Q = CV = {{C1/2}} \times {{V}} = {{C1*V/2}}$ μC — charge flows back to the battery.
+
+          **Common mistakes:**
+          - {{Q1}} μC — charge stays fixed only if the capacitor is *disconnected*.
+          - {{2*C1*V}} μC — a wider gap *lowers* the capacitance.
+          - {{C1*V/4}} μC — $C \propto 1/d$, to the first power.
+
+          **Connects to:** Q4 — charge in a series combination.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: capacitor-combinations
+    clueFor: [s5]
+    establishes: "In parallel: C = C₁ + C₂ = {{Cp}} μF."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Capacitors in parallel share the same voltage, and their charges add. What is the
+          capacitance of {{C1}} μF and {{C2}} μF in parallel?
+        answer: { expr: "C1 + C2", unit: "μF" }
+        distractors:
+          - { expr: "C1 * C2 / (C1 + C2)", unit: "μF", misconception: capacitor-series-parallel-swap }
+          - { expr: "(C1 + C2) / 2", unit: "μF", misconception: capacitor-average }
+          - { expr: "C1 * C2", unit: "μF", misconception: multiply-capacitances }
+        hints:
+          nudge: "If the charges add at the same voltage, what happens to charge per volt?"
+          partial: "$Q = Q_1 + Q_2 = (C_1 + C_2) V$."
+        explanation: |
+          **Answer:** {{Cp}} μF
+
+          **Why:** Same $V$, charges add: $Q = C_1 V + C_2 V = (C_1 + C_2)V$, so $C = {{C1}} + {{C2}} = {{Cp}}$ μF.
+          Parallel plates are like one capacitor with a bigger plate area.
+
+          **Common mistakes:**
+          - {{Cs}} μF — that's the *series* rule (the resistor parallel rule).
+          - {{(C1+C2)/2}} μF — capacitances in parallel add; they don't average.
+          - {{C1*C2}} — the units would be μF², not μF.
+
+          **Connects to:** Q5 finds the energy in this parallel pair.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          A {{C1}} μF and a {{C2}} μF capacitor are connected **in parallel**. What is their
+          combined capacitance?
+        answer: { expr: "C1 + C2", unit: "μF" }
+        distractors:
+          - { expr: "C1 * C2 / (C1 + C2)", unit: "μF", misconception: capacitor-series-parallel-swap }
+          - { expr: "(C1 + C2) / 2", unit: "μF", misconception: capacitor-average }
+          - { expr: "C1 * C2", unit: "μF", misconception: multiply-capacitances }
+        hints:
+          nudge: "In parallel the voltage is shared equally. What happens to the total charge?"
+          partial: "The charges add, so the capacitances add."
+        explanation: |
+          **Answer:** {{Cp}} μF
+
+          **Why:** Both have the same voltage and their charges add, so $C_{par} = C_1 + C_2 = {{Cp}}$ μF —
+          the *opposite* of the resistor rule.
+
+          **Common mistakes:**
+          - {{Cs}} μF — the reciprocal rule is for capacitors in *series*.
+          - {{(C1+C2)/2}} μF — they add.
+          - {{C1*C2}} — wrong units.
+
+          **Connects to:** Q5 finds the energy stored in this pair.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A {{C1}} μF capacitor is in parallel with an unknown capacitor. Together they store
+          {{Cp*V}} μC on a {{V}} V battery. What is the unknown capacitance?
+        answer: { expr: "Cp * V / V - C1", unit: "μF" }
+        distractors:
+          - { expr: "Cp * V / V", unit: "μF", misconception: total-as-component }
+          - { expr: "1 / (1/Cp - 1/C1)", unit: "μF", misconception: capacitor-series-parallel-swap }
+          - { expr: "(Cp * V - C1) / V", unit: "μF", misconception: units-mixed }
+        hints:
+          nudge: "First find the total capacitance from $Q$ and $V$."
+          partial: "$C_{total} = {{Cp*V}}/{{V}} = {{Cp}}$ μF, and parallel capacitances add."
+        explanation: |
+          **Answer:** {{C2}} μF
+
+          **Why:** $C_{total} = Q/V = {{Cp*V}}/{{V}} = {{Cp}}$ μF. In parallel, $C_{total} = C_1 + C_2$, so
+          $C_2 = {{Cp}} - {{C1}} = {{C2}}$ μF.
+
+          **Common mistakes:**
+          - {{Cp}} μF — that's the total, not the unknown.
+          - {{1/(1/Cp - 1/C1)}} μF — that subtracts reciprocals, the series rule.
+          - {{(Cp*V - C1)/V}} μF — subtracted μF from μC.
+
+          **Connects to:** Q5 — energy in the parallel pair.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: capacitor-combinations
+    clueFor: [s4]
+    establishes: "In series: 1/C = 1/C₁ + 1/C₂, so C = {{Cs}} μF."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: |
+          Which rule gives the capacitance of $C_1$ and $C_2$ connected **in series**?
+        options:
+          - { text: '$\dfrac{1}{C} = \dfrac{1}{C_1} + \dfrac{1}{C_2}$', correct: true }
+          - { text: '$C = C_1 + C_2$', misconception: capacitor-series-parallel-swap }
+          - { text: '$C = \dfrac{C_1 + C_2}{2}$', misconception: capacitor-average }
+          - { text: '$C = \dfrac{1}{C_1} + \dfrac{1}{C_2}$', misconception: capacitor-forgot-reciprocal }
+        hints:
+          nudge: "In series each capacitor holds the same charge, and their voltages add."
+          partial: "$V = Q/C_1 + Q/C_2 = Q/C$. Divide by $Q$."
+        explanation: |
+          **Answer:** $1/C = 1/C_1 + 1/C_2$
+
+          **Why:** Same charge $Q$ on each; voltages add: $Q/C = Q/C_1 + Q/C_2$. Dividing by $Q$ gives the
+          rule. The result is smaller than either capacitor.
+
+          **Common mistakes:**
+          - $C_1 + C_2$ — that's parallel.
+          - Average — the series value is below the smaller one.
+          - $1/C_1 + 1/C_2$ — that's $1/C$; take the reciprocal.
+
+          **Connects to:** Q4 uses the series capacitance to find the charge.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          The {{C1}} μF and {{C2}} μF capacitors are connected **in series** instead. What is their
+          combined capacitance?
+        answer: { expr: "C1 * C2 / (C1 + C2)", unit: "μF" }
+        distractors:
+          - { expr: "C1 + C2", unit: "μF", misconception: capacitor-series-parallel-swap }
+          - { expr: "(C1 + C2) / 2", unit: "μF", misconception: capacitor-average }
+          - { expr: "1/C1 + 1/C2", unit: "μF", misconception: capacitor-forgot-reciprocal }
+        hints:
+          nudge: "Series capacitors behave like series *conductances*: the result is smaller than either."
+          partial: "$C = \\dfrac{C_1 C_2}{C_1 + C_2}$"
+        explanation: |
+          **Answer:** {{Cs}} μF
+
+          **Why:** $C = \frac{C_1 C_2}{C_1 + C_2} = \frac{{{C1}} \times {{C2}}}{{{C1}} + {{C2}}} = {{Cs}}$ μF — less than
+          the smaller capacitor, like a single capacitor with a wider gap.
+
+          **Common mistakes:**
+          - {{Cp}} μF — that's the parallel value.
+          - {{(C1+C2)/2}} μF — series gives less than either, not the average.
+          - {{1/C1+1/C2}} — that's $1/C$ (in μF⁻¹); take the reciprocal.
+
+          **Connects to:** Q4 finds the charge on the series pair.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          Three capacitors are connected in series: {{C1}} μF, {{C2}} μF and another {{C1}} μF. What is
+          their combined capacitance?
+        answer: { expr: "1 / (2/C1 + 1/C2)", unit: "μF" }
+        distractors:
+          - { expr: "2*C1 + C2", unit: "μF", misconception: capacitor-series-parallel-swap }
+          - { expr: "C1 * C2 / (C1 + C2)", unit: "μF", misconception: added-capacitor-ignored }
+          - { expr: "2/C1 + 1/C2", unit: "μF", misconception: capacitor-forgot-reciprocal }
+        hints:
+          nudge: "The series rule extends to any number of capacitors."
+          partial: "$\\dfrac1C = \\dfrac{1}{{{C1}}} + \\dfrac{1}{{{C2}}} + \\dfrac{1}{{{C1}}}$"
+        explanation: |
+          **Answer:** {{1/(2/C1 + 1/C2)}} μF
+
+          **Why:** $\frac1C = \frac{1}{{{C1}}} + \frac{1}{{{C2}}} + \frac{1}{{{C1}}}$, so $C = {{1/(2/C1 + 1/C2)}}$ μF — less
+          than the {{Cs}} μF of two in series. Each extra series capacitor lowers the total.
+
+          **Common mistakes:**
+          - {{2*C1+C2}} μF — that's the parallel rule.
+          - {{Cs}} μF — that's only two of the three.
+          - {{2/C1+1/C2}} — that's $1/C$.
+
+          **Connects to:** Q4 — charge on the series pair.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: capacitance
+    uses: [s1, s3]
+    clueFor: [s6]
+    establishes: 'Series pair on {{V}} V: each capacitor holds $Q = C_s V = {{Qs}}$ μC.'
+    standaloneContext: "A {{C1}} μF and a {{C2}} μF capacitor in series ({{Cs}} μF combined) are charged by a {{V}} V battery."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          The series pair ({{Cs}} μF) is connected to the {{V}} V battery. What charge does the battery
+          deliver?
+        answer: { expr: "Cs * V", unit: "μC" }
+        distractors:
+          - { expr: "Cs / V", unit: "μC", misconception: q-c-divide }
+          - { expr: "Cp * V", unit: "μC", misconception: capacitor-series-parallel-swap }
+          - { expr: "Cs * V / 2", unit: "μC", misconception: series-charge-splits }
+        hints:
+          nudge: "Treat the pair as one capacitor."
+          partial: "$Q = C_s V = {{Cs}} \\times {{V}}$"
+        explanation: |
+          **Answer:** {{Qs}} μC
+
+          **Why:** $Q = C_s V = {{Cs}} \times {{V}} = {{Qs}}$ μC, and that same charge sits on each capacitor.
+
+          **Common mistakes:**
+          - {{Cs/V}} μC — $Q = CV$, not $C/V$.
+          - {{Cp*V}} μC — that's for the parallel pair.
+          - {{Cs*V/2}} μC — the charge isn't shared out; each capacitor holds the full {{Qs}} μC.
+
+          **Connects to:** Q6 compares the energy of series and parallel.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          The series pair is connected to the {{V}} V battery and charges fully. How much charge is
+          on the {{C1}} μF capacitor?
+        answer: { expr: "Cs * V", unit: "μC" }
+        distractors:
+          - { expr: "C1 * V", unit: "μC", misconception: series-charge-full-C }
+          - { expr: "Cp * V", unit: "μC", misconception: capacitor-series-parallel-swap }
+          - { expr: "Cs * V / 2", unit: "μC", misconception: series-charge-splits }
+        hints:
+          nudge: "In series, the charge on each capacitor is the same. Find it from the combined capacitance."
+          buildsOn: "From Q1: $Q = CV$. From Q3: the series pair is {{Cs}} μF."
+          partial: "$Q = C_s V = {{Cs}} \\times {{V}}$"
+        explanation: |
+          **Answer:** {{Qs}} μC
+
+          **Why:** The charge that leaves one plate of $C_1$ must arrive on a plate of $C_2$, so both hold
+          the same $Q = C_s V = {{Cs}} \times {{V}} = {{Qs}}$ μC (Q1's $Q = CV$ with Q3's {{Cs}} μF).
+
+          **Common mistakes:**
+          - {{C1*V}} μC — $C_1$ doesn't get the full {{V}} V; it shares it with $C_2$.
+          - {{Cp*V}} μC — that's the parallel arrangement.
+          - {{Cs*V/2}} μC — in series, each capacitor holds the *whole* charge.
+
+          **Connects to:** Q6 compares series and parallel energy.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          The series pair is charged by the {{V}} V battery. What is the voltage across the
+          {{C1}} μF capacitor?
+        answer: { expr: "Cs * V / C1", unit: "V" }
+        distractors:
+          - { expr: "V / 2", unit: "V", misconception: voltage-splits-equally }
+          - { expr: "Cs * V / C2", unit: "V", misconception: series-voltage-swap }
+          - { expr: "V", unit: "V", misconception: each-gets-full-voltage }
+        hints:
+          nudge: "Both capacitors carry the same charge. Which one needs more voltage to hold it?"
+          buildsOn: "From Q1: $V = Q/C$. From Q3: the series pair is {{Cs}} μF."
+          partial: "$Q = {{Cs}} \\times {{V}} = {{Qs}}$ μC on each; then $V_1 = Q/C_1$."
+        explanation: |
+          **Answer:** {{Cs*V/C1}} V
+
+          **Why:** Each holds $Q = {{Qs}}$ μC, so $V_1 = Q/C_1 = {{Qs}}/{{C1}} = {{Cs*V/C1}}$ V and
+          $V_2 = {{Qs}}/{{C2}} = {{Cs*V/C2}}$ V, adding to {{V}} V. The *smaller* capacitor takes the larger voltage.
+
+          **Common mistakes:**
+          - {{V/2}} V — only equal capacitors split the voltage evenly.
+          - {{Cs*V/C2}} V — that's the larger capacitor's share.
+          - {{V}} V — series capacitors share the battery voltage.
+
+          **Connects to:** Q6 compares series and parallel energy.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: capacitor-energy
+    uses: [s1, s2]
+    clueFor: [s6]
+    establishes: "Parallel pair on {{V}} V stores U = ½C V² = {{Up}} mJ."
+    standaloneContext: "A {{C1}} μF and a {{C2}} μF capacitor in parallel ({{Cp}} μF combined) are charged by a {{V}} V battery."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          The parallel pair ({{Cp}} μF) is charged to {{V}} V and holds {{Cp*V}} μC. Using $U = \tfrac12 QV$,
+          how much energy does it store?
+        answer: { expr: "0.5 * Cp * V * V / 1000", unit: "mJ" }
+        distractors:
+          - { expr: "Cp * V * V / 1000", unit: "mJ", misconception: energy-missing-half }
+          - { expr: "0.5 * Cp * V / 1000", unit: "mJ", misconception: energy-not-squared }
+          - { expr: "0.5 * Cs * V * V / 1000", unit: "mJ", misconception: capacitor-series-parallel-swap }
+        hints:
+          nudge: "Multiply half the charge by the voltage; watch the units (μC × V = μJ)."
+          partial: "$U = \\tfrac12 \\times {{Cp*V}} \\text{ μC} \\times {{V}} \\text{ V}$ in μJ; divide by 1000 for mJ."
+        explanation: |
+          **Answer:** {{Up}} mJ
+
+          **Why:** $U = \tfrac12 QV = \tfrac12 \times {{Cp*V}} \times {{V}} = {{0.5*Cp*V*V}}$ μJ $= {{Up}}$ mJ.
+
+          **Common mistakes:**
+          - {{Cp*V*V/1000}} mJ — the factor ½ matters: the voltage rises from 0 as the charge builds up.
+          - {{0.5*Cp*V/1000}} mJ — $\tfrac12 QV$ needs both $Q$ and $V$.
+          - {{0.5*Cs*V*V/1000}} mJ — that's the series pair.
+
+          **Connects to:** Q6 compares this with the series pair.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The parallel pair from Q2 is charged by the {{V}} V battery. How much energy does it store?
+        answer: { expr: "Up", unit: "mJ" }
+        distractors:
+          - { expr: "2 * Up", unit: "mJ", misconception: energy-missing-half }
+          - { expr: "0.5 * Cp * 1e-6 * V * 1000", unit: "mJ", misconception: energy-not-squared }
+          - { expr: "Us", unit: "mJ", misconception: capacitor-series-parallel-swap }
+        hints:
+          nudge: "Use $U = \\tfrac12 CV^2$ with $C$ in farads."
+          buildsOn: "From Q2: the parallel pair is {{Cp}} μF. From Q1: $Q = CV$."
+          partial: "$U = \\tfrac12 \\times {{Cp}} \\times 10^{-6} \\times {{V}}^2$ J"
+        explanation: |
+          **Answer:** {{Up}} mJ
+
+          **Why:** $U = \tfrac12 C V^2 = \tfrac12 ({{Cp}} \times 10^{-6})({{V}})^2 = {{Up/1000}}$ J $= {{Up}}$ mJ.
+
+          **Common mistakes:**
+          - {{2*Up}} mJ — missing the ½.
+          - {{0.5*Cp*1e-6*V*1000}} mJ — $V$ must be squared.
+          - {{Us}} mJ — that's the series pair's energy.
+
+          **Connects to:** Q6 compares series and parallel.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The battery is disconnected from the charged parallel pair, and then the plate separation
+          of **both** capacitors is doubled. How much energy is stored now?
+        answer: { expr: "2 * Up", unit: "mJ" }
+        distractors:
+          - { expr: "Up", unit: "mJ", misconception: energy-unchanged-isolated }
+          - { expr: "Up / 2", unit: "mJ", misconception: charge-unchanged-connected }
+          - { expr: "4 * Up", unit: "mJ", misconception: square-law }
+        hints:
+          nudge: "Disconnected: what stays fixed, $Q$ or $V$? Which energy formula uses it?"
+          buildsOn: "From Q2: the pair is {{Cp}} μF. From Q1: $Q = CV$."
+          partial: "$Q$ is fixed and $C$ halves. Use $U = Q^2/2C$."
+        explanation: |
+          **Answer:** {{2*Up}} mJ
+
+          **Why:** Isolated, the charge $Q = {{Cp*V}}$ μC can't change. Doubling $d$ halves $C$, and
+          $U = Q^2/2C$, so $U$ doubles: $2 \times {{Up}} = {{2*Up}}$ mJ. The extra energy is the work you do
+          pulling the attracting plates apart.
+
+          **Common mistakes:**
+          - {{Up}} mJ — pulling the plates apart takes work, which is stored.
+          - {{Up/2}} mJ — that would be right if $V$ stayed fixed (battery connected).
+          - {{4*Up}} mJ — $U \propto 1/C$ at fixed $Q$, so the factor is 2.
+
+          **Connects to:** Q6 compares series and parallel.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: capacitor-energy
+    uses: [s3, s5]
+    establishes: 'On the same battery, parallel stores $C_p/C_s = {{Cp/Cs}}$ times the series pair''s energy.'
+    standaloneContext: |
+      A {{C1}} μF and a {{C2}} μF capacitor on a {{V}} V battery: in parallel they make {{Cp}} μF and
+      store {{Up}} mJ; in series they make {{Cs}} μF.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          The same two capacitors are connected **in series** ({{Cs}} μF) to the {{V}} V battery. How much
+          energy does the series pair store?
+        answer: { expr: "Us", unit: "mJ" }
+        distractors:
+          - { expr: "Up", unit: "mJ", misconception: capacitor-series-parallel-swap }
+          - { expr: "2 * Us", unit: "mJ", misconception: energy-missing-half }
+          - { expr: "0.5 * Cs * 1e-6 * V * 1000", unit: "mJ", misconception: energy-not-squared }
+        hints:
+          nudge: "Same formula as Q5, with the series capacitance."
+          partial: "$U = \\tfrac12 ({{Cs}} \\times 10^{-6})({{V}})^2$ J"
+        explanation: |
+          **Answer:** {{Us}} mJ
+
+          **Why:** $U = \tfrac12 C_s V^2 = \tfrac12({{Cs}} \times 10^{-6})({{V}})^2 = {{Us}}$ mJ — much less than the
+          parallel pair's {{Up}} mJ.
+
+          **Common mistakes:**
+          - {{Up}} mJ — that's the parallel arrangement.
+          - {{2*Us}} mJ — missing the ½.
+          - {{0.5*Cs*1e-6*V*1000}} mJ — $V$ must be squared.
+
+          **Connects to:** the challenge — tune a capacitor's charge and energy.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          On the same {{V}} V battery, how many times more energy does the **parallel** pair store than
+          the **series** pair?
+        answer: { expr: "Cp / Cs", unit: "×" }
+        distractors:
+          - { expr: "Cs / Cp", unit: "×", misconception: capacitor-series-parallel-swap }
+          - { expr: "1", unit: "×", misconception: energy-fixed-by-battery }
+          - { expr: "(Cp / Cs)^2", unit: "×", misconception: square-law }
+        hints:
+          nudge: "Same $V$ for both. In $U = \\tfrac12 CV^2$, what is the only thing that differs?"
+          buildsOn: "From Q3: series {{Cs}} μF. From Q5: parallel {{Cp}} μF stores {{Up}} mJ."
+          partial: "$U_p/U_s = C_p/C_s = {{Cp}}/{{Cs}}$"
+        explanation: |
+          **Answer:** {{Cp/Cs}} ×
+
+          **Why:** With the same $V$, $U = \tfrac12 CV^2$ is proportional to $C$. So
+          $U_p/U_s = C_p/C_s = {{Cp}}/{{Cs}} = {{Cp/Cs}}$ — {{Up}} mJ versus {{Us}} mJ.
+
+          **Common mistakes:**
+          - {{Cs/Cp}} — upside down: parallel has the larger capacitance.
+          - 1 — the battery fixes the voltage, not the stored energy.
+          - {{(Cp/Cs)^2}} — $U \propto C$ at fixed $V$; only $V$ is squared.
+
+          **Connects to:** the challenge — tune a capacitor's charge and energy.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          A second {{C1}} μF capacitor is added **in parallel** with the parallel pair. On the {{V}} V battery,
+          how many times more energy does this trio store than the original **series** pair?
+        answer: { expr: "(2*C1 + C2) / Cs", unit: "×" }
+        distractors:
+          - { expr: "Cp / Cs", unit: "×", misconception: added-capacitor-ignored }
+          - { expr: "Cs / (2*C1 + C2)", unit: "×", misconception: capacitor-series-parallel-swap }
+          - { expr: "((2*C1 + C2) / Cs)^2", unit: "×", misconception: square-law }
+        hints:
+          nudge: "Find the trio's capacitance, then compare as in the standard version."
+          buildsOn: "From Q3: series {{Cs}} μF. From Q5: at fixed V, energy is proportional to C."
+          partial: "Trio: ${{C1}} + {{C2}} + {{C1}} = {{2*C1+C2}}$ μF. Ratio: {{2*C1+C2}}/{{Cs}}."
+        explanation: |
+          **Answer:** {{(2*C1+C2)/Cs}} ×
+
+          **Why:** Parallel capacitances add: {{2*C1+C2}} μF. At fixed $V$, $U \propto C$, so the ratio is
+          ${{2*C1+C2}}/{{Cs}} = {{(2*C1+C2)/Cs}}$.
+
+          **Common mistakes:**
+          - {{Cp/Cs}} — that leaves out the added capacitor.
+          - {{Cs/(2*C1+C2)}} — upside down.
+          - {{((2*C1+C2)/Cs)^2}} — energy is proportional to $C$, not $C^2$.
+
+          **Connects to:** the challenge — tune a capacitor's charge and energy.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: capacitor-combinations
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Two capacitors are connected in series. How does their combined capacitance compare with each one?"
+        options:
+          - { text: "It is smaller than either", correct: true }
+          - { text: "It is larger than either", misconception: capacitor-series-parallel-swap }
+          - { text: "It is their average", misconception: capacitor-average }
+          - { text: "It equals the larger one", misconception: added-capacitor-ignored }
+        hints:
+          nudge: "Capacitors in series are like one capacitor with a wider gap."
+          partial: "$1/C = 1/C_1 + 1/C_2$ is bigger than $1/C_1$, so $C < C_1$."
+        explanation: |
+          **Answer:** smaller than either.
+
+          **Why:** In series the same charge sits on each capacitor but the voltages add, so you get less
+          charge per volt overall: $1/C = 1/C_1 + 1/C_2$. (For resistors, it's parallel that does this.)
+
+          **Common mistakes:**
+          - "Larger" — that's parallel capacitors.
+          - "Average" — even two equal capacitors in series give half of one.
+          - "The larger one" — the smaller capacitor limits the charge, and the result is below even that.
+
+          **Connects to:** Q3 — the series value.
+  - id: r2
+    role: remediation
+    remediates: s5
+    concept: capacitance
+    variants:
+      standard:
+        id: r2-s
+        difficulty: 2
+        prompt: "A capacitor has been connected to a battery for a long time, with a resistor in series. What current flows?"
+        options:
+          - { text: "None — the capacitor is fully charged", correct: true }
+          - { text: "A steady current, set by the battery and the resistor", misconception: capacitor-passes-dc }
+          - { text: "A current that keeps growing as more charge builds up", misconception: charging-current-increases }
+          - { text: "The same as if the capacitor were a plain wire", misconception: capacitor-as-wire }
+        hints:
+          nudge: "Is there a conducting path *between* the plates?"
+          partial: "Charge flows only while the capacitor's voltage is rising toward the battery's."
+        explanation: |
+          **Answer:** none.
+
+          **Why:** The plates are separated by an insulator. Current flows only while the capacitor
+          charges; once its voltage equals the battery's, nothing pushes more charge, and the current is zero.
+
+          **Common mistakes:**
+          - "Steady current" — a capacitor blocks steady DC.
+          - "Growing" — the charging current is largest at the start and *falls* to zero.
+          - "Like a wire" — that's true only for an instant, when an uncharged capacitor is first connected.
+
+          **Connects to:** Q5 — the energy stored once charging ends.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l7.ch
+  type: transient-plotter
+  title: "Tune the charge and energy"
+  concept: capacitor-energy
+  uses: [s1, s5]
+  params:
+    sets:
+      - { Ct: 50, Vt: 12 }
+      - { Ct: 40, Vt: 9 }
+      - { Ct: 80, Vt: 6 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "The supply is fixed at {{Vt}} V. Set the capacitance so that the fully charged capacitor holds exactly **{{Ct*Vt}} μC**."
+      config:
+        mode: rc-charge
+        values: { R: 2000, V: "Vt" }
+        sliders:
+          - { name: C, min: "10e-6", max: "100e-6", step: "1e-6", initial: "10e-6", scale: 1e-6, unit: "μF" }
+        tMax: 1
+      check: { expr: "near(C * V * 1e6, Ct * Vt)" }
+      feedback:
+        - { if: "C * V * 1e6 > Ct * Vt", say: "Too much charge. $Q = CV$ — lower the capacitance." }
+        - { if: "near(0.5 * C * V^2 * 1e6, Ct * Vt)", say: "That gives ½CV² = {{Ct*Vt}} — energy, not charge.", misconception: charge-energy-confusion }
+        - { if: "C * V * 1e6 < Ct * Vt", say: "Not enough charge. $Q = CV$ — raise the capacitance." }
+      hints:
+        nudge: "Which capacitance holds {{Ct*Vt}} μC at {{Vt}} V?"
+        buildsOn: "From Q1: $Q = CV$."
+        partial: "$C = Q/V = {{Ct*Vt}}/{{Vt}}$ μF."
+      solution: { C: "Ct * 1e-6" }
+      explanation: |
+        $C = Q/V = {{Ct*Vt}}\text{ μC} / {{Vt}}\text{ V} = {{Ct}}$ μF. The curve shows the capacitor charging
+        toward {{Vt}} V; once it gets there it holds {{Ct*Vt}} μC.
+    standard:
+      difficulty: 4
+      goal: "The capacitor is fixed at {{Ct}} μF. Set the supply voltage so that, fully charged, it stores exactly **{{0.5*Ct*1e-6*Vt^2*1000}} mJ**."
+      config:
+        mode: rc-charge
+        values: { R: 2000, C: "Ct * 1e-6" }
+        sliders:
+          - { name: V, min: 1, max: 24, step: 0.5, initial: 1 }
+        tMax: 1
+      check: { expr: "near(0.5 * C * V^2 * 1000, 0.5 * Ct * 1e-6 * Vt^2 * 1000)" }
+      feedback:
+        - { if: "near(0.5 * C * V * 1000, 0.5 * Ct * 1e-6 * Vt^2 * 1000)", say: "Energy goes as $V^2$, not $V$.", misconception: energy-not-squared }
+        - { if: "near(C * V^2 * 1000, 0.5 * Ct * 1e-6 * Vt^2 * 1000)", say: "That makes $CV^2$ equal the target. Don't forget the ½.", misconception: energy-missing-half }
+        - { if: "0.5 * C * V^2 * 1000 > 0.5 * Ct * 1e-6 * Vt^2 * 1000", say: "Too much energy — lower the voltage." }
+        - { if: "0.5 * C * V^2 * 1000 < 0.5 * Ct * 1e-6 * Vt^2 * 1000", say: "Not enough energy — raise the voltage." }
+      hints:
+        nudge: "Solve $U = \\tfrac12 CV^2$ for $V$."
+        buildsOn: "From Q5: $U = \\tfrac12 CV^2$."
+        partial: "$V = \\sqrt{2U/C}$ with $U$ in joules and $C$ in farads."
+      solution: { V: "Vt" }
+      explanation: |
+        $V = \sqrt{2U/C} = \sqrt{2 \times {{0.5*Ct*1e-6*Vt^2}} / ({{Ct}} \times 10^{-6})} = {{Vt}}$ V.
+        Because $U \propto V^2$, a small change in voltage makes a big change in stored energy.
+    harder:
+      difficulty: 5
+      goal: "Set **both** the capacitance and the voltage so that the fully charged capacitor holds exactly **{{Ct*Vt}} μC** and stores exactly **{{0.5*Ct*1e-6*Vt^2*1000}} mJ**."
+      config:
+        mode: rc-charge
+        values: { R: 2000 }
+        sliders:
+          - { name: C, min: "10e-6", max: "100e-6", step: "1e-6", initial: "10e-6", scale: 1e-6, unit: "μF" }
+          - { name: V, min: 1, max: 24, step: 0.5, initial: 1 }
+        tMax: 1
+      check: { expr: "near(C * V * 1e6, Ct * Vt) and near(0.5 * C * V^2 * 1000, 0.5 * Ct * 1e-6 * Vt^2 * 1000)" }
+      feedback:
+        - { if: "near(C * V * 1e6, Ct * Vt)", say: "The charge is right, but the energy isn't. $U = \\tfrac12 QV$ — with $Q$ fixed, which voltage gives the energy?" }
+        - { if: "near(0.5 * C * V^2 * 1000, 0.5 * Ct * 1e-6 * Vt^2 * 1000)", say: "The energy is right, but the charge isn't. Many (C, V) pairs give this energy; only one also gives the charge." }
+        - { if: "true", say: "Use $U = \\tfrac12 QV$ to find V first, then $C = Q/V$." }
+      hints:
+        nudge: "Which formula links the charge and the energy directly?"
+        buildsOn: "From Q1 and Q5: $Q = CV$ and $U = \\tfrac12 QV$."
+        partial: "$V = 2U/Q$, then $C = Q/V$."
+      solution: { C: "Ct * 1e-6", V: "Vt" }
+      explanation: |
+        $U = \tfrac12 QV$ gives $V = 2U/Q = 2 \times {{0.5*Ct*1e-6*Vt^2*1e6}}\text{ μJ} / {{Ct*Vt}}\text{ μC} = {{Vt}}$ V,
+        and then $C = Q/V = {{Ct}}$ μF. Two conditions, two unknowns: exactly one setting works.
+
+summary:
+  keyTakeaways:
+    - "$Q = CV$: capacitance is charge stored per volt; 1 μF stores 1 μC per volt."
+    - "Parallel capacitors add; series capacitors combine like $1/C = 1/C_1 + 1/C_2$ — the reverse of resistors."
+    - "In series, each capacitor holds the same charge, and the smaller one takes the larger voltage."
+    - "$U = \\tfrac12 CV^2 = \\tfrac12 QV$; a charged capacitor blocks steady DC."
+  next: phys2.u3.l8

@@ -483,17 +483,6 @@ function ElementShape({
           {readout}
         </text>
       )}
-      {el.locked && (
-        <text
-          x={vertical ? mx - 22 : mx}
-          y={vertical ? my + 4 : my + 30}
-          textAnchor={vertical ? 'end' : 'middle'}
-          fontSize={10}
-          fill="var(--c-muted)"
-        >
-          fixed
-        </text>
-      )}
     </g>
   );
 }

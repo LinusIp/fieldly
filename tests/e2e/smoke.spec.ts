@@ -33,7 +33,10 @@ test('reference lesson: intro → 6 steps → challenge → summary, with resume
   await expect(page).toHaveURL(/#\/s\/phys2/);
   const unit = page.getByRole('button', { name: /Current & DC Circuits/ });
   if ((await unit.getAttribute('aria-expanded')) !== 'true') await unit.click();
-  await page.getByRole('link', { name: "Ohm's Law and Electrical Power" }).click();
+  await page
+    .locator(`[data-lesson-id="${LESSON}"]`)
+    .getByRole('link', { name: "Ohm's Law and Electrical Power" })
+    .click();
   await expect(page).toHaveURL(new RegExp(`#/l/${LESSON.replace(/\./g, '\\.')}`));
 
   // Re-open with the debug hook (dev/e2e builds only).
@@ -51,6 +54,7 @@ test('reference lesson: intro → 6 steps → challenge → summary, with resume
 
   // Finish the remaining core steps (plus any inserted ones).
   for (let i = 0; i < 10; i++) {
+    await expect(page.getByTestId('question-card').or(page.getByTestId('challenge'))).toBeVisible();
     if (await page.getByTestId('challenge').count()) break;
     await answerCurrent(page);
   }

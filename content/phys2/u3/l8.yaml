@@ -1,0 +1,688 @@
+id: phys2.u3.l8
+title: "RC circuits"
+version: 1
+concepts: [rc-circuits, time-constant]
+estimatedMinutes: 25
+
+# A capacitor C (μF) charges through a resistor R (kΩ) from a battery V. kΩ × μF = ms.
+params:
+  sets:
+    - { V: 12, R: 20, C: 100, T: 5 }
+    - { V: 9, R: 50, C: 20, T: 2 }
+    - { V: 6, R: 10, C: 300, T: 6 }
+derived:
+  tau: "R * C / 1000"
+  I0: "V / R"
+
+intro: |
+  Connect an uncharged capacitor $C$ in series with a resistor $R$ across a battery $V$ and
+  close the switch.
+
+  - **At the start**, the capacitor has no charge, so no voltage: it behaves like a wire and
+    the current jumps to $I_0 = V/R$.
+  - **As charge builds**, the capacitor's voltage rises and opposes the battery, so the
+    current falls.
+  - **Eventually** the capacitor reaches $V$ and the current stops. A capacitor blocks steady DC.
+
+  The capacitor's voltage and the current follow exponentials:
+
+  $$V_C(t) = V\left(1 - e^{-t/\tau}\right) \qquad I(t) = I_0\, e^{-t/\tau}$$
+
+  with the **time constant** $\tau = RC$ (seconds, if $R$ is in Ω and $C$ in F; also
+  kΩ × μF = ms).
+
+  After one time constant the capacitor has reached $1 - e^{-1} \approx 63\%$ of $V$ and the
+  current has fallen to $37\%$ of $I_0$. It never *quite* finishes: after $5\tau$ it is at
+  99.3%. So $\tau$ is **not** the time to charge fully; it sets the *pace*.
+
+  **Discharging** a capacitor through $R$ (battery removed) follows $V_C = V_0 e^{-t/\tau}$:
+  down to 37% after one $\tau$.
+
+workedExample: |
+  $R = 4$ kΩ and $C = 250$ μF charge from a 10 V battery.
+
+  - $\tau = RC = 4000 \times 250 \times 10^{-6} = 1$ s
+  - Initial current: $10/4000 = 2.5$ mA
+  - At $t = 1$ s: $V_C = 10(1 - e^{-1}) = 6.32$ V and $I = 2.5 e^{-1} = 0.92$ mA
+  - At $t = 5$ s: $V_C = 10(1 - e^{-5}) = 9.93$ V — essentially, but not exactly, charged
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: rc-circuits
+    clueFor: [s4]
+    establishes: "At t = 0 the uncharged capacitor acts like a wire: I₀ = V/R = {{I0}} mA."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          An uncharged capacitor is in series with a resistor and a battery. At the instant the switch
+          closes, how does the capacitor behave?
+        options:
+          - { text: "Like a plain wire — it has no voltage across it yet", correct: true }
+          - { text: "Like a break — no current can flow through a capacitor", misconception: capacitor-blocks-initially }
+          - { text: "It instantly has the full battery voltage across it", misconception: capacitor-instant-charge }
+          - { text: "Like a second battery, pushing back with V volts", misconception: capacitor-instant-charge-back }
+        hints:
+          nudge: "What voltage does a capacitor with zero charge have? ($V = Q/C$)"
+          partial: "Zero charge means zero voltage, so for that instant the resistor has the whole battery voltage."
+        explanation: |
+          **Answer:** like a plain wire.
+
+          **Why:** $V_C = Q/C = 0$ when $Q = 0$, so at the start the resistor gets all of the battery's
+          voltage and current flows freely: $I_0 = V/R$. Charge flows onto the plates even though none
+          crosses the gap.
+
+          **Common mistakes:**
+          - "A break" — only a *charged* capacitor blocks steady current.
+          - "Full voltage instantly" — the voltage builds up as charge arrives; that takes time.
+          - "A second battery" — it pushes back only once it has charge.
+
+          **Connects to:** Q4 follows this current as it falls.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A {{C}} μF uncharged capacitor is in series with a {{R}} kΩ resistor across a {{V}} V battery.
+          What current flows the instant the switch is closed?
+        answer: { expr: "V / R", unit: "mA" }
+        distractors:
+          - { expr: "0", unit: "mA", misconception: capacitor-blocks-initially }
+          - { expr: "V * R", unit: "mA", misconception: ohm-multiply }
+          - { expr: "R / V", unit: "mA", misconception: ohm-inverted }
+        hints:
+          nudge: "With no charge on it yet, what voltage does the capacitor have?"
+          partial: "All {{V}} V is across the resistor, so $I_0 = V/R$ (V/kΩ = mA)."
+        explanation: |
+          **Answer:** {{I0}} mA
+
+          **Why:** The uncharged capacitor has no voltage, so the resistor has all {{V}} V:
+          $I_0 = {{V}}\text{ V}/{{R}}\text{ kΩ} = {{I0}}$ mA. This is the largest current in the whole process.
+
+          **Common mistakes:**
+          - 0 mA — a capacitor blocks current only once it's charged.
+          - {{V*R}} mA — multiplied instead of dividing.
+          - {{R/V}} mA — the fraction is upside down.
+
+          **Connects to:** Q4 — how this current decays.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          This time the {{C}} μF capacitor already has {{V/2}} V on it (positive plate toward the
+          battery's +) when the switch closes. What current flows at that instant?
+        answer: { expr: "V / (2 * R)", unit: "mA" }
+        distractors:
+          - { expr: "V / R", unit: "mA", misconception: initial-charge-ignored }
+          - { expr: "0", unit: "mA", misconception: capacitor-blocks-initially }
+          - { expr: "3 * V / (2 * R)", unit: "mA", misconception: loop-sign-ignored }
+        hints:
+          nudge: "Use the loop rule: the resistor gets whatever voltage the capacitor doesn't."
+          partial: "$V_R = {{V}} - {{V/2}}$ V"
+        explanation: |
+          **Answer:** {{V/(2*R)}} mA
+
+          **Why:** Loop rule: $V = V_R + V_C$, so the resistor has ${{V}} - {{V/2}} = {{V/2}}$ V and
+          $I = {{V/2}}/{{R}} = {{V/(2*R)}}$ mA. The capacitor's existing charge opposes the battery.
+
+          **Common mistakes:**
+          - {{V/R}} mA — that's for an *uncharged* capacitor.
+          - 0 mA — the capacitor isn't fully charged, so current still flows.
+          - {{3*V/(2*R)}} mA — the capacitor's voltage opposes the battery's here; it doesn't add.
+
+          **Connects to:** Q4 — how the current decays.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: time-constant
+    clueFor: [s3]
+    establishes: "τ = RC = {{R}} kΩ × {{C}} μF = {{tau}} s."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: "Which expression is the time constant of an RC circuit?"
+        options:
+          - { text: '$\tau = RC$', correct: true }
+          - { text: '$\tau = R/C$', misconception: tau-ratio }
+          - { text: '$\tau = C/R$', misconception: tau-ratio-inverted }
+          - { text: '$\tau = 5RC$', misconception: tau-full-charge }
+        hints:
+          nudge: "More resistance slows the charging; so does more capacitance."
+          partial: "Both $R$ and $C$ make it slower, so they multiply."
+        explanation: |
+          **Answer:** $\tau = RC$
+
+          **Why:** A bigger $R$ means a smaller current, so slower filling; a bigger $C$ means more charge
+          to deliver. Both lengthen the process, and Ω × F = s.
+
+          **Common mistakes:**
+          - $R/C$ — then more capacitance would *speed up* charging.
+          - $C/R$ — then more resistance would speed it up.
+          - $5RC$ — that's roughly the time to be *nearly* full; $\tau$ itself is $RC$.
+
+          **Connects to:** Q3 uses $\tau$ to find the capacitor's voltage.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          What is the time constant of the circuit ({{R}} kΩ, {{C}} μF)?
+        answer: { expr: "R * C / 1000", unit: "s" }
+        distractors:
+          - { expr: "R * C", unit: "s", misconception: rc-unit-prefix }
+          - { expr: "R / C", unit: "s", misconception: tau-ratio }
+          - { expr: "5 * R * C / 1000", unit: "s", misconception: tau-full-charge }
+        hints:
+          nudge: "Convert to Ω and F, or use kΩ × μF = ms."
+          partial: "$\\tau = ({{R}} \\times 10^3)({{C}} \\times 10^{-6})$ s"
+        explanation: |
+          **Answer:** {{tau}} s
+
+          **Why:** $\tau = RC = ({{R}} \times 10^3 \text{ Ω})({{C}} \times 10^{-6} \text{ F}) = {{tau}}$ s
+          (equivalently {{R*C}} ms).
+
+          **Common mistakes:**
+          - {{R*C}} s — kΩ × μF is milliseconds, not seconds.
+          - {{R/C}} s — $\tau$ is a product.
+          - {{5*R*C/1000}} s — $5\tau$ is when it's nearly full; $\tau$ is $RC$.
+
+          **Connects to:** Q3 — the voltage after one time constant.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: "Which single change **doubles** the time constant of this circuit?"
+        options:
+          - { text: "Doubling the resistance", correct: true }
+          - { text: "Doubling the battery voltage", misconception: tau-depends-on-v }
+          - { text: "Halving the capacitance", misconception: tau-ratio }
+          - { text: "Doubling both the resistance and the capacitance", misconception: square-law }
+        hints:
+          nudge: "Which quantities appear in $\\tau = RC$, and how?"
+          partial: "$\\tau$ is proportional to $R$ and to $C$, and doesn't involve $V$."
+        explanation: |
+          **Answer:** doubling $R$ — from {{tau}} s to {{2*tau}} s.
+
+          **Why:** $\tau = RC$ is proportional to $R$. The battery voltage changes how *high* the
+          capacitor charges, not how *fast* (in proportion).
+
+          **Common mistakes:**
+          - "Doubling V" — $V$ isn't in $\tau$.
+          - "Halving C" — that *halves* $\tau$.
+          - "Doubling both" — that quadruples $\tau$.
+
+          **Connects to:** Q3 — the voltage after one time constant.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: rc-circuits
+    uses: [s2]
+    clueFor: [s6]
+    establishes: 'After one τ ({{tau}} s), $V_C = V(1 - e^{-1})$ = 63% of {{V}} V = {{V*(1-exp(-1))}} V.'
+    standaloneContext: "A capacitor charges from 0 V through a resistor from a {{V}} V battery; the time constant is {{tau}} s."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 2
+        prompt: "After one time constant, what percentage of the battery's voltage has a charging capacitor reached?"
+        answer: { expr: "100 * (1 - exp(-1))", unit: "%" }
+        distractors:
+          - { expr: "100", unit: "%", misconception: tau-full-charge }
+          - { expr: "50", unit: "%", misconception: tau-half }
+          - { expr: "100 * exp(-1)", unit: "%", misconception: charge-decay-confusion }
+        hints:
+          nudge: "Put $t = \\tau$ into $V_C = V(1 - e^{-t/\\tau})$."
+          partial: "$1 - e^{-1}$"
+        explanation: |
+          **Answer:** {{100*(1-exp(-1))}} %
+
+          **Why:** $V_C/V = 1 - e^{-1} = 1 - 0.368 = 0.632$.
+
+          **Common mistakes:**
+          - 100 % — $\tau$ is not the time to charge fully.
+          - 50 % — the half-way time is $\tau \ln 2 \approx 0.69\tau$.
+          - {{100*exp(-1)}} % — that's how far the *current* (or a discharging capacitor) has fallen.
+
+          **Connects to:** Q6 designs a circuit around this 63% point.
+      standard:
+        id: s3-s
+        difficulty: 3
+        prompt: |
+          The capacitor starts uncharged. What is its voltage at $t = {{tau}}$ s?
+        answer: { expr: "V * (1 - exp(-1))", unit: "V" }
+        distractors:
+          - { expr: "V", unit: "V", misconception: tau-full-charge }
+          - { expr: "V / 2", unit: "V", misconception: tau-half }
+          - { expr: "V * exp(-1)", unit: "V", misconception: charge-decay-confusion }
+        hints:
+          nudge: "How does {{tau}} s compare with the time constant?"
+          buildsOn: "From Q2: τ = {{tau}} s."
+          partial: "$t = \\tau$, so $V_C = V(1 - e^{-1})$."
+        explanation: |
+          **Answer:** {{V*(1-exp(-1))}} V
+
+          **Why:** {{tau}} s is exactly one time constant (Q2), so $V_C = {{V}}(1 - e^{-1}) = {{V*(1-exp(-1))}}$ V —
+          63% of the way to {{V}} V.
+
+          **Common mistakes:**
+          - {{V}} V — it takes about $5\tau$ to get close to full.
+          - {{V/2}} V — 50% comes earlier, at $0.69\tau$.
+          - {{V*exp(-1)}} V — that's the *resistor's* voltage (37%), not the capacitor's.
+
+          **Connects to:** Q6 designs a circuit around this 63% point.
+      harder:
+        id: s3-h
+        difficulty: 4
+        prompt: |
+          The capacitor starts uncharged. What is its voltage at $t = {{2*tau}}$ s?
+        answer: { expr: "V * (1 - exp(-2))", unit: "V" }
+        distractors:
+          - { expr: "V * 2 * (1 - exp(-1))", unit: "V", misconception: linear-charging }
+          - { expr: "V", unit: "V", misconception: tau-full-charge }
+          - { expr: "V * (1 - exp(-1))", unit: "V", misconception: tau-only }
+        hints:
+          nudge: "How many time constants is {{2*tau}} s?"
+          buildsOn: "From Q2: τ = {{tau}} s."
+          partial: "$t = 2\\tau$, so $V_C = V(1 - e^{-2})$."
+        explanation: |
+          **Answer:** {{V*(1-exp(-2))}} V
+
+          **Why:** {{2*tau}} s is $2\tau$, so $V_C = {{V}}(1 - e^{-2}) = {{V*(1-exp(-2))}}$ V (86%). In the second time
+          constant the capacitor gains 63% of the *remaining* gap, not another 63% of $V$.
+
+          **Common mistakes:**
+          - {{V*2*(1-exp(-1))}} V — charging slows down; it doesn't keep its starting pace (and can't exceed {{V}} V).
+          - {{V}} V — not full yet.
+          - {{V*(1-exp(-1))}} V — that's after one $\tau$.
+
+          **Connects to:** Q6 designs a circuit around the 63% point.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: rc-circuits
+    uses: [s1, s3]
+    clueFor: [s5]
+    establishes: 'The current decays as $I = I_0 e^{-t/	au}$: after one τ it is {{I0*exp(-1)}} mA (37% of $I_0$).'
+    standaloneContext: "An uncharged capacitor charges through {{R}} kΩ from a {{V}} V battery; the initial current is {{I0}} mA and τ = {{tau}} s."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          At $t = \tau$ the capacitor has {{V*(1-exp(-1))}} V across it. What current flows through the
+          {{R}} kΩ resistor then?
+        answer: { expr: "(V - V*(1-exp(-1))) / R", unit: "mA" }
+        distractors:
+          - { expr: "V*(1-exp(-1)) / R", unit: "mA", misconception: wrong-resistor-drop }
+          - { expr: "V / R", unit: "mA", misconception: capacitor-passes-dc }
+          - { expr: "0", unit: "mA", misconception: tau-full-charge }
+        hints:
+          nudge: "Loop rule: the resistor has whatever voltage the capacitor doesn't."
+          partial: "$V_R = {{V}} - {{V*(1-exp(-1))}}$ V"
+        explanation: |
+          **Answer:** {{I0*exp(-1)}} mA
+
+          **Why:** $V_R = {{V}} - {{V*(1-exp(-1))}} = {{V*exp(-1)}}$ V, so $I = {{V*exp(-1)}}/{{R}} = {{I0*exp(-1)}}$ mA —
+          37% of the starting {{I0}} mA.
+
+          **Common mistakes:**
+          - {{V*(1-exp(-1))/R}} mA — that uses the capacitor's voltage, not the resistor's.
+          - {{I0}} mA — the current doesn't stay at its starting value.
+          - 0 mA — the capacitor isn't full yet.
+
+          **Connects to:** Q5 — discharging.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          What current flows in the circuit at $t = {{tau}}$ s?
+        answer: { expr: "I0 * exp(-1)", unit: "mA" }
+        distractors:
+          - { expr: "I0", unit: "mA", misconception: capacitor-passes-dc }
+          - { expr: "I0 * (1 - exp(-1))", unit: "mA", misconception: charging-current-increases }
+          - { expr: "0", unit: "mA", misconception: tau-full-charge }
+        hints:
+          nudge: "Is the current growing or shrinking as the capacitor charges?"
+          buildsOn: "From Q1: $I_0$ = {{I0}} mA. From Q3: at $t = \\tau$ the capacitor has 63% of {{V}} V."
+          partial: "$I = I_0 e^{-t/\\tau}$ with $t = \\tau$."
+        explanation: |
+          **Answer:** {{I0*exp(-1)}} mA
+
+          **Why:** The capacitor has 63% of {{V}} V (Q3), leaving 37% across the resistor, so the current is 37% of
+          $I_0$ (Q1): ${{I0}} \times e^{-1} = {{I0*exp(-1)}}$ mA.
+
+          **Common mistakes:**
+          - {{I0}} mA — the current falls as the capacitor charges.
+          - {{I0*(1-exp(-1))}} mA — that's the capacitor-voltage curve; the current falls, it doesn't rise.
+          - 0 mA — current stops only when the capacitor is full.
+
+          **Connects to:** Q5 — discharging through the same resistor.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          At what time has the current fallen to **half** of its starting value?
+        answer: { expr: "tau * log(2)", unit: "s" }
+        distractors:
+          - { expr: "tau / 2", unit: "s", misconception: linear-charging }
+          - { expr: "tau", unit: "s", misconception: tau-half }
+          - { expr: "tau * log10(2)", unit: "s", misconception: log-base }
+        hints:
+          nudge: "Solve $e^{-t/\\tau} = \\tfrac12$ for $t$."
+          buildsOn: "From Q1: $I_0$ = {{I0}} mA. From Q3: τ = {{tau}} s sets the pace."
+          partial: "$t = \\tau \\ln 2$"
+        explanation: |
+          **Answer:** {{tau*log(2)}} s
+
+          **Why:** $I_0 e^{-t/\tau} = \tfrac12 I_0$ gives $t = \tau \ln 2 = {{tau}} \times 0.693 = {{tau*log(2)}}$ s.
+
+          **Common mistakes:**
+          - {{tau/2}} s — the decay isn't linear.
+          - {{tau}} s — after one $\tau$ the current is at 37%, not 50%.
+          - {{tau*log10(2)}} s — exponentials with base $e$ need the *natural* log.
+
+          **Connects to:** Q5 — discharging.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: time-constant
+    uses: [s2, s4]
+    clueFor: [s6]
+    establishes: 'Discharging through R: $V_C = V_0 e^{-t/	au}$, so after one τ only 37% ({{V*exp(-1)}} V) remains.'
+    standaloneContext: "A capacitor charged to {{V}} V discharges through a resistor; the time constant is {{tau}} s."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: "A capacitor discharges through a resistor. After one time constant, what percentage of its starting voltage remains?"
+        answer: { expr: "100 * exp(-1)", unit: "%" }
+        distractors:
+          - { expr: "100 * (1 - exp(-1))", unit: "%", misconception: charge-decay-confusion }
+          - { expr: "0", unit: "%", misconception: tau-full-charge }
+          - { expr: "50", unit: "%", misconception: tau-half }
+        hints:
+          nudge: "Discharge follows $V_0 e^{-t/\\tau}$."
+          partial: "$e^{-1}$"
+        explanation: |
+          **Answer:** {{100*exp(-1)}} %
+
+          **Why:** $V_C = V_0 e^{-1} = 0.368\,V_0$: 37% remains, 63% has gone.
+
+          **Common mistakes:**
+          - {{100*(1-exp(-1))}} % — that's the fraction *lost*.
+          - 0 % — $\tau$ isn't the time to empty.
+          - 50 % — half remains at $\tau \ln 2$.
+
+          **Connects to:** Q6 — designing a time constant.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The fully charged capacitor ({{V}} V) is disconnected from the battery and discharged through
+          the same {{R}} kΩ resistor. What is its voltage after {{tau}} s?
+        answer: { expr: "V * exp(-1)", unit: "V" }
+        distractors:
+          - { expr: "V * (1 - exp(-1))", unit: "V", misconception: charge-decay-confusion }
+          - { expr: "0", unit: "V", misconception: tau-full-charge }
+          - { expr: "V / 2", unit: "V", misconception: tau-half }
+        hints:
+          nudge: "Same $R$ and $C$, so the same $\\tau$. Discharging decays like the charging current did."
+          buildsOn: "From Q2: τ = {{tau}} s. From Q4: an exponential decay falls to 37% in one τ."
+          partial: "$V_C = {{V}} e^{-1}$"
+        explanation: |
+          **Answer:** {{V*exp(-1)}} V
+
+          **Why:** Same circuit, same $\tau = {{tau}}$ s (Q2). Discharging is a decay like the current in Q4:
+          $V_C = {{V}} e^{-1} = {{V*exp(-1)}}$ V.
+
+          **Common mistakes:**
+          - {{V*(1-exp(-1))}} V — that's the charging curve.
+          - 0 V — a capacitor never fully empties in finite time.
+          - {{V/2}} V — 50% is reached sooner, at $0.69\tau$.
+
+          **Connects to:** Q6 — designing a time constant.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The fully charged capacitor discharges through the same {{R}} kΩ resistor. How long until its
+          voltage is down to **10%** of {{V}} V?
+        answer: { expr: "tau * log(10)", unit: "s" }
+        distractors:
+          - { expr: "tau * log(10/9)", unit: "s", misconception: charge-decay-confusion }
+          - { expr: "5 * tau", unit: "s", misconception: tau-full-charge }
+          - { expr: "0.9 * tau", unit: "s", misconception: linear-charging }
+        hints:
+          nudge: "Solve $e^{-t/\\tau} = 0.1$."
+          buildsOn: "From Q2: τ = {{tau}} s. From Q4: decays follow $e^{-t/\\tau}$."
+          partial: "$t = \\tau \\ln 10$"
+        explanation: |
+          **Answer:** {{tau*log(10)}} s
+
+          **Why:** $e^{-t/\tau} = 0.1 \Rightarrow t = \tau \ln 10 = {{tau}} \times 2.303 = {{tau*log(10)}}$ s.
+
+          **Common mistakes:**
+          - {{tau*log(10/9)}} s — that's the time to lose 10%, not to fall *to* 10%.
+          - {{5*tau}} s — after $5\tau$ it's at 0.7%, well below 10%.
+          - {{0.9*tau}} s — the decay isn't linear.
+
+          **Connects to:** Q6 — designing a time constant.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: time-constant
+    uses: [s2, s3, s5]
+    establishes: "To reach 63% at T = {{T}} s with C = {{C}} μF, choose R = T/C = {{T*1000/C}} kΩ."
+    standaloneContext: |
+      A capacitor of {{C}} μF charges through a resistor $R$; $\tau = RC$, and after one $\tau$ it has
+      reached 63% of the battery voltage.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 3
+        prompt: |
+          A timer needs a time constant of {{T}} s using the {{C}} μF capacitor. What resistance is needed?
+        answer: { expr: "T * 1000 / C", unit: "kΩ" }
+        distractors:
+          - { expr: "T * C / 1000", unit: "kΩ", misconception: tau-ratio }
+          - { expr: "T * 1000 / (5 * C)", unit: "kΩ", misconception: tau-full-charge }
+          - { expr: "T / C", unit: "kΩ", misconception: rc-unit-prefix }
+        hints:
+          nudge: "Rearrange $\\tau = RC$ for $R$."
+          partial: "$R = \\tau / C = {{T}} / ({{C}} \\times 10^{-6})$ Ω"
+        explanation: |
+          **Answer:** {{T*1000/C}} kΩ
+
+          **Why:** $R = \tau/C = {{T}}/({{C}} \times 10^{-6}) = {{T*1e6/C}}$ Ω $= {{T*1000/C}}$ kΩ.
+
+          **Common mistakes:**
+          - {{T*C/1000}} kΩ — $R = \tau/C$, not $\tau C$.
+          - {{T*1000/(5*C)}} kΩ — that makes $5\tau = T$.
+          - {{T/C}} kΩ — check the prefixes: s/μF = MΩ, so multiply by 1000 for kΩ.
+
+          **Connects to:** the challenge — tune R on a live charging curve.
+      standard:
+        id: s6-s
+        difficulty: 4
+        prompt: |
+          A timer must trip when the {{C}} μF capacitor reaches 63% of the battery voltage, exactly
+          {{T}} s after the switch closes. What resistance is needed?
+        answer: { expr: "T * 1000 / C", unit: "kΩ" }
+        distractors:
+          - { expr: "T * 1000 / (5 * C)", unit: "kΩ", misconception: tau-full-charge }
+          - { expr: "T * 1000 / (0.632 * C)", unit: "kΩ", misconception: tau-63-misapplied }
+          - { expr: "T * C / 1000", unit: "kΩ", misconception: tau-ratio }
+        hints:
+          nudge: "When does a charging capacitor reach 63%?"
+          buildsOn: "From Q2: τ = RC. From Q3: 63% is reached after exactly one τ."
+          partial: "You need $\\tau = {{T}}$ s, so $R = \\tau/C$."
+        explanation: |
+          **Answer:** {{T*1000/C}} kΩ
+
+          **Why:** 63% is reached at $t = \tau$ (Q3), so we need $\tau = RC = {{T}}$ s (Q2):
+          $R = {{T}}/({{C}} \times 10^{-6}) = {{T*1000/C}}$ kΩ. (Discharge, from Q5, would use the same τ.)
+
+          **Common mistakes:**
+          - {{T*1000/(5*C)}} kΩ — that sets $5\tau = T$; the 63% point is at $\tau$.
+          - {{T*1000/(0.632*C)}} kΩ — 63% describes the voltage at $t = \tau$; it doesn't divide the time.
+          - {{T*C/1000}} kΩ — $R = \tau/C$.
+
+          **Connects to:** the challenge — tune R on a live charging curve.
+      harder:
+        id: s6-h
+        difficulty: 5
+        prompt: |
+          A timer must trip when the {{C}} μF capacitor reaches **50%** of the battery voltage, exactly
+          {{T}} s after the switch closes. What resistance is needed?
+        answer: { expr: "T * 1000 / (C * log(2))", unit: "kΩ" }
+        distractors:
+          - { expr: "T * 1000 / C", unit: "kΩ", misconception: tau-half }
+          - { expr: "T * 1000 / (0.5 * C)", unit: "kΩ", misconception: linear-charging }
+          - { expr: "T * 1000 * log(2) / C", unit: "kΩ", misconception: log-inverted }
+        hints:
+          nudge: "When does $1 - e^{-t/\\tau}$ equal ½?"
+          buildsOn: "From Q2: τ = RC. From Q3 and Q5: one τ gives 63% (charging) or 37% (discharging) — not 50%."
+          partial: "$t_{1/2} = \\tau \\ln 2$, so $\\tau = {{T}}/\\ln 2$."
+        explanation: |
+          **Answer:** {{T*1000/(C*log(2))}} kΩ
+
+          **Why:** $1 - e^{-T/\tau} = \tfrac12 \Rightarrow T = \tau \ln 2$, so $\tau = {{T}}/0.693 = {{T/log(2)}}$ s and
+          $R = \tau/C = {{T*1000/(C*log(2))}}$ kΩ.
+
+          **Common mistakes:**
+          - {{T*1000/C}} kΩ — that reaches 63% at {{T}} s; 50% would come earlier.
+          - {{T*1000/(0.5*C)}} kΩ — the curve isn't a straight line.
+          - {{T*1000*log(2)/C}} kΩ — $\tau = T/\ln 2$, not $T \ln 2$.
+
+          **Connects to:** the challenge — tune R on a live charging curve.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: time-constant
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "What does the time constant τ tell you about a charging capacitor?"
+        options:
+          - { text: "After τ it has reached about 63% of its final voltage", correct: true }
+          - { text: "After τ it is fully charged", misconception: tau-full-charge }
+          - { text: "After τ it is half charged", misconception: tau-half }
+          - { text: "After τ its voltage has fallen to 37%", misconception: charge-decay-confusion }
+        hints:
+          nudge: "Put $t = \\tau$ into $1 - e^{-t/\\tau}$."
+          partial: "$1 - e^{-1} \\approx 0.632$"
+        explanation: |
+          **Answer:** about 63% of its final voltage.
+
+          **Why:** $V_C(\tau) = V(1 - e^{-1}) = 0.632V$. The capacitor never quite reaches $V$; after $5\tau$ it's at 99.3%.
+
+          **Common mistakes:**
+          - "Fully charged" — the exponential never quite finishes.
+          - "Half" — that happens earlier, at $0.69\tau$.
+          - "Fallen to 37%" — that's a *discharging* capacitor (or the charging current).
+
+          **Connects to:** Q3 — the voltage after one time constant.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: phys2.u3.l8.ch
+  type: transient-plotter
+  title: "Set the timer"
+  concept: time-constant
+  uses: [s3, s6]
+  params:
+    sets:
+      - { V: 12, T: 2, C: 100, Rt: 10 }
+      - { V: 12, T: 1, C: 50, Rt: 20 }
+      - { V: 12, T: 3, C: 200, Rt: 5 }
+  variants:
+    easier:
+      difficulty: 3
+      goal: "The capacitor is {{C}} μF. Choose R so that the capacitor reaches **63%** of {{V}} V at exactly **t = {{T}} s** (the circled target)."
+      config:
+        mode: rc-charge
+        values: { C: "C * 1e-6", V: "V" }
+        sliders:
+          - { name: R, min: 1000, max: 100000, step: 1000, initial: 1000, scale: 1000, unit: "kΩ" }
+        tMax: "4 * T"
+        target: { t: "T", frac: 0.632 }
+        markers: ["T"]
+      check: { expr: "near(tau, T)" }
+      feedback:
+        - { if: "near(5 * tau, T)", say: "That makes the capacitor *nearly full* at {{T}} s ($5\\tau$). One time constant gets it to 63%.", misconception: tau-full-charge }
+        - { if: "tau > T", say: "Too slow: at {{T}} s it hasn't reached 63% yet. Lower R." }
+        - { if: "tau < T", say: "Too fast: it passes 63% before {{T}} s. Raise R." }
+      hints:
+        nudge: "At what time does a charging capacitor reach 63%?"
+        buildsOn: "From Q3: 63% is reached after exactly one τ."
+        partial: "You need $\\tau = RC = {{T}}$ s, so $R = {{T}}/({{C}} \\times 10^{-6})$."
+      solution: { R: "T / (C * 1e-6)" }
+      explanation: |
+        63% is reached at $t = \tau$, so $\tau = RC = {{T}}$ s and $R = {{T}}/({{C}} \times 10^{-6}) = {{T*1000/C}}$ kΩ.
+    standard:
+      difficulty: 4
+      goal: "The capacitor is {{C}} μF. Choose R so that the capacitor reaches **50%** of {{V}} V at exactly **t = {{T}} s**."
+      config:
+        mode: rc-charge
+        values: { C: "C * 1e-6", V: "V" }
+        sliders:
+          - { name: R, min: 1000, max: 100000, step: 500, initial: 1000, scale: 1000, unit: "kΩ" }
+        tMax: "4 * T"
+        target: { t: "T", frac: 0.5 }
+        markers: ["T"]
+      check: { expr: "near(frac_at(T), 0.5)" }
+      feedback:
+        - { if: "near(tau, T)", say: "That reaches 63% at {{T}} s. 50% must come at {{T}} s, so τ has to be longer.", misconception: tau-half }
+        - { if: "frac_at(T) > 0.5", say: "Too fast — it's already past 50% at {{T}} s. Raise R." }
+        - { if: "frac_at(T) < 0.5", say: "Too slow — it hasn't reached 50% at {{T}} s. Lower R." }
+      hints:
+        nudge: "When does $1 - e^{-t/\\tau}$ equal ½?"
+        buildsOn: "From Q6: designing R for a target time."
+        partial: "$T = \\tau \\ln 2$, so $\\tau = {{T}}/0.693$ s and $R = \\tau / C$."
+      solution: { R: "T / (C * 1e-6 * log(2))" }
+      explanation: |
+        $1 - e^{-T/\tau} = \tfrac12$ gives $\tau = T/\ln 2 = {{T/log(2)}}$ s, so
+        $R = \tau/C = {{T*1000/(C*log(2))}}$ kΩ.
+    harder:
+      difficulty: 5
+      goal: "Now a discharge timer. Choose **both** R and C so that the {{V}} V capacitor discharges to **10%** at exactly t = {{T}} s **and** the starting current is exactly {{V/Rt}} mA."
+      config:
+        mode: rc-discharge
+        values: { V: "V" }
+        sliders:
+          - { name: R, min: 1000, max: 50000, step: 1000, initial: 1000, scale: 1000, unit: "kΩ" }
+          - { name: C, min: "1e-6", max: "400e-6", step: "0.1e-6", initial: "1e-6", scale: 1e-6, unit: "μF" }
+        tMax: "2 * T"
+        target: { t: "T", frac: 0.1 }
+        markers: ["T"]
+      check: { expr: "near(V / R * 1000, V / Rt) and near(frac_at(T), 0.1, 0.03)" }
+      feedback:
+        - { if: "not near(V / R * 1000, V / Rt)", say: "The starting current is $V/R$. Set R first: {{V}} V ÷ {{V/Rt}} mA." }
+        - { if: "near(frac_at(T), exp(-1), 0.03)", say: "That's 37% at {{T}} s — one time constant. Falling to 10% takes $\\tau \\ln 10$.", misconception: tau-full-charge }
+        - { if: "frac_at(T) > 0.1", say: "Too slow — still above 10% at {{T}} s. Lower C." }
+        - { if: "frac_at(T) < 0.1", say: "Too fast — already below 10% at {{T}} s. Raise C." }
+      hints:
+        nudge: "One condition fixes R; the other then fixes C."
+        buildsOn: "From Q5: discharge follows $V_0 e^{-t/\\tau}$."
+        partial: "$R = {{Rt}}$ kΩ. Then $e^{-T/\\tau} = 0.1$ gives $\\tau = {{T}}/\\ln 10$, and $C = \\tau / R$."
+      solution: { R: "Rt * 1000", C: "T / (Rt * 1000 * log(10))" }
+      explanation: |
+        The starting current $V/R = {{V/Rt}}$ mA fixes $R = {{Rt}}$ kΩ. Falling to 10% at {{T}} s needs
+        $\tau = T/\ln 10 = {{T/log(10)}}$ s, so $C = \tau/R = {{T/(Rt*1000*log(10))*1e6}}$ μF.
+
+summary:
+  keyTakeaways:
+    - "At the instant of switching, an uncharged capacitor acts like a wire: $I_0 = V/R$."
+    - "$\\tau = RC$ sets the pace: charging reaches 63% after $\\tau$; the current (and a discharge) falls to 37%."
+    - "$\\tau$ is not the time to charge fully — that takes about $5\\tau$, and strictly forever."
+    - "To hit other levels use logs: 50% at $\\tau \\ln 2$, 10% (discharge) at $\\tau \\ln 10$."
+  next: phys2.u4.l1

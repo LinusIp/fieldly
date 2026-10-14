@@ -144,7 +144,7 @@ chain:
     concept: equivalent-resistance
     uses: [s1]
     clueFor: [s3]
-    establishes: "Whole network: R_tot = R1 + R_p = {{R1}} + {{Rp}} = {{Rtot}} Ω."
+    establishes: 'Whole network: $R_{tot} = R_1 + R_p = {{R1}} + {{Rp}} = {{Rtot}}$ Ω.'
     standaloneContext: "A battery drives $R_1 = {{R1}}$ Ω in series with a parallel pair ($R_2 = {{R2}}$ Ω ∥ $R_3 = {{R3}}$ Ω) whose equivalent is {{Rp}} Ω."
     variants:
       easier:

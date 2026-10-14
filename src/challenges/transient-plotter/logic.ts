@@ -21,7 +21,7 @@ export const configSchema = z.strictObject({
     R: numOrExpr.optional(),
     C: numOrExpr.optional(),
     L: numOrExpr.optional(),
-    V: numOrExpr,
+    V: numOrExpr.optional(),
   }),
   sliders: z
     .array(
@@ -31,6 +31,9 @@ export const configSchema = z.strictObject({
         max: numOrExpr,
         step: numOrExpr,
         initial: numOrExpr.optional(),
+        /** Display only: show value / scale with this unit (e.g. scale 1e-6, unit "μF"). */
+        scale: z.number().positive().optional(),
+        unit: z.string().optional(),
       }),
     )
     .min(1),
@@ -41,7 +44,7 @@ export const configSchema = z.strictObject({
   target: z.strictObject({ t: numOrExpr, frac: numOrExpr }).optional(),
 });
 
-export const solutionSchema = z.record(varName, numOrExpr);
+export const solutionSchema = z.partialRecord(varName, numOrExpr);
 
 export type RawConfig = z.infer<typeof configSchema>;
 export type Solution = z.infer<typeof solutionSchema>;
@@ -53,6 +56,8 @@ export interface Slider {
   max: number;
   step: number;
   initial: number;
+  scale: number;
+  unit: string;
 }
 
 export interface Config {
@@ -79,7 +84,7 @@ export function resolveConfig(raw: RawConfig, ctx: ResolveCtx): Config {
     const max = ctx.num(s.max);
     const step = ctx.num(s.step);
     const initial = s.initial !== undefined ? ctx.num(s.initial) : (fixed[s.name] ?? min);
-    return { name: s.name, min, max, step, initial };
+    return { name: s.name, min, max, step, initial, scale: s.scale ?? 1, unit: s.unit ?? UNITS[s.name] };
   });
   return {
     mode: raw.mode,
@@ -162,7 +167,7 @@ export function initialState(config: Config): State {
 export function describeState(state: State, config: Config): string {
   const v = currentValues(state, config);
   const tau = tauOf(v, config.mode);
-  const parts = config.sliders.map((s) => `${s.name} = ${formatNumber(v[s.name])} ${UNITS[s.name]}`);
+  const parts = config.sliders.map((s) => `${s.name} = ${formatNumber(v[s.name] / s.scale)} ${s.unit}`);
   const what = isRC(config.mode) ? 'capacitor voltage' : 'current';
   const marks = config.markers.map(
     (t) =>

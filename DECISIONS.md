@@ -26,3 +26,11 @@ One line each: date — decision — reason.
 - 2026-10-14 — The challenge has its own seed derived from the attempt seed (`seed ^ 0x5bd1e995`) when it declares its own params — one stored seed reproduces both.
 - 2026-10-14 — Circuit builder: elements occupy one grid segment; the battery is fixed down column 0 (+ top, − bottom) — simplest snap-grid model; solution netlists are auto-laid-out on the grid and verified by re-solving.
 - 2026-10-14 — The `?debug=1` hook is compiled only when `import.meta.env.DEV` or the build mode is not `production` (dev, test, and the `build:e2e` mode), via a `define` constant so the Pages bundle contains none of the hook code — e2e runs against `vite preview` of that build; the Pages build has neither.
+- 2026-10-14 — The challenge stage keeps the Facts panel in its sidebar — §2.2 says the Facts panel stays visible for the whole lesson.
+- 2026-10-14 — Challenges also update the student's rating for the challenge's concept (difficulty = the variant's band, score per §7.5) — §3.2 selects the challenge variant by that concept's rating, so it should learn from the result.
+- 2026-10-14 — Circuit-builder solutions may be `grid` edits on a `preset` circuit as well as netlists — meter-placement challenges start from a built circuit, which a netlist can't express.
+- 2026-10-14 — Parts available in the palette but not yet placed read 0 in the check scope (`P_L2 = 0`) — feedback rules like "every bulb must light" must evaluate before the student places every part.
+- 2026-10-14 — Transient-plotter sliders take an optional display `scale`/`unit` (μF, kΩ) while values stay in SI — check expressions stay unit-consistent.
+- 2026-10-14 — phys2 U3 challenges use only the two tools §16.4 lists for the unit: capacitors (l7) use the transient plotter's C and V sliders for charge/energy goals — the circuit builder has no capacitor element.
+- 2026-10-14 — `template` treats `{{{x}}}` as a TeX brace around `{{x}}` — needed for `\dfrac{{{R2}}}{…}` in content.
+- 2026-10-14 — CI also runs the Playwright e2e suite before deploying — §17 requires e2e to pass in CI; the §6.3 workflow doesn't list it.

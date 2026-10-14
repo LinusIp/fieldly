@@ -42,9 +42,29 @@ export const configSchema = z.strictObject({
     .optional(),
 });
 
-export const solutionSchema = z.strictObject({
-  netlist: z.array(z.string().min(1)).min(1),
-});
+/**
+ * Either a netlist (node 0 = battery −), laid out automatically for display, or — for challenges
+ * that start from a preset circuit — grid edits applied to the preset.
+ */
+export const solutionSchema = z.union([
+  z.strictObject({ netlist: z.array(z.string().min(1)).min(1) }),
+  z.strictObject({
+    grid: z.strictObject({
+      remove: z.array(z.tuple([point, point])).optional(),
+      add: z
+        .array(
+          z.strictObject({
+            kind,
+            a: point,
+            b: point,
+            resistance: numOrExpr.optional(),
+            closed: z.boolean().optional(),
+          }),
+        )
+        .min(1),
+    }),
+  }),
+]);
 
 export type RawConfig = z.infer<typeof configSchema>;
 export type Solution = z.infer<typeof solutionSchema>;
@@ -279,7 +299,39 @@ export function checkScope(state: State, config: Config): CheckScope {
   return scopeFromResult(solveCircuit(toNetlist(state, config)), config);
 }
 
+/** Apply grid edits to the preset; throws if an edit is invalid. */
+export function applyGridSolution(grid: Extract<Solution, { grid: unknown }>['grid'], config: Config): State {
+  const removeKeys = new Set((grid.remove ?? []).map(([a, b]) => segKey(a as Point, b as Point)));
+  const elements = config.preset.filter((e) => !removeKeys.has(segKey(e.a, e.b)));
+  const taken = new Set(elements.map((e) => segKey(e.a, e.b)));
+  for (const add of grid.add) {
+    const a = add.a as Point;
+    const b = add.b as Point;
+    if (!validSegment(config, a, b)) throw new Error(`grid solution: invalid segment ${pkey(a)}–${pkey(b)}`);
+    const key = segKey(a, b);
+    if (taken.has(key)) throw new Error(`grid solution: segment ${pkey(a)}–${pkey(b)} is occupied`);
+    taken.add(key);
+    const resistance =
+      add.resistance !== undefined
+        ? typeof add.resistance === 'number'
+          ? add.resistance
+          : evalNumber(add.resistance, config.vars)
+        : config.palette.find((p) => p.kind === add.kind)?.resistance;
+    elements.push({
+      id: `sol:${key}`,
+      kind: add.kind,
+      label: nextLabel(elements, add.kind),
+      a,
+      b,
+      resistance,
+      closed: add.kind === 'switch' ? (add.closed ?? true) : undefined,
+    });
+  }
+  return { elements };
+}
+
 export function solutionScope(solution: Solution, config: Config): CheckScope {
+  if ('grid' in solution) return checkScope(applyGridSolution(solution.grid, config), config);
   return scopeFromResult(solveCircuit(parseNetlist(solution.netlist, config).net), config);
 }
 
@@ -390,6 +442,7 @@ export function layoutNetlist(parsed: ParsedNetlist, config: Config): GridElemen
 }
 
 export function solutionState(solution: Solution, config: Config): State {
+  if ('grid' in solution) return applyGridSolution(solution.grid, config);
   const parsed = parseNetlist(solution.netlist, config);
   const laid = layoutNetlist(parsed, config);
   if (laid) {
@@ -409,7 +462,10 @@ export function initialState(config: Config): State {
 export function builtInFeedback(state: State, config: Config): string | null {
   const r = solveCircuit(toNetlist(state, config));
   if (r.isShort) return 'Short circuit! A zero-resistance path connects the battery terminals directly.';
-  if (r.isOpen) return 'No complete loop — current needs a closed path from + back to −.';
+  if (r.isOpen)
+    return state.elements.some((e) => e.kind === 'voltmeter')
+      ? 'No complete loop — current needs a closed path from + back to −. (A voltmeter in the path acts like a break.)'
+      : 'No complete loop — current needs a closed path from + back to −.';
   if (r.warnings.includes('ammeter-loop'))
     return 'Two ammeters form a loop on their own; their readings are undefined.';
   return null;

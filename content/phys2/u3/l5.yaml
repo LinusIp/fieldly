@@ -236,7 +236,7 @@ chain:
     concept: loop-rule
     uses: [s2]
     clueFor: [s4]
-    establishes: "With V_A = {{VA}} V, the left loop gives I₁ = (E₁ − V_A)/R₁ = {{I1}} A."
+    establishes: 'With $V_A = {{VA}}$ V, the left loop gives $I_1 = (E_1 - V_A)/R_1 = {{I1}}$ A.'
     standaloneContext: "In a two-battery circuit, $E_1 = {{E1}}$ V drives $I_1$ through $R_1 = {{R1}}$ Ω to junction A, which is {{VA}} V above the common bottom wire."
     variants:
       easier:
@@ -324,7 +324,7 @@ chain:
     concept: loop-rule
     uses: [s3]
     clueFor: [s5]
-    establishes: "Right loop: I₂ = (E₂ − V_A)/R₂ = {{I2}} A."
+    establishes: 'Right loop: $I_2 = (E_2 - V_A)/R_2 = {{I2}}$ A.'
     standaloneContext: "In a two-battery circuit, junction A is {{VA}} V above the bottom wire. $E_2 = {{E2}}$ V drives $I_2$ through $R_2 = {{R2}}$ Ω toward A."
     variants:
       easier:
