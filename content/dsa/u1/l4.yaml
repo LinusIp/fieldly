@@ -1,0 +1,756 @@
+id: dsa.u1.l4
+title: "Recurrences"
+version: 1
+concepts: [recurrences-dsa]
+estimatedMinutes: 25
+
+# Scenario: recursive algorithms on an input of size N (a power of two) — binary search, merge sort, fast power.
+params:
+  sets:
+    - { N: 16 }
+    - { N: 64 }
+    - { N: 32 }
+derived:
+  lg: "log2(N)"
+
+intro: |
+  A recursive algorithm's running time satisfies a **recurrence**: the cost for size $n$ in terms of
+  the cost for smaller sizes.
+
+  - Binary search does $O(1)$ work, then recurses on half: $T(n) = T(n/2) + 1$.
+  - Merge sort sorts two halves, then merges in $O(n)$: $T(n) = 2T(n/2) + n$.
+  - A loop-like recursion that shrinks by one: $T(n) = T(n-1) + 1$.
+
+  To solve one, **unroll** it, or draw the **recursion tree**: each level shows the work done by the
+  calls at that depth. Halving $n$ until it reaches 1 takes $\log_2 n$ levels.
+
+  - $T(n) = T(n/2) + 1$: one call per level, $\log_2 n$ levels → $O(\log n)$.
+  - $T(n) = 2T(n/2) + n$: every level does $n$ total work, $\log_2 n$ levels → $O(n \log n)$.
+  - $T(n) = T(n-1) + 1$: $n$ levels → $O(n)$.
+
+  **Master theorem (light).** For $T(n) = a\,T(n/b) + O(n^d)$, compare $a$ with $b^d$:
+  if $a < b^d$ the top level dominates, $O(n^d)$; if $a = b^d$ every level is equal, $O(n^d \log n)$;
+  if $a > b^d$ the leaves dominate, $O(n^{\log_b a})$.
+
+workedExample: |
+  $T(n) = 3T(n/3) + n$ with $T(1) = 0$, for $n = 27$:
+
+  - Level 0: one call doing 27 work. Level 1: three calls on 9, doing $3 \times 9 = 27$. Level 2: nine calls on 3, also 27.
+  - Levels until size 1: $\log_3 27 = 3$, each costing 27.
+  - $T(27) = 3 \times 27 = 81 = n \log_3 n$. Master theorem: $a = 3 = b^d = 3^1$, so $O(n \log n)$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: recurrences-dsa
+    clueFor: [s3, s5]
+    establishes: "T(n) = T(n/2) + 1, T(1) = 1 unrolls to log₂ n + 1: T({{N}}) = {{lg + 1}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          Starting from {{N}}, how many times can you halve before reaching 1?
+        answer: { expr: "log2(N)" }
+        distractors:
+          - { expr: "N / 2", misconception: doubling-as-linear }
+          - { expr: "N - 1", misconception: linear-recursion-assumed }
+          - { expr: "log2(N) + 1", misconception: boundary-off-by-one }
+        hints:
+          nudge: "Write the sequence: {{N}}, {{N/2}}, {{N/4}}, …"
+          partial: "$2^{?} = {{N}}$"
+        explanation: |
+          **Answer:** {{lg}}
+
+          **Why:** {{N}} = $2^{ {{lg}} }$, so halving {{lg}} times reaches 1.
+
+          **Common mistakes:**
+          - {{N/2}} — that's one halving's result, not the count.
+          - {{N-1}} — that's subtracting 1 each time.
+          - {{lg+1}} — counts the values, not the halvings.
+
+          **Connects to:** Q3 — the number of levels in a recursion tree.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A recursive binary search costs $T(n) = T(n/2) + 1$ with $T(1) = 1$. What is $T({{N}})$?
+        answer: { expr: "log2(N) + 1" }
+        distractors:
+          - { expr: "log2(N)", misconception: boundary-off-by-one }
+          - { expr: "N / 2", misconception: doubling-as-linear }
+          - { expr: "N", misconception: linear-recursion-assumed }
+        hints:
+          nudge: "Unroll: T({{N}}) = T({{N/2}}) + 1 = T({{N/4}}) + 2 = …"
+          partial: "After $j$ steps: $T(n) = T(n/2^j) + j$. Stop when $n/2^j = 1$."
+        explanation: |
+          **Answer:** {{lg+1}}
+
+          **Why:** $T({{N}}) = T(1) + \log_2 {{N}} = 1 + {{lg}} = {{lg+1}}$: one unit of work at each of the {{lg+1}} sizes
+          {{N}}, {{N/2}}, …, 1. That's $O(\log n)$.
+
+          **Common mistakes:**
+          - {{lg}} — don't forget $T(1) = 1$ at the bottom.
+          - {{N/2}} — halving reaches 1 in $\log_2 n$ steps.
+          - {{N}} — that's $T(n) = T(n-1) + 1$.
+
+          **Connects to:** Q5 — fast power has the same recurrence.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A variant does constant work and recurses on a **third**: $T(n) = T(n/3) + 1$, $T(1) = 1$. Roughly how does
+          $T(n)$ compare with the halving version for large $n$?
+        options:
+          - { text: "Both are $O(\\log n)$; the base of the log only changes a constant factor", correct: true }
+          - { text: "The thirds version is $O(n/3)$", misconception: doubling-as-linear }
+          - { text: "The thirds version is $O(\\log^3 n)$", misconception: log-base-matters }
+          - { text: "The thirds version is $O(1)$ because it shrinks so fast", misconception: constant-time-assumed }
+        hints:
+          nudge: "How many divisions by 3 reach 1? How does $\\log_3 n$ relate to $\\log_2 n$?"
+          partial: "$\\log_3 n = \\log_2 n / \\log_2 3$"
+        explanation: |
+          **Answer:** both $O(\log n)$.
+
+          **Why:** $T(n) = \log_3 n + 1$, and $\log_3 n = \log_2 n / \log_2 3 \approx 0.63 \log_2 n$ — just a constant factor, which
+          Big-O ignores.
+
+          **Common mistakes:**
+          - $O(n/3)$ — dividing the size makes the depth logarithmic, not linear.
+          - $O(\log^3 n)$ — the base becomes a constant factor, not a power.
+          - $O(1)$ — it still grows, just slowly.
+
+          **Connects to:** Q5 — fast power.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: recurrences-dsa
+    clueFor: [s3]
+    establishes: "T(n) = 2T(n/2) + n, T(1) = 0 gives n log₂ n: T({{N}}) = {{N*lg}}."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Merge sort's recurrence is $T(n) = 2T(n/2) + n$, $T(1) = 0$. Work out $T(4)$.
+        answer: { expr: "8" }
+        distractors:
+          - { expr: "16", misconception: recursion-quadratic }
+          - { expr: "4", misconception: level-work-only }
+          - { expr: "6", misconception: two-calls-double }
+        hints:
+          nudge: "First find $T(2)$."
+          partial: "$T(2) = 2T(1) + 2 = 2$, then $T(4) = 2T(2) + 4$."
+        explanation: |
+          **Answer:** 8
+
+          **Why:** $T(2) = 2 \cdot 0 + 2 = 2$ and $T(4) = 2 \cdot 2 + 4 = 8 = 4 \log_2 4$.
+
+          **Common mistakes:**
+          - 16 — that's $n^2$.
+          - 4 — that's only the top level's merge.
+          - 6 — the two recursive calls each cost $T(2)$.
+
+          **Connects to:** Q3 — the recursion tree.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          Merge sort costs $T(n) = 2T(n/2) + n$ with $T(1) = 0$. What is $T({{N}})$?
+        answer: { expr: "N * log2(N)" }
+        distractors:
+          - { expr: "N^2", misconception: recursion-quadratic }
+          - { expr: "N", misconception: level-work-only }
+          - { expr: "2 * N", misconception: two-calls-double }
+        hints:
+          nudge: "Unroll a couple of steps and look for the pattern."
+          partial: "$T(n) = 2T(n/2) + n = 4T(n/4) + 2n = 8T(n/8) + 3n = \\dots$"
+        explanation: |
+          **Answer:** {{N*lg}}
+
+          **Why:** After $j$ steps, $T(n) = 2^j T(n/2^j) + jn$. With $j = \log_2 n = {{lg}}$: $T({{N}}) = {{N}} \cdot 0 + {{lg}} \times {{N}} = {{N*lg}}$.
+
+          **Common mistakes:**
+          - {{N^2}} — that would need $n$ levels of $n$ work.
+          - {{N}} — that's just the top level's merge.
+          - {{2*N}} — the halves keep splitting, level after level.
+
+          **Connects to:** Q3 — why every level costs $n$.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A badly balanced "merge sort" splits into sizes $n - 1$ and $1$: $T(n) = T(n-1) + T(1) + n$, $T(1) = 0$.
+          What is $T({{N}})$?
+        answer: { expr: "N * (N + 1) / 2 - 1" }
+        distractors:
+          - { expr: "N * log2(N)", misconception: balance-ignored }
+          - { expr: "N^2", misconception: recursion-quadratic }
+          - { expr: "N", misconception: level-work-only }
+        hints:
+          nudge: "Unroll: $T(n) = T(n-1) + n = T(n-2) + (n-1) + n = \\dots$"
+          partial: "$T(n) = 2 + 3 + \\dots + n$"
+        explanation: |
+          **Answer:** {{N*(N+1)/2 - 1}}
+
+          **Why:** $T(n) = n + (n-1) + \dots + 2 = n(n+1)/2 - 1 = {{N*(N+1)/2-1}}$ — $O(n^2)$. Splitting off one element at a
+          time gives $n$ levels instead of $\log n$. (That's quicksort's worst case.)
+
+          **Common mistakes:**
+          - {{N*lg}} — that needs balanced halves.
+          - {{N^2}} — close in growth, but the exact sum is about half of it.
+          - {{N}} — that's one level's work.
+
+          **Connects to:** Q3 — levels times work per level.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: recurrences-dsa
+    uses: [s1, s2]
+    clueFor: [s4]
+    establishes: "Recursion tree for 2T(n/2) + n: {{lg}} levels below the root, each doing n work in total."
+    standaloneContext: "Halving n repeatedly takes log₂ n steps. Merge sort's recurrence T(n) = 2T(n/2) + n solves to n log₂ n."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          In merge sort's recursion tree for $n = {{N}}$, level 1 has two calls on {{N/2}} items each. How much merging
+          work does level 1 do in total?
+        answer: { expr: "N" }
+        distractors:
+          - { expr: "N / 2", misconception: level-work-halves }
+          - { expr: "2 * N", misconception: two-calls-double }
+          - { expr: "N / 4", misconception: level-work-only }
+        hints:
+          nudge: "Each call merges its own {{N/2}} items."
+          partial: "2 × {{N/2}}"
+        explanation: |
+          **Answer:** {{N}}
+
+          **Why:** Two calls, each merging {{N/2}} items: $2 \times {{N/2}} = {{N}}$. The same total appears at every level.
+
+          **Common mistakes:**
+          - {{N/2}} — that's one call's share.
+          - {{2*N}} — the halves together hold {{N}} items, not {{2*N}}.
+          - {{N/4}} — that's a level-2 call's size.
+
+          **Connects to:** Q4 — when the levels are not equal.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          In the recursion tree of $T(n) = 2T(n/2) + n$ for $n = {{N}}$: how many calls are at depth $j$, how big is each,
+          and so how much work does each level do?
+        options:
+          - { text: '$2^j$ calls of size $n/2^j$, so $n$ work at every level', correct: true }
+          - { text: '$2^j$ calls of size $n$, so $2^j n$ work at level $j$', misconception: subproblem-size-ignored }
+          - { text: '$j$ calls of size $n/j$, so $n$ work at every level', misconception: tree-levels-linear }
+          - { text: '$2^j$ calls of size $n/2^j$, so $n/2^j$ work at level $j$', misconception: level-work-halves }
+        hints:
+          nudge: "Each call splits into 2 calls on half the size."
+          buildsOn: "Q1: halving {{N}} to 1 takes {{lg}} steps. Q2: T({{N}}) = {{N*lg}}."
+          partial: "Calls double per level; sizes halve. Multiply."
+        explanation: |
+          **Answer:** $2^j$ calls of size $n/2^j$, so $n$ work per level.
+
+          **Why:** Calls double and sizes halve, so each level does $2^j \cdot n/2^j = n$ work. There are $\log_2 n = {{lg}}$ levels
+          above the leaves (Q1), so the total is $n \log_2 n = {{N*lg}}$ (Q2).
+
+          **Common mistakes:**
+          - Size $n$ at every level — subproblems shrink.
+          - $j$ calls — the number of calls doubles; it doesn't grow by one.
+          - $n/2^j$ total — that's one call's work, not the whole level's.
+
+          **Connects to:** Q4 — when the levels aren't equal.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          For $T(n) = 2T(n/2) + 1$ (two halves, **constant** extra work), what is the total work for $n = {{N}}$,
+          with $T(1) = 1$?
+        answer: { expr: "2 * N - 1" }
+        distractors:
+          - { expr: "N * log2(N)", misconception: level-work-only }
+          - { expr: "log2(N) + 1", misconception: subproblem-count-ignored }
+          - { expr: "N", misconception: leaves-only }
+        hints:
+          nudge: "Now each node does 1 unit. Count the nodes of the tree."
+          buildsOn: "Q1: there are log₂ n levels below the root. Q2: calls double per level."
+          partial: "$1 + 2 + 4 + \\dots + n$"
+        explanation: |
+          **Answer:** {{2*N-1}}
+
+          **Why:** Level $j$ has $2^j$ nodes each doing 1, for $j = 0 \dots {{lg}}$: $1 + 2 + \dots + {{N}} = 2n - 1 = {{2*N-1}}$ — $O(n)$.
+          The bottom level (the leaves) dominates.
+
+          **Common mistakes:**
+          - {{N*lg}} — that's when every level costs $n$.
+          - {{lg+1}} — that's one node per level (binary search).
+          - {{N}} — the internal nodes add almost as much again.
+
+          **Connects to:** Q4 — the master theorem's three cases.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: recurrences-dsa
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Master theorem: compare a with b^d — equal → n^d log n; a < b^d → n^d; a > b^d → n^(log_b a)."
+    standaloneContext: "In T(n) = aT(n/b) + O(n^d), the recursion tree has a^j calls of size n/b^j at depth j."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 2
+        prompt: |
+          For $T(n) = 2T(n/2) + n$: $a = 2$, $b = 2$, $d = 1$. Which case of the master theorem applies?
+        options:
+          - { text: '$a = b^d$, so $O(n \log n)$', correct: true }
+          - { text: '$a < b^d$, so $O(n)$', misconception: master-case-confused }
+          - { text: '$a > b^d$, so $O(n^2)$', misconception: recursion-quadratic }
+          - { text: 'The master theorem only applies to $T(n) = T(n/2) + 1$', misconception: master-scope }
+        hints:
+          nudge: "Compute $b^d = 2^1$."
+          partial: "$a = 2$ and $b^d = 2$."
+        explanation: |
+          **Answer:** $a = b^d$: $O(n \log n)$.
+
+          **Why:** $2 = 2^1$, so every level of the tree does the same work, $n$, across $\log n$ levels.
+
+          **Common mistakes:**
+          - $a < b^d$ — they're equal.
+          - $O(n^2)$ — $a$ isn't bigger than $b^d$.
+          - "Only one form" — it covers $aT(n/b) + O(n^d)$ generally.
+
+          **Connects to:** Q6 — comparing algorithms by their recurrences.
+      standard:
+        id: s4-s
+        difficulty: 3
+        prompt: |
+          An algorithm makes **four** recursive calls on halves and does linear extra work: $T(n) = 4T(n/2) + n$. Its growth?
+        options:
+          - { text: '$O(n^2)$', correct: true }
+          - { text: '$O(n \log n)$ — it halves the input', misconception: master-case-confused }
+          - { text: '$O(n)$ — only linear extra work', misconception: level-work-only }
+          - { text: '$O(n^4)$ — four calls', misconception: calls-as-exponent }
+        hints:
+          nudge: "Compare $a = 4$ with $b^d = 2^1$."
+          buildsOn: "Q3: at depth $j$ there are $a^j$ calls of size $n/b^j$."
+          partial: "$a > b^d$, so the leaves dominate: $O(n^{\\log_2 4})$."
+        explanation: |
+          **Answer:** $O(n^2)$.
+
+          **Why:** $a = 4 > b^d = 2$. Level $j$ has $4^j$ calls of size $n/2^j$, so $2^j n$ work: the levels grow, and the
+          $n^{\log_2 4} = n^2$ leaves dominate.
+
+          **Common mistakes:**
+          - $O(n \log n)$ — that's when $a = b^d$.
+          - $O(n)$ — the extra work per call is linear, but there are many calls.
+          - $O(n^4)$ — the exponent is $\log_b a = 2$.
+
+          **Connects to:** Q6 — choosing between algorithms by recurrence.
+      harder:
+        id: s4-h
+        difficulty: 4
+        prompt: |
+          Which recurrence has the **smallest** growth rate?
+        options:
+          - { text: '$T(n) = 2T(n/4) + n$', correct: true }
+          - { text: '$T(n) = 2T(n/2) + n$', misconception: master-case-confused }
+          - { text: '$T(n) = 3T(n/2) + n$', misconception: calls-as-exponent }
+          - { text: '$T(n) = T(n - 1) + n$', misconception: decrement-recursion-cheap }
+        hints:
+          nudge: "Classify each one with the master theorem (or by unrolling)."
+          buildsOn: "Q3: compare the work per level from top to bottom."
+          partial: "$2 < 4^1$ means the top level dominates: $O(n)$."
+        explanation: |
+          **Answer:** $T(n) = 2T(n/4) + n$, which is $O(n)$.
+
+          **Why:** $a = 2 < b^d = 4$: each level does half the work of the one above, so the top level dominates — $O(n)$.
+          The others are slower: $2T(n/2) + n$ is $O(n \log n)$ (equal levels); $3T(n/2) + n$ is $O(n^{\log_2 3}) \approx O(n^{1.58})$;
+          and $T(n-1) + n$ unrolls to $n + (n-1) + \dots + 1 = O(n^2)$.
+
+          **Common mistakes:**
+          - $2T(n/2) + n$ — equal levels add a $\log n$ factor.
+          - $3T(n/2) + n$ — more calls than the halving pays for.
+          - $T(n-1) + n$ — shrinking by one gives $n$ levels, so the work adds up to $n^2/2$.
+
+          **Connects to:** Q6.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: recurrences-dsa
+    uses: [s1]
+    clueFor: [s6]
+    establishes: "Fast power: x^n from x^(n/2) squared — T(n) = T(n/2) + 1, so {{lg}} multiplications for n = {{N}}."
+    standaloneContext: "T(n) = T(n/2) + 1 unrolls to about log₂ n: one unit of work per halving."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          To compute $x^{ {{N}} }$, square $x^{ {{N/2}} }$; to get that, square $x^{ {{N/4}} }$; and so on down to $x^1$. How many
+          squarings?
+        answer: { expr: "log2(N)" }
+        distractors:
+          - { expr: "N - 1", misconception: linear-recursion-assumed }
+          - { expr: "N / 2", misconception: doubling-as-linear }
+          - { expr: "log2(N) + 1", misconception: boundary-off-by-one }
+        hints:
+          nudge: "Each squaring doubles the exponent: 1 → 2 → 4 → …"
+          partial: "How many doublings take 1 to {{N}}?"
+        explanation: |
+          **Answer:** {{lg}}
+
+          **Why:** Exponents go 1, 2, 4, …, {{N}}: that's {{lg}} doublings, one squaring each.
+
+          **Common mistakes:**
+          - {{N-1}} — that's multiplying by $x$ one step at a time.
+          - {{N/2}} — the exponent doubles, it doesn't step by 2.
+          - {{lg+1}} — $x^1$ needs no squaring.
+
+          **Connects to:** Q6 — fast versus naive.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          ```python
+          def power(x, n):
+              if n == 0:
+                  return 1
+              half = power(x, n // 2)
+              return half * half if n % 2 == 0 else half * half * x
+          ```
+          For $n = {{N}}$ (a power of two), how many multiplications does `power(x, {{N}})` perform?
+        answer: { expr: "log2(N) + 2" }
+        distractors:
+          - { expr: "N - 1", misconception: linear-recursion-assumed }
+          - { expr: "2 * log2(N)", misconception: two-calls-double }
+          - { expr: "log2(N)", misconception: boundary-off-by-one }
+        hints:
+          nudge: "List the values of n in the calls. Which are even, which odd, and how many multiplications does each do?"
+          buildsOn: "Q1: halving {{N}} reaches 1 after {{lg}} steps."
+          partial: "n goes {{N}}, {{N/2}}, …, 2 (even: one multiplication each), then 1 (odd: two), then 0 (none)."
+        explanation: |
+          **Answer:** {{lg+2}}
+
+          **Why:** The calls are $n = {{N}}, {{N/2}}, \dots, 2$ — {{lg}} even calls doing `half * half` (one multiplication each) —
+          then $n = 1$, which is odd and does `half * half * x` (two), then $n = 0$, which does none. Total {{lg}} + 2 = {{lg+2}}:
+          $O(\log n)$, versus {{N-1}} for the naive loop.
+
+          **Common mistakes:**
+          - {{N-1}} — that's multiplying by $x$ one step at a time.
+          - {{2*lg}} — each level makes one recursive call and one or two multiplications, not two per halving.
+          - {{lg}} — the odd call at $n = 1$ adds two more.
+
+          **Connects to:** Q6 — naive versus fast power.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A student writes `return power(x, n // 2) * power(x, n // 2)` instead of computing `half` once. What is its running time?
+        options:
+          - { text: '$O(n)$ — two calls per level undo the savings', correct: true }
+          - { text: '$O(\\log n)$ — it still halves $n$', misconception: two-calls-ignored }
+          - { text: '$O(n \\log n)$', misconception: master-case-confused }
+          - { text: '$O(2^n)$', misconception: exactly-2-to-n }
+        hints:
+          nudge: "Write its recurrence."
+          buildsOn: "Q1: one call on half gives log n. What do two calls on half give?"
+          partial: "$T(n) = 2T(n/2) + 1$"
+        explanation: |
+          **Answer:** $O(n)$.
+
+          **Why:** $T(n) = 2T(n/2) + 1$: the tree has about $2n$ nodes (like Q3's harder case), so it's linear — no better than the naive loop.
+          Storing `half` once gives $T(n) = T(n/2) + 1 = O(\log n)$ (Q1).
+
+          **Common mistakes:**
+          - $O(\log n)$ — the depth is $\log n$, but the number of calls doubles per level.
+          - $O(n \log n)$ — the extra work per call is constant, not linear.
+          - $O(2^n)$ — the depth is $\log n$, so $2^{\log n} = n$.
+
+          **Connects to:** Q6.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: recurrences-dsa
+    uses: [s4, s5]
+    establishes: "Naive power: T(n) = T(n − 1) + 1 → n multiplications; fast power: log₂ n. For n = 10⁹: ~10⁹ versus ~30."
+    standaloneContext: |
+      Naive power multiplies by x one step at a time: T(n) = T(n − 1) + 1. Fast power squares half the result:
+      T(n) = T(n/2) + 1.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          For $n = {{N}}$, naive power does {{N-1}} multiplications and fast power about {{lg+1}}. How many times fewer for fast power?
+        answer: { expr: "(N - 1) / (log2(N) + 1)", unit: "×" }
+        distractors:
+          - { expr: "(N - 1) - (log2(N) + 1)", unit: "×", misconception: ratio-as-difference }
+          - { expr: "2", unit: "×", misconception: ratio-constant-assumed }
+          - { expr: "N", unit: "×", misconception: ratio-n }
+        hints:
+          nudge: "Divide one count by the other."
+          partial: "{{N-1}} ÷ {{lg+1}}"
+        explanation: |
+          **Answer:** {{(N-1)/(lg+1)}} ×
+
+          **Why:** ${{N-1}} / {{lg+1}} = {{(N-1)/(lg+1)}}$ — and the gap widens as $n$ grows ($n$ versus $\log n$).
+
+          **Common mistakes:**
+          - {{(N-1)-(lg+1)}} — that's a difference.
+          - 2 — the advantage grows with $n$.
+          - {{N}} — divide by the fast count, not by 1.
+
+          **Connects to:** the challenge — implement fast power.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          You need $x^{1\,000\,000\,000}$. Roughly how many multiplications does each method need?
+        options:
+          - { text: "Naive: about 10⁹. Fast: about 30.", correct: true }
+          - { text: "Naive: about 10⁹. Fast: about 5 × 10⁸.", misconception: doubling-as-linear }
+          - { text: "Both about 10⁹ — Big-O is the same", misconception: master-case-confused }
+          - { text: "Naive: about 30. Fast: about 10⁹.", misconception: best-worst-swap }
+        hints:
+          nudge: "What's $\\log_2 10^9$?"
+          buildsOn: "Q4: classify each recurrence. Q5: fast power does about log₂ n multiplications."
+          partial: "$2^{30} \\approx 10^9$"
+        explanation: |
+          **Answer:** about $10^9$ versus about 30.
+
+          **Why:** Naive: $T(n) = T(n-1) + 1 = O(n)$. Fast: $T(n) = T(n/2) + 1 = O(\log n)$ (Q4, Q5), and $\log_2 10^9 \approx 30$.
+          A billion multiplications take seconds; 30 take microseconds.
+
+          **Common mistakes:**
+          - "5 × 10⁸" — halving the exponent each step is logarithmic.
+          - "Same Big-O" — $O(n)$ vs $O(\log n)$.
+          - "Swapped" — fast power is the logarithmic one.
+
+          **Connects to:** the challenge — implement fast power.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A ternary fast power computes $x^n$ from $x^{n/3}$ cubed: $T(n) = T(n/3) + 2$. Compared with binary fast power
+          ($T(n) = T(n/2) + 1$), which is true for large $n$?
+        options:
+          - { text: "Both are O(log n); ternary does about 2·log₃ n ≈ 1.26·log₂ n multiplications — slightly more", correct: true }
+          - { text: "Ternary is O(log³ n)", misconception: log-base-matters }
+          - { text: "Ternary is about 1.6× faster because it shrinks n faster", misconception: master-case-confused }
+          - { text: "Ternary is O(n/3)", misconception: doubling-as-linear }
+        hints:
+          nudge: "Count levels × work per level for each."
+          buildsOn: "Q4: the master theorem with a = 1. Q5: binary does about log₂ n multiplications."
+          partial: "Ternary: $\\log_3 n$ levels × 2 = $2\\log_2 n/\\log_2 3$."
+        explanation: |
+          **Answer:** both $O(\log n)$; ternary costs about $1.26\log_2 n$.
+
+          **Why:** Ternary has $\log_3 n = 0.63\log_2 n$ levels but 2 multiplications each: $1.26 \log_2 n$. Same Big-O, slightly bigger
+          constant. Fewer levels don't help if each level costs more.
+
+          **Common mistakes:**
+          - $O(\log^3 n)$ — a different log base is a constant factor.
+          - "1.6× faster" — the extra multiplication per level outweighs the fewer levels.
+          - $O(n/3)$ — it's still logarithmic.
+
+          **Connects to:** the challenge — implement fast power.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: recurrences-dsa
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "In a recursion tree, how do you get the total running time?"
+        options:
+          - { text: "Add up the work of every node — level by level", correct: true }
+          - { text: "Take the work at the root", misconception: level-work-only }
+          - { text: "Count the levels", misconception: subproblem-count-ignored }
+          - { text: "Multiply the number of calls by n", misconception: subproblem-size-ignored }
+        hints:
+          nudge: "Every call does some work outside its recursive calls."
+          partial: "Sum each level's total, then add the levels."
+        explanation: |
+          **Answer:** sum the work of every node.
+
+          **Why:** Each node is one call; its cost is the non-recursive work it does. Summing level by level is usually easiest:
+          (calls at the level) × (work per call).
+
+          **Common mistakes:**
+          - "Root only" — the children's work counts too.
+          - "Count levels" — only right when each level costs 1.
+          - "Calls × n" — calls deeper down work on smaller inputs.
+
+          **Connects to:** Q3 — merge sort's tree.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u1.l4.ch
+  type: code-runner
+  title: "Fast power"
+  concept: recurrences-dsa
+  uses: [s5, s6]
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Write `power(x, n)` returning $x^n$ for a whole number $n \\ge 0$, **without** using `**`, `pow` or `Math.pow`."
+      config:
+        entry: { python: power, javascript: power }
+        starter:
+          python: |
+            def power(x, n):
+                # x to the power n, n >= 0
+                return 1
+          javascript: |
+            function power(x, n) {
+              // x to the power n, n >= 0
+              return 1;
+            }
+        tests:
+          - { args: [2, 0], expected: 1 }
+          - { args: [2, 10], expected: 1024 }
+          - { args: [3, 5], expected: 243 }
+          - { args: [1.5, 2], expected: 2.25 }
+          - { args: [10, 6], expected: 1000000, hidden: true }
+        comparator: float
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None of the tests pass yet. Start with the base case: anything to the power 0 is 1." }
+        - { if: "passed < total", say: "Some tests fail — check n = 0 and odd exponents.", misconception: off-by-one-recursion }
+        - { if: "true", say: "Run the tests and read the failures." }
+      hints:
+        nudge: "Base case n = 0; otherwise relate power(x, n) to a smaller exponent."
+        buildsOn: "From Q5: x^n = (x^(n/2))² for even n."
+        partial: "Even simplest: a loop multiplying by x, n times."
+      solution:
+        python: |
+          def power(x, n):
+              result = 1
+              for _ in range(n):
+                  result *= x
+              return result
+        javascript: |
+          function power(x, n) {
+            let result = 1;
+            for (let i = 0; i < n; i++) result *= x;
+            return result;
+          }
+      explanation: |
+        A loop of $n$ multiplications works — $O(n)$. The harder version needs $O(\log n)$.
+    standard:
+      difficulty: 3
+      goal: "Write `power(x, n)` **recursively** using $x^n = (x^{\\lfloor n/2 \\rfloor})^2$ (times $x$ if $n$ is odd)."
+      config:
+        entry: { python: power, javascript: power }
+        starter:
+          python: |
+            def power(x, n):
+                return 1
+          javascript: |
+            function power(x, n) {
+              return 1;
+            }
+        tests:
+          - { args: [2, 0], expected: 1 }
+          - { args: [2, 1], expected: 2 }
+          - { args: [2, 13], expected: 8192 }
+          - { args: [3, 7], expected: 2187 }
+          - { args: [0.5, 10], expected: 0.0009765625, hidden: true }
+        comparator: float
+        perf: { generator: fastPower, params: { n: 20000000 }, timeLimitMs: 200 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail. Odd exponents need one extra multiplication by x.", misconception: off-by-one-recursion }
+        - { if: "not perfPassed", say: "Correct but too slow for n = 2 × 10⁷. Halve the exponent each call and reuse the half — don't call power twice.", misconception: two-calls-ignored }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "How do you get $x^n$ from $x^{\\lfloor n/2 \\rfloor}$?"
+        buildsOn: "From Q5: T(n) = T(n/2) + 1."
+        partial: "`half = power(x, n // 2)`; return `half * half`, times `x` if `n` is odd."
+      solution:
+        python: |
+          def power(x, n):
+              if n == 0:
+                  return 1
+              half = power(x, n // 2)
+              return half * half if n % 2 == 0 else half * half * x
+        javascript: |
+          function power(x, n) {
+            if (n === 0) return 1;
+            const half = power(x, Math.floor(n / 2));
+            return n % 2 === 0 ? half * half : half * half * x;
+          }
+      explanation: |
+        One recursive call on $\lfloor n/2 \rfloor$ plus constant work: $T(n) = T(n/2) + 1 = O(\log n)$ — about 25 levels for
+        $n = 2 \times 10^7$.
+    harder:
+      difficulty: 4
+      goal: "Now `power(x, n)` must handle **n = 1 000 000 000** within 0.5 s — and, in Python, without hitting the recursion limit."
+      config:
+        entry: { python: power, javascript: power }
+        starter:
+          python: |
+            def power(x, n):
+                return 1
+          javascript: |
+            function power(x, n) {
+              return 1;
+            }
+        tests:
+          - { args: [2, 0], expected: 1 }
+          - { args: [2, 31], expected: 2147483648 }
+          - { args: [1.0001, 10000], expected: 2.7181459268249255 }
+          - { args: [3, 19], expected: 1162261467, hidden: true }
+        comparator: float
+        perf: { generator: fastPower, params: { n: 1000000000 }, timeLimitMs: 500 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail — check the base case and odd exponents." }
+        - { if: "not perfPassed", say: "Too slow (or too deep) for n = 10⁹. An O(n) loop needs a billion multiplications; halve the exponent instead.", misconception: linear-recursion-assumed }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Square-and-multiply needs about log₂ n steps. Recursion depth log₂(10⁹) ≈ 30 is fine — so is a loop."
+        buildsOn: "From Q6: about 30 multiplications instead of 10⁹."
+        partial: "Loop: while n > 0: if n is odd, result *= x; x *= x; n //= 2."
+      solution:
+        python: |
+          def power(x, n):
+              result = 1.0
+              while n > 0:
+                  if n % 2 == 1:
+                      result *= x
+                  x *= x
+                  n //= 2
+              return result
+        javascript: |
+          function power(x, n) {
+            let result = 1;
+            while (n > 0) {
+              if (n % 2 === 1) result *= x;
+              x *= x;
+              n = Math.floor(n / 2);
+            }
+            return result;
+          }
+      explanation: |
+        Square-and-multiply reads the bits of $n$: about 30 squarings for $n = 10^9$ — $O(\log n)$ time and $O(1)$ space.
+
+summary:
+  keyTakeaways:
+    - "Recursive costs satisfy recurrences; solve them by unrolling or with a recursion tree."
+    - "$T(n) = T(n/2) + 1$ is $O(\\log n)$; $T(n) = 2T(n/2) + n$ is $O(n \\log n)$; $T(n) = T(n-1) + 1$ is $O(n)$."
+    - "Master theorem: compare $a$ with $b^d$ — equal gives $n^d\\log n$, smaller gives $n^d$, larger gives $n^{\\log_b a}$."
+    - "Fast power reuses the half result: $O(\\log n)$. Calling twice on the half undoes it ($O(n)$)."
+  next: dsa.u1.l5

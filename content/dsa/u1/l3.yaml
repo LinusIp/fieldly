@@ -1,0 +1,740 @@
+id: dsa.u1.l3
+title: "Recursion"
+version: 1
+concepts: [recursion]
+estimatedMinutes: 25
+
+# Scenario: fact(k), then fib(k) — naive and memoised.
+params:
+  sets:
+    - { k: 5 }
+    - { k: 4 }
+    - { k: 6 }
+derived:
+  fact: "factorial(k)"
+  fibk: "round(((1 + sqrt(5)) / 2)^k / sqrt(5))"
+  fibk1: "round(((1 + sqrt(5)) / 2)^(k + 1) / sqrt(5))"
+  calls: "2 * round(((1 + sqrt(5)) / 2)^(k + 1) / sqrt(5)) - 1"
+
+intro: |
+  A **recursive** function solves a problem by calling itself on a smaller version of it.
+  Every recursive function needs:
+
+  1. a **base case** that answers directly, without recursing, and
+  2. a **recursive case** that makes progress toward the base case.
+
+  ```python
+  def fact(n):
+      if n == 0:          # base case
+          return 1
+      return n * fact(n - 1)   # recursive case: n shrinks
+  ```
+
+  Each call gets its own **stack frame** holding its arguments and local variables. `fact(3)` pushes
+  frames for `fact(3)`, `fact(2)`, `fact(1)` and `fact(0)`; then they return in reverse order. The
+  maximum number of frames alive at once is the **recursion depth**, which also counts as memory.
+  Python stops at about 1000 frames with a `RecursionError`.
+
+  When a function calls itself **more than once**, the calls form a **recursion tree**. The tree's size
+  is the running time — and it can explode. **Memoisation** (remembering results already computed)
+  collapses repeated subtrees.
+
+workedExample: |
+  `power(b, n)` returns $b^n$: base case `power(b, 0) = 1`, recursive case `b * power(b, n - 1)`.
+  Trace `power(3, 2)`:
+
+  - `power(3, 2)` waits for `power(3, 1)`, which waits for `power(3, 0)`, which returns 1
+  - Returning: `power(3, 1) = 3 × 1 = 3`, then `power(3, 2) = 3 × 3 = 9`
+  - At the deepest point there are three frames, one per call.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: recursion
+    clueFor: [s2]
+    establishes: "fact({{k}}) = {{fact}}: the calls go down to fact(0) = 1, then multiply on the way back."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          ```python
+          def fact(n):
+              if n == 0:
+                  return 1
+              return n * fact(n - 1)
+          ```
+          Which line is the **base case**?
+        options:
+          - { text: "`if n == 0: return 1`", correct: true }
+          - { text: "`return n * fact(n - 1)`", misconception: base-case-confused }
+          - { text: "`def fact(n):`", misconception: base-case-is-definition }
+          - { text: "There isn't one — the function calls itself forever", misconception: recursion-infinite }
+        hints:
+          nudge: "Which line answers without calling `fact` again?"
+          partial: "The base case returns a value directly."
+        explanation: |
+          **Answer:** `if n == 0: return 1`
+
+          **Why:** It answers `fact(0)` directly, without another call. Every chain of calls ends there.
+
+          **Common mistakes:**
+          - The `return n * fact(n - 1)` line — that's the recursive case.
+          - `def fact(n):` — that just names the function.
+          - "Forever" — `n` shrinks by 1 each call, so it reaches 0.
+
+          **Connects to:** Q2 counts the frames on the way down.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          ```python
+          def fact(n):
+              if n == 0:
+                  return 1
+              return n * fact(n - 1)
+          ```
+          What does `fact({{k}})` return?
+        answer: { expr: "factorial(k)" }
+        distractors:
+          - { expr: "factorial(k - 1)", misconception: off-by-one-recursion }
+          - { expr: "k * (k - 1)", misconception: recursion-one-level }
+          - { expr: "k * (k + 1) / 2", misconception: sum-instead-of-product }
+        hints:
+          nudge: "Expand: fact({{k}}) = {{k}} × fact({{k-1}}) = …"
+          partial: "{{k}} × {{k-1}} × … × 1 × fact(0), and fact(0) = 1."
+        explanation: |
+          **Answer:** {{fact}}
+
+          **Why:** fact({{k}}) = {{k}} × fact({{k-1}}) = … = {{k}} × {{k-1}} × … × 1 × fact(0) = {{fact}}.
+
+          **Common mistakes:**
+          - {{factorial(k-1)}} — that's fact({{k-1}}); the {{k}} is multiplied in too.
+          - {{k*(k-1)}} — the recursion goes all the way down, not one level.
+          - {{k*(k+1)/2}} — that adds 1 + 2 + … + {{k}}; this multiplies.
+
+          **Connects to:** Q2 — the call stack while it runs.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A buggy version uses `if n == 1: return 1` as its base case. What happens when you call `fact(0)`?
+        options:
+          - { text: "It recurses forever (in practice, Python raises RecursionError)", correct: true }
+          - { text: "It returns 1", misconception: base-case-always-hit }
+          - { text: "It returns 0", misconception: recursion-one-level }
+          - { text: "It raises an error immediately on the first call", misconception: recursion-infinite }
+        hints:
+          nudge: "Trace the argument: 0, then −1, then …"
+          partial: "The argument goes 0, −1, −2, … and never equals 1."
+        explanation: |
+          **Answer:** infinite recursion → RecursionError.
+
+          **Why:** `fact(0)` calls `fact(-1)`, which calls `fact(-2)`, and so on — `n` never equals 1, so the base
+          case is never reached. Python stops after about 1000 frames.
+
+          **Common mistakes:**
+          - "Returns 1" — the base case only triggers when `n` is exactly 1.
+          - "Returns 0" — `0 * fact(-1)` would need `fact(-1)` first, which never finishes.
+          - "Errors immediately" — the first call is fine; the error comes about 1000 calls later.
+
+          **Connects to:** Q2 — how deep the stack gets.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: recursion
+    clueFor: [s6]
+    establishes: "fact({{k}}) needs {{k+1}} stack frames at the deepest point (fact({{k}}) … fact(0))."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          While `fact(3)` runs, which calls are waiting on the stack at the moment `fact(0)` returns 1?
+        options:
+          - { text: "fact(3), fact(2), fact(1)", correct: true }
+          - { text: "Only fact(3)", misconception: stack-not-growing }
+          - { text: "fact(1) only", misconception: frames-discarded }
+          - { text: "None — each call finishes before the next starts", misconception: recursion-sequential }
+        hints:
+          nudge: "Can fact(3) finish before it knows fact(2)?"
+          partial: "Every call above fact(0) is paused, waiting for the result below it."
+        explanation: |
+          **Answer:** fact(3), fact(2), fact(1)
+
+          **Why:** Each call is paused at `n * fact(n - 1)` until the call below returns. They resume in reverse order.
+
+          **Common mistakes:**
+          - "Only fact(3)" — the calls in between are waiting too.
+          - "fact(1) only" — frames stay until their call returns.
+          - "None" — a call can't finish before its sub-call returns.
+
+          **Connects to:** Q6 — space used by recursion.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          When `fact({{k}})` runs, how many stack frames for `fact` exist at the deepest point?
+        answer: { expr: "k + 1" }
+        distractors:
+          - { expr: "k", misconception: base-frame-forgotten }
+          - { expr: "factorial(k)", misconception: depth-equals-result }
+          - { expr: "1", misconception: stack-not-growing }
+        hints:
+          nudge: "List the calls that are active when the base case runs."
+          partial: "fact({{k}}), fact({{k-1}}), …, fact(0)"
+        explanation: |
+          **Answer:** {{k+1}}
+
+          **Why:** At the deepest point, fact({{k}}), fact({{k-1}}), …, fact(1) and fact(0) are all on the stack:
+          {{k+1}} frames. Recursion depth is memory: $O(n)$ here.
+
+          **Common mistakes:**
+          - {{k}} — don't forget the frame for fact(0), the base case.
+          - {{fact}} — the *result* is {{fact}}; the depth is the number of nested calls.
+          - 1 — every pending call keeps its frame.
+
+          **Connects to:** Q6 — space used by recursive solutions.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Python's default recursion limit is about 1000 frames. Which call fails with `RecursionError`?
+        options:
+          - { text: "fact(5000)", correct: true }
+          - { text: "fact(170), because the result is too big", misconception: depth-equals-result }
+          - { text: "None — Python grows the stack as needed", misconception: stack-unlimited }
+          - { text: "fact(1000) and anything above 10", misconception: base-frame-forgotten }
+        hints:
+          nudge: "What limits recursion: the size of the answer, or the number of nested calls?"
+          partial: "fact(n) needs n + 1 frames."
+        explanation: |
+          **Answer:** fact(5000).
+
+          **Why:** fact(n) needs $n + 1$ nested frames; 5000 is far past the ~1000 limit. Python integers have no
+          size limit, so a huge result like fact(170) is fine.
+
+          **Common mistakes:**
+          - fact(170) — big results are fine in Python; depth is the problem.
+          - "Grows as needed" — CPython enforces a limit to avoid crashing.
+          - "Above 10" — the limit is about 1000 frames.
+
+          **Connects to:** Q6 — space used by recursion.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: recursion
+    uses: [s1, s2]
+    clueFor: [s4, s5]
+    establishes: "Naive fib({{k}}) makes {{calls}} calls — the tree repeats work."
+    standaloneContext: "Recursive functions call themselves until a base case; each call gets its own stack frame. fact(k) makes k + 1 calls in a chain."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          Now consider
+          ```python
+          def fib(n):
+              if n < 2:
+                  return n
+              return fib(n - 1) + fib(n - 2)
+          ```
+          How many calls does `fib(3)` make in total, including itself?
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "3", misconception: linear-recursion-assumed }
+          - { expr: "4", misconception: base-frame-forgotten }
+          - { expr: "8", misconception: exactly-2-to-n }
+        hints:
+          nudge: "Draw the tree: fib(3) calls fib(2) and fib(1); fib(2) calls …"
+          partial: "fib(3) → fib(2), fib(1); fib(2) → fib(1), fib(0)."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** fib(3), fib(2), fib(1), fib(1), fib(0) — five calls. Unlike fact, each call can spawn two more.
+
+          **Common mistakes:**
+          - 3 — that's one call per value of n; but values repeat.
+          - 4 — the base-case calls count too.
+          - 8 — the tree isn't full: fib(1) and fib(0) stop immediately.
+
+          **Connects to:** Q4 — how fast the tree grows.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          Now consider
+          ```python
+          def fib(n):
+              if n < 2:
+                  return n
+              return fib(n - 1) + fib(n - 2)
+          ```
+          How many calls does `fib({{k}})` make in total, including itself?
+        answer: { expr: "calls" }
+        distractors:
+          - { expr: "k", misconception: linear-recursion-assumed }
+          - { expr: "2^k", misconception: exactly-2-to-n }
+          - { expr: "fibk1", misconception: calls-equal-result }
+        hints:
+          nudge: "Unlike fact, each call can make two calls. Count the nodes of the recursion tree."
+          buildsOn: "Q1–Q2: fact makes a single chain of calls. fib branches into two."
+          partial: "calls(n) = 1 + calls(n − 1) + calls(n − 2), with calls(0) = calls(1) = 1."
+        explanation: |
+          **Answer:** {{calls}}
+
+          **Why:** calls(n) = 1 + calls(n−1) + calls(n−2), with calls(0) = calls(1) = 1, giving 1, 1, 3, 5, 9, 15, 25, …
+          so fib({{k}}) makes {{calls}} calls — unlike fact's single chain (Q1–Q2), the tree branches and repeats work.
+
+          **Common mistakes:**
+          - {{k}} — that would be one call per value of n.
+          - {{2^k}} — a full binary tree; fib's tree is lopsided.
+          - {{fibk1}} — that's fib({{k+1}}), not the number of calls.
+
+          **Connects to:** Q4 — the Big-O of this tree.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          In the call tree of the naive `fib({{k}})`, how many times is `fib(1)` called?
+        answer: { expr: "fibk" }
+        distractors:
+          - { expr: "1", misconception: memo-assumed }
+          - { expr: "k + 1", misconception: linear-recursion-assumed }
+          - { expr: "2^(k - 1)", misconception: exactly-2-to-n }
+        hints:
+          nudge: "fib(n) adds up the 1s returned by its fib(1) leaves (fib(0) returns 0)."
+          buildsOn: "Q1–Q2: each call keeps its own frame; fib calls itself twice."
+          partial: "Every fib(1) leaf contributes 1 to the result, and nothing else does."
+        explanation: |
+          **Answer:** {{fibk}}
+
+          **Why:** fib(n) is a sum of the values returned by its leaves; fib(1) leaves return 1 and fib(0) leaves return 0.
+          So the number of fib(1) calls equals fib({{k}}) = {{fibk}}. The same small problem is solved over and over.
+
+          **Common mistakes:**
+          - 1 — that would be true with a memo; without one, repeated subproblems are recomputed.
+          - {{k+1}} — the tree branches, so counts grow faster than linearly.
+          - {{2^(k-1)}} — the tree isn't complete.
+
+          **Connects to:** Q5 — memoisation removes the repeats.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: recursion
+    uses: [s3]
+    clueFor: [s5]
+    establishes: "Naive fib grows exponentially: O(φⁿ) ≈ O(1.62ⁿ), commonly bounded by O(2ⁿ)."
+    standaloneContext: "The naive recursive fib(n) calls fib(n − 1) and fib(n − 2); fib({{k}}) makes {{calls}} calls."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          The call counts for fib(0), fib(1), … are 1, 1, 3, 5, 9, 15, 25, 41, … Roughly how do they grow?
+        options:
+          - { text: "Each is about 1.6 times the previous — exponential", correct: true }
+          - { text: "They increase by about 2 each time — linear", misconception: linear-recursion-assumed }
+          - { text: "Like n² — quadratic", misconception: recursion-quadratic }
+          - { text: "They level off", misconception: recursion-halves }
+        hints:
+          nudge: "Divide each count by the one before."
+          partial: "41/25 ≈ 1.64; 25/15 ≈ 1.67."
+        explanation: |
+          **Answer:** exponential, about ×1.6 per step.
+
+          **Why:** The ratios approach the golden ratio $\varphi \approx 1.618$: the work multiplies with each step up.
+
+          **Common mistakes:**
+          - "Linear" — the differences (2, 2, 4, 6, 10, 16) grow too.
+          - "Quadratic" — quadratics grow by an increasing *difference*, not a constant ratio.
+          - "Level off" — they keep accelerating.
+
+          **Connects to:** Q5 — memoisation fixes this.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          What is the running time of the naive recursive `fib(n)`?
+        options:
+          - { text: '$O(2^n)$ — exponential (more precisely $O(\varphi^n)$)', correct: true }
+          - { text: '$O(n)$ — one call per value of $n$', misconception: linear-recursion-assumed }
+          - { text: '$O(n^2)$ — two recursive calls', misconception: recursion-quadratic }
+          - { text: '$O(\log n)$ — $n$ shrinks each call', misconception: recursion-halves }
+        hints:
+          nudge: "How did the call counts grow in Q3?"
+          buildsOn: "Q3: fib({{k}}) already makes {{calls}} calls."
+          partial: "Each call branches into two, and the depth is $n$."
+        explanation: |
+          **Answer:** exponential — $O(2^n)$, tightly $\Theta(\varphi^n)$.
+
+          **Why:** Two branches per call and depth $n$ give at most $2^n$ calls; the true growth is about $1.618^n$.
+          fib(40) makes over 300 million calls.
+
+          **Common mistakes:**
+          - $O(n)$ — the same $n$ is visited many times (Q3).
+          - $O(n^2)$ — two calls per level multiply across levels; they don't square.
+          - $O(\log n)$ — $n$ shrinks by 1 or 2, not by half.
+
+          **Connects to:** Q5 — memoisation.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          A version of fib uses **three** recursive calls: `fib(n-1) + fib(n-2) + fib(n-3)`. How does its running time
+          compare with the two-call version?
+        options:
+          - { text: "Still exponential, with a larger base (about 1.84ⁿ)", correct: true }
+          - { text: "Cubic, O(n³)", misconception: recursion-quadratic }
+          - { text: "The same, O(φⁿ)", misconception: branching-ignored }
+          - { text: "Linear: three calls is just a constant factor", misconception: linear-recursion-assumed }
+        hints:
+          nudge: "Each call now spawns three. What does that do to the tree?"
+          buildsOn: "Q3: two recursive calls already gave exponential growth."
+          partial: "calls(n) ≈ calls(n−1) + calls(n−2) + calls(n−3): the growth ratio solves $x^3 = x^2 + x + 1$."
+        explanation: |
+          **Answer:** still exponential, base ≈ 1.84.
+
+          **Why:** The recursion $T(n) = T(n-1) + T(n-2) + T(n-3)$ grows like $x^n$ where $x^3 = x^2 + x + 1$, so $x \approx 1.84$.
+          More branches mean a larger base — even worse than φⁿ.
+
+          **Common mistakes:**
+          - "Cubic" — the number of calls per node is in the exponent's base, not a power of $n$.
+          - "The same" — more branching grows faster.
+          - "Linear" — the factor of three applies at every level, so it compounds.
+
+          **Connects to:** Q5 — memoisation fixes repeated subproblems.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: recursion
+    uses: [s3, s4]
+    clueFor: [s6]
+    establishes: "With a memo, fib({{k}}) solves only {{k+1}} distinct subproblems — O(n) time."
+    standaloneContext: "The naive recursive fib(n) recomputes the same values many times; fib({{k}}) makes {{calls}} calls."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          A memoised fib stores each result the first time it is computed. Computing fib({{k}}), how many different values
+          fib(0), fib(1), … are ever computed?
+        answer: { expr: "k + 1" }
+        distractors:
+          - { expr: "calls", misconception: memo-no-effect }
+          - { expr: "k", misconception: base-frame-forgotten }
+          - { expr: "2^k", misconception: exactly-2-to-n }
+        hints:
+          nudge: "Which arguments can appear at all?"
+          partial: "Only fib(0) up to fib({{k}})."
+        explanation: |
+          **Answer:** {{k+1}}
+
+          **Why:** The arguments are 0, 1, …, {{k}}: {{k+1}} subproblems, each computed once.
+
+          **Common mistakes:**
+          - {{calls}} — that's without memoisation.
+          - {{k}} — fib(0) counts too.
+          - {{2^k}} — repeated subproblems are looked up, not recomputed.
+
+          **Connects to:** Q6 — time and space with memoisation.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          ```python
+          memo = {}
+          def fib(n):
+              if n < 2:
+                  return n
+              if n not in memo:
+                  memo[n] = fib(n - 1) + fib(n - 2)
+              return memo[n]
+          ```
+          How many **distinct** subproblems does `fib({{k}})` actually solve?
+        answer: { expr: "k + 1" }
+        distractors:
+          - { expr: "calls", misconception: memo-no-effect }
+          - { expr: "fibk", misconception: calls-equal-result }
+          - { expr: "2 * k", misconception: memo-counts-calls }
+        hints:
+          nudge: "Once memo[n] is set, a second request for fib(n) returns at once."
+          buildsOn: "Q3: naive fib({{k}}) made {{calls}} calls. Q4: that's exponential."
+          partial: "Each n from 0 to {{k}} is solved exactly once."
+        explanation: |
+          **Answer:** {{k+1}}
+
+          **Why:** Each value fib(0) … fib({{k}}) is computed once and stored; later requests hit the memo. So the
+          exponential tree of Q3–Q4 collapses to {{k+1}} subproblems: $O(n)$ time.
+
+          **Common mistakes:**
+          - {{calls}} — that's the naive version.
+          - {{fibk}} — that's the value fib({{k}}), not a count of subproblems.
+          - {{2*k}} — about $2n$ *calls* happen (including memo hits), but only {{k+1}} distinct subproblems are solved.
+
+          **Connects to:** Q6 — the space cost.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          With the memo, how many times is the function body entered in total (counting calls that return from the memo
+          or the base case) for `fib({{k}})`, with $k \ge 2$?
+        answer: { expr: "2 * k - 1" }
+        distractors:
+          - { expr: "k + 1", misconception: memo-counts-calls }
+          - { expr: "calls", misconception: memo-no-effect }
+          - { expr: "2 * k", misconception: base-frame-forgotten }
+        hints:
+          nudge: "Only the first call for each n ≥ 2 makes two further calls."
+          buildsOn: "Q3–Q4: without a memo the tree is exponential."
+          partial: "The first fib(n) for n = 2…k each makes 2 calls; add 1 for the very first call."
+        explanation: |
+          **Answer:** {{2*k-1}}
+
+          **Why:** fib(k) is called once; each *first* computation of fib(n) for n = 2…k makes two calls, and every other
+          call returns at once. Total $1 + 2(k-1) = 2k-1$ = {{2*k-1}} — linear, versus {{calls}} without the memo.
+
+          **Common mistakes:**
+          - {{k+1}} — that's distinct subproblems, not calls.
+          - {{calls}} — that's the naive count.
+          - {{2*k}} — fib(k) itself is the one call with no caller.
+
+          **Connects to:** Q6 — the space cost.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: recursion
+    uses: [s2, s5]
+    establishes: "Memoised fib: O(n) time and O(n) space (memo + n-deep stack); a loop needs only O(1) space."
+    standaloneContext: |
+      Recursion depth costs memory (fact(k) needs k + 1 frames). A memoised fib(n) solves n + 1 distinct subproblems.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          Memoised fib({{k}}) stores one memo entry per subproblem it solves above the base cases. How many entries does
+          `memo` hold at the end?
+        answer: { expr: "k - 1" }
+        distractors:
+          - { expr: "k + 1", misconception: memo-stores-base }
+          - { expr: "calls", misconception: memo-no-effect }
+          - { expr: "1", misconception: space-ignored }
+        hints:
+          nudge: "Base cases n < 2 return directly. Which n values get stored?"
+          partial: "n = 2, 3, …, {{k}}."
+        explanation: |
+          **Answer:** {{k-1}}
+
+          **Why:** Entries are stored for n = 2 … {{k}}: {{k-1}} of them. Base cases return directly.
+
+          **Common mistakes:**
+          - {{k+1}} — fib(0) and fib(1) aren't stored in this version.
+          - {{calls}} — memo entries are per subproblem, not per call.
+          - 1 — the memo grows with $n$.
+
+          **Connects to:** the challenge — order a recursive function.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          What are the time and extra-space costs of the memoised `fib(n)`?
+        options:
+          - { text: '$O(n)$ time, $O(n)$ space (the memo and an $n$-deep call stack)', correct: true }
+          - { text: '$O(n)$ time, $O(1)$ space', misconception: space-ignored }
+          - { text: '$O(2^n)$ time, $O(n)$ space', misconception: memo-no-effect }
+          - { text: '$O(1)$ time — results are cached', misconception: memo-constant-time }
+        hints:
+          nudge: "How many subproblems, and how deep does the recursion go?"
+          buildsOn: "Q2: recursion depth costs stack frames. Q5: n + 1 distinct subproblems."
+          partial: "Depth: fib(n) → fib(n−1) → … → fib(1)."
+        explanation: |
+          **Answer:** $O(n)$ time and $O(n)$ space.
+
+          **Why:** Each of the $n + 1$ subproblems is solved once (Q5): $O(n)$ time. The memo holds $O(n)$ entries, and the
+          first descent fib(n) → fib(n−1) → … puts $n$ frames on the stack (Q2). A loop keeping just the last two values needs $O(1)$ space.
+
+          **Common mistakes:**
+          - $O(1)$ space — the memo and the stack both grow with $n$.
+          - $O(2^n)$ time — memoisation removes repeated work.
+          - $O(1)$ time — the first computation still visits every $n$.
+
+          **Connects to:** the challenge — order a recursive function.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          Which version can compute fib(5000) in Python with default settings?
+        options:
+          - { text: "A loop that keeps only the last two values", correct: true }
+          - { text: "The memoised recursive version — it's O(n)", misconception: stack-unlimited }
+          - { text: "The naive recursive version — results are small integers", misconception: memo-no-effect }
+          - { text: "None — the numbers get too large", misconception: depth-equals-result }
+        hints:
+          nudge: "Which versions recurse 5000 levels deep?"
+          buildsOn: "Q2: Python's recursion limit is about 1000 frames. Q5: memoised fib still descends n levels."
+          partial: "The memoised version still descends fib(5000) → fib(4999) → …"
+        explanation: |
+          **Answer:** the loop.
+
+          **Why:** The memoised version is fast but still recurses about 5000 levels deep, past Python's ~1000-frame limit (Q2).
+          The naive version is exponential *and* deep. A loop uses $O(1)$ space and no recursion; Python's big integers handle
+          the size.
+
+          **Common mistakes:**
+          - "Memoised" — $O(n)$ time doesn't help when the depth is $n$.
+          - "Naive" — that would take longer than the age of the universe.
+          - "Too large" — Python integers have arbitrary precision.
+
+          **Connects to:** the challenge — order a recursive function.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: recursion
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Why does the naive fib(n) take so much longer than fact(n)?"
+        options:
+          - { text: "fib calls itself twice per call, so the calls form a tree that repeats work", correct: true }
+          - { text: "fib's numbers are bigger, so each addition is slow", misconception: depth-equals-result }
+          - { text: "fib has no base case", misconception: recursion-infinite }
+          - { text: "It doesn't — both make about n calls", misconception: linear-recursion-assumed }
+        hints:
+          nudge: "Count how many calls each call makes."
+          partial: "fact makes one recursive call; fib makes two."
+        explanation: |
+          **Answer:** two calls per call → a branching tree with repeated subproblems.
+
+          **Why:** fact(n) makes a single chain of $n + 1$ calls. fib(n) branches into fib(n−1) and fib(n−2), and those share
+          most of their work, which is recomputed again and again.
+
+          **Common mistakes:**
+          - "Bigger numbers" — the number of calls is the problem, not the size of the values.
+          - "No base case" — `if n < 2: return n` is the base case.
+          - "About n calls" — that's fact; fib is exponential.
+
+          **Connects to:** Q3 — counting fib's calls.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u1.l3.ch
+  type: parsons
+  title: "Order a recursive function"
+  concept: recursion
+  uses: [s1, s5]
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Arrange the lines into a correct recursive `fact(n)`, with the right indentation."
+      config:
+        language: python
+        indent: true
+        lines:
+          - { id: def, text: "def fact(n):" }
+          - { id: if, text: "if n == 0:" }
+          - { id: base, text: "return 1" }
+          - { id: rec, text: "return n * fact(n - 1)" }
+      check: { expr: "orderCorrect and indentCorrect" }
+      feedback:
+        - { if: "placed < total", say: "Use all the lines." }
+        - { if: "correctPrefix == 1", say: "After the `def`, check the base case first — before recursing.", misconception: base-case-confused }
+        - { if: "orderCorrect and not indentCorrect", say: "The order is right; now fix the indentation. `return 1` belongs inside the `if`." }
+        - { if: "true", say: "Not yet — a function starts with `def`, then the base case." }
+      hints:
+        nudge: "What must happen before the recursive call?"
+        buildsOn: "From Q1: the base case answers fact(0) directly."
+        partial: "`def` (indent 0) → `if n == 0:` (1) → `return 1` (2) → `return n * fact(n - 1)` (1)."
+      solution:
+        order:
+          - { id: def, indent: 0 }
+          - { id: if, indent: 1 }
+          - { id: base, indent: 2 }
+          - { id: rec, indent: 1 }
+      explanation: |
+        The base case comes first so the recursion can stop; the recursive case shrinks `n` toward it.
+    standard:
+      difficulty: 3
+      goal: "Arrange a recursive `total(nums)` that adds up a list. One line doesn't belong — leave it out."
+      config:
+        language: python
+        indent: true
+        lines:
+          - { id: def, text: "def total(nums):" }
+          - { id: if, text: "if not nums:" }
+          - { id: base, text: "return 0" }
+          - { id: rec, text: "return nums[0] + total(nums[1:])" }
+        distractors:
+          - { id: bad, text: "return nums[0] + total(nums)" }
+      check: { expr: "orderCorrect and indentCorrect and usedDistractors == 0" }
+      feedback:
+        - { if: "usedDistractors > 0", say: "`total(nums)` calls itself on the same list — it never gets smaller.", misconception: recursion-infinite }
+        - { if: "placed < total", say: "Some lines are still missing." }
+        - { if: "orderCorrect and not indentCorrect", say: "Right order — check the indentation." }
+        - { if: "true", say: "Base case first: an empty list sums to 0." }
+      hints:
+        nudge: "Which call makes progress toward the base case?"
+        buildsOn: "From Q1: recursion needs a base case and a smaller subproblem."
+        partial: "`nums[1:]` is one element shorter each time."
+      solution:
+        order:
+          - { id: def, indent: 0 }
+          - { id: if, indent: 1 }
+          - { id: base, indent: 2 }
+          - { id: rec, indent: 1 }
+      explanation: |
+        The list shrinks by one each call until it is empty. The distractor recurses on the same list and never stops.
+    harder:
+      difficulty: 4
+      goal: "Arrange a memoised `fib(n, memo)`. Two lines are wrong — leave them out."
+      config:
+        language: python
+        indent: true
+        lines:
+          - { id: def, text: "def fib(n, memo):" }
+          - { id: if, text: "if n < 2:" }
+          - { id: base, text: "return n" }
+          - { id: check, text: "if n not in memo:" }
+          - { id: store, text: "memo[n] = fib(n - 1, memo) + fib(n - 2, memo)" }
+          - { id: ret, text: "return memo[n]" }
+        distractors:
+          - { id: bad1, text: "memo[n] = fib(n, memo)" }
+          - { id: bad2, text: "memo = {}" }
+      check: { expr: "orderCorrect and indentCorrect and usedDistractors == 0" }
+      feedback:
+        - { if: "usedDistractors > 0", say: "A distractor is in use: `fib(n, memo)` never shrinks n, and `memo = {}` would wipe the memo on every call.", misconception: memo-no-effect }
+        - { if: "placed < total", say: "Some lines are still missing." }
+        - { if: "orderCorrect and not indentCorrect", say: "Right order — fix the indentation." }
+        - { if: "true", say: "Base case, then 'compute once if missing', then return the stored value." }
+      hints:
+        nudge: "When should fib compute, and when should it just look up?"
+        buildsOn: "From Q5: each subproblem is solved once and stored."
+        partial: "`if n not in memo:` guards the computation; `return memo[n]` comes after it, at function level."
+      solution:
+        order:
+          - { id: def, indent: 0 }
+          - { id: if, indent: 1 }
+          - { id: base, indent: 2 }
+          - { id: check, indent: 1 }
+          - { id: store, indent: 2 }
+          - { id: ret, indent: 1 }
+      explanation: |
+        Compute only if missing, store it, and always return from the memo. Each $n$ is computed once: $O(n)$ time.
+
+summary:
+  keyTakeaways:
+    - "Recursion needs a base case and a step that moves toward it."
+    - "Each pending call keeps a stack frame: recursion depth costs memory (Python stops near 1000)."
+    - "Two recursive calls per call form a tree; naive fib is exponential because it repeats subproblems."
+    - "Memoisation computes each subproblem once: fib becomes O(n) time — though still O(n) space."
+  next: dsa.u1.l4

@@ -258,3 +258,319 @@
   explain: |
     Exact counts add every loop; only the Big-O simplification keeps just the dominant term.
   lessons: [dsa.u1.l2]
+
+# ── dsa.u1.l3: recursion ──
+- id: base-case-confused
+  short: "The base case answers directly — it's the line that does *not* call the function again."
+  explain: |
+    Every recursive function needs a case it can answer without recursing, checked before the recursive call.
+  lessons: [dsa.u1.l3]
+
+- id: base-case-is-definition
+  short: "`def` only names the function; the base case is the condition that stops the recursion."
+  explain: |
+    Look for the branch that returns a value without calling the function again.
+  lessons: [dsa.u1.l3]
+
+- id: recursion-infinite
+  short: "Recursion stops when each call moves toward a base case that is actually reached."
+  explain: |
+    The argument must get smaller (or simpler) every call. Calling with the same argument, or skipping past the base
+    case, recurses forever (Python raises RecursionError after about 1000 frames).
+  lessons: [dsa.u1.l3]
+
+- id: off-by-one-recursion
+  short: "The outermost call's own factor counts too."
+  explain: |
+    fact(n) = n × fact(n − 1): expand all the way down and multiply every factor from n to 1.
+  lessons: [dsa.u1.l3]
+
+- id: recursion-one-level
+  short: "The recursion continues all the way to the base case, not just one level."
+  explain: |
+    fact(n − 1) is itself n − 1 × fact(n − 2), and so on, until fact(0).
+  lessons: [dsa.u1.l3]
+
+- id: sum-instead-of-product
+  short: "fact multiplies the numbers; it doesn't add them."
+  explain: |
+    n × fact(n − 1) builds a product: n × (n − 1) × … × 1.
+  lessons: [dsa.u1.l3]
+
+- id: base-case-always-hit
+  short: "A base case only triggers if the argument actually reaches it."
+  explain: |
+    With base case n == 1, calling fact(0) goes 0, −1, −2, … and never reaches 1.
+  lessons: [dsa.u1.l3]
+
+- id: stack-not-growing
+  short: "Each pending call keeps its own stack frame until it returns."
+  explain: |
+    fact(n) has n + 1 frames on the stack at the deepest point.
+  lessons: [dsa.u1.l3]
+
+- id: frames-discarded
+  short: "Frames stay on the stack until their call returns — callers wait."
+  explain: |
+    A caller can't finish until the call it made returns, so all the frames above the base case are still there.
+  lessons: [dsa.u1.l3]
+
+- id: recursion-sequential
+  short: "A recursive call must finish before its caller can — they nest, not queue."
+  explain: |
+    `n * fact(n - 1)` can't be computed until `fact(n - 1)` returns.
+  lessons: [dsa.u1.l3]
+
+- id: base-frame-forgotten
+  short: "Count the base-case call too."
+  explain: |
+    fact(n) goes n, n − 1, …, 1, 0: that's n + 1 calls.
+  lessons: [dsa.u1.l3]
+
+- id: depth-equals-result
+  short: "The depth is the number of nested calls, not the size of the result."
+  explain: |
+    fact(170) is a huge number but only 171 frames deep. Python integers can be arbitrarily large.
+  lessons: [dsa.u1.l3]
+
+- id: stack-unlimited
+  short: "Python limits recursion depth (about 1000 frames by default)."
+  explain: |
+    Deep recursion raises RecursionError even if the algorithm is efficient. Use a loop for deep chains.
+  lessons: [dsa.u1.l3]
+
+- id: linear-recursion-assumed
+  short: "Each call can make two calls — the tree repeats work, so it's not one call per n."
+  explain: |
+    fib(n) calls fib(n − 1) and fib(n − 2), and those overlap: the same values are recomputed many times.
+  lessons: [dsa.u1.l3]
+
+- id: exactly-2-to-n
+  short: "The tree is lopsided (fib(n − 2) is shallower), so it's fewer than 2ⁿ calls."
+  explain: |
+    The call count grows like φⁿ ≈ 1.618ⁿ — exponential, but below 2ⁿ.
+  lessons: [dsa.u1.l3]
+
+- id: calls-equal-result
+  short: "That's a Fibonacci *value*, not a count of calls or subproblems."
+  explain: |
+    calls(n) = 1 + calls(n − 1) + calls(n − 2), which differs from fib(n).
+  lessons: [dsa.u1.l3]
+
+- id: recursion-quadratic
+  short: "Branching multiplies at every level — that's exponential, not a polynomial."
+  explain: |
+    b branches per call and depth n give up to bⁿ calls.
+  lessons: [dsa.u1.l3]
+
+- id: recursion-halves
+  short: "n shrinks by 1 or 2 per call, not by half — so the depth is n, not log n."
+  explain: |
+    Logarithmic recursion needs the problem size to be divided, e.g. n // 2.
+  lessons: [dsa.u1.l3]
+
+- id: branching-ignored
+  short: "More recursive calls per call make the tree grow faster."
+  explain: |
+    The growth base solves xᵏ = xᵏ⁻¹ + … + 1; more terms give a larger base.
+  lessons: [dsa.u1.l3]
+
+- id: memo-no-effect
+  short: "With a memo, each subproblem is solved once — later requests are look-ups."
+  explain: |
+    Memoisation turns naive fib's exponential tree into n + 1 subproblems, O(n) time.
+  lessons: [dsa.u1.l3]
+
+- id: memo-counts-calls
+  short: "Distinguish subproblems solved from calls made — memo hits are cheap calls."
+  explain: |
+    Memoised fib(n) solves n + 1 subproblems but enters the function about 2n − 1 times.
+  lessons: [dsa.u1.l3]
+
+- id: memo-stores-base
+  short: "In this version base cases return directly and aren't stored."
+  explain: |
+    Only n ≥ 2 goes through the `memo[n] = …` line.
+  lessons: [dsa.u1.l3]
+
+- id: memo-constant-time
+  short: "The memo avoids *repeated* work; the first computation still visits every n."
+  explain: |
+    Each subproblem is solved once: that's O(n) work, not O(1).
+  lessons: [dsa.u1.l3]
+
+- id: memo-assumed
+  short: "Without a memo nothing is remembered — each subproblem is recomputed every time."
+  explain: |
+    In naive fib(n), fib(1) is called fib(n) times.
+  lessons: [dsa.u1.l3]
+
+# ── dsa.u1.l4: recurrences ──
+- id: level-work-only
+  short: "That's the work at one level (or one call) — add up every level of the tree."
+  explain: |
+    Total cost = sum over levels of (calls at the level × work per call).
+  lessons: [dsa.u1.l4]
+
+- id: two-calls-double
+  short: "The halves keep splitting at every level — it's not just two calls' worth."
+  explain: |
+    Unroll the recurrence all the way down; each level contributes.
+  lessons: [dsa.u1.l4]
+
+- id: balance-ignored
+  short: "n log n needs balanced splits; peeling off one element gives n levels."
+  explain: |
+    T(n) = T(n − 1) + n sums to about n²/2. Balance is what makes divide-and-conquer fast.
+  lessons: [dsa.u1.l4]
+
+- id: level-work-halves
+  short: "The calls double while the sizes halve, so each level's total stays n."
+  explain: |
+    Level j has 2ʲ calls of size n/2ʲ: 2ʲ × n/2ʲ = n.
+  lessons: [dsa.u1.l4]
+
+- id: subproblem-size-ignored
+  short: "Subproblems shrink as you go down the tree."
+  explain: |
+    At depth j each call works on n/bʲ items, not n.
+  lessons: [dsa.u1.l4]
+
+- id: tree-levels-linear
+  short: "The number of calls multiplies by a at each level — it doesn't grow by one."
+  explain: |
+    Depth j has aʲ calls.
+  lessons: [dsa.u1.l4]
+
+- id: subproblem-count-ignored
+  short: "Count every node, not one per level."
+  explain: |
+    With two calls per node, level j has 2ʲ nodes.
+  lessons: [dsa.u1.l4]
+
+- id: leaves-only
+  short: "The internal nodes do work too — not just the leaves."
+  explain: |
+    1 + 2 + 4 + … + n = 2n − 1: the internal nodes add almost as much as the leaves.
+  lessons: [dsa.u1.l4]
+
+- id: master-case-confused
+  short: "Compare a with bᵈ to pick the master-theorem case."
+  explain: |
+    a = bᵈ: every level equal → nᵈ log n. a < bᵈ: top dominates → nᵈ. a > bᵈ: leaves dominate → n^(log_b a).
+  lessons: [dsa.u1.l4]
+
+- id: master-scope
+  short: "The master theorem covers any T(n) = a·T(n/b) + O(nᵈ)."
+  explain: |
+    Identify a (calls), b (shrink factor) and d (extra work exponent), then compare a with bᵈ.
+  lessons: [dsa.u1.l4]
+
+- id: calls-as-exponent
+  short: "The exponent is log_b a, not a."
+  explain: |
+    4T(n/2) + n has 4 calls on halves: n^(log₂ 4) = n², not n⁴.
+  lessons: [dsa.u1.l4]
+
+- id: decrement-recursion-cheap
+  short: "Shrinking by one per call gives n levels — with n work each, that's n²."
+  explain: |
+    T(n) = T(n − 1) + n = n + (n − 1) + … + 1 ≈ n²/2.
+  lessons: [dsa.u1.l4]
+
+- id: log-base-matters
+  short: "A different log base is just a constant factor."
+  explain: |
+    log₃ n = log₂ n / log₂ 3, so O(log₃ n) = O(log₂ n) = O(log n).
+  lessons: [dsa.u1.l4]
+
+- id: two-calls-ignored
+  short: "Calling the function twice on the half doubles the calls at every level."
+  explain: |
+    T(n) = 2T(n/2) + 1 is O(n). Compute the half once and reuse it: T(n) = T(n/2) + 1 = O(log n).
+  lessons: [dsa.u1.l4]
+
+# ── dsa.u1.l5: amortized analysis ──
+- id: growth-by-one
+  short: "Growing by one slot would resize (and copy everything) on every append."
+  explain: |
+    Dynamic arrays grow by a constant *factor* so that resizes become rarer as the array grows.
+  lessons: [dsa.u1.l5]
+
+- id: growth-additive
+  short: "That's growing by a fixed amount, not doubling."
+  explain: |
+    Doubling multiplies the capacity: 1, 2, 4, 8, … A fixed increment adds: 1, 11, 21, …
+  lessons: [dsa.u1.l5]
+
+- id: capacity-preallocated
+  short: "The array can't know in advance how many items are coming — it grows as needed."
+  explain: |
+    Capacity starts small and grows by resizing; spare capacity exists only right after a resize.
+  lessons: [dsa.u1.l5]
+
+- id: last-resize-only
+  short: "Every resize copies — add them all, not just the last one."
+  explain: |
+    Doubling: 1 + 2 + 4 + … + n/2 = n − 1 copies in total.
+  lessons: [dsa.u1.l5]
+
+- id: copies-quadratic
+  short: "With doubling the copies form a geometric sum — linear, not quadratic."
+  explain: |
+    Quadratic copying happens only with fixed-size increments.
+  lessons: [dsa.u1.l5]
+
+- id: copies-count-resizes
+  short: "That's the number of resizes; each resize copies many items."
+  explain: |
+    Count items copied: each resize copies the whole current contents.
+  lessons: [dsa.u1.l5]
+
+- id: growth-factor-scales-copies
+  short: "A larger growth factor means *fewer* resizes and fewer copies, not more."
+  explain: |
+    With factor r, total copies are at most r/(r − 1) × n: 2n for r = 2, 1.5n for r = 3, 3n for r = 1.5.
+  lessons: [dsa.u1.l5]
+
+- id: growth-factor-ignored
+  short: "Growing by a factor and growing by a fixed amount behave very differently."
+  explain: |
+    Geometric growth (×r) gives amortized O(1); arithmetic growth (+c) gives amortized O(n).
+  lessons: [dsa.u1.l5]
+
+- id: amortized-worst-step
+  short: "That's the most expensive single append, not the cost averaged over the sequence."
+  explain: |
+    Amortized cost = total cost ÷ number of operations.
+  lessons: [dsa.u1.l5]
+
+- id: copies-ignored
+  short: "The copying during resizes is part of the total cost."
+  explain: |
+    Count writes *and* copies, then divide by the number of appends.
+  lessons: [dsa.u1.l5]
+
+- id: writes-ignored
+  short: "Each append also writes its own item — count the writes too."
+  explain: |
+    Total work = n writes + all the copies.
+  lessons: [dsa.u1.l5]
+
+- id: amortized-log
+  short: "The number of resizes is log n, but the amortized cost per append is constant."
+  explain: |
+    With doubling, writes + copies < 3n, so the cost per append is below 3.
+  lessons: [dsa.u1.l5]
+
+- id: amortized-every-step
+  short: "Amortized O(1) bounds the whole sequence — one step can still be O(n)."
+  explain: |
+    The resizing append copies everything. Amortized analysis spreads that cost, but it still happens in one step.
+  lessons: [dsa.u1.l5]
+
+- id: amortized-is-average-case
+  short: "Amortized is a worst-case guarantee over any sequence — no randomness involved."
+  explain: |
+    Average-case analysis assumes a distribution of inputs; amortized analysis bounds the total for every sequence.
+  lessons: [dsa.u1.l5]

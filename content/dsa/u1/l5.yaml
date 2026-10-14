@@ -1,0 +1,665 @@
+id: dsa.u1.l5
+title: "Amortized analysis"
+version: 1
+concepts: [amortized-analysis]
+estimatedMinutes: 20
+
+# Scenario: appending m items to a dynamic array that starts with capacity 1 and doubles when full.
+params:
+  sets:
+    - { m: 16 }
+    - { m: 32 }
+    - { m: 64 }
+derived:
+  copies: "m - 1"
+
+intro: |
+  A Python list (a **dynamic array**) stores its items in one block of memory with spare room, its
+  **capacity**. `append` writes into the next free slot: $O(1)$. When the block is full, the list
+  allocates a bigger block and **copies every item across** — that single append costs $O(n)$.
+
+  So is `append` $O(1)$ or $O(n)$? Look at a whole sequence of operations instead of one.
+  **Amortized analysis** spreads the occasional expensive step over the many cheap ones:
+
+  $$\text{amortized cost} = \frac{\text{total cost of } m \text{ operations}}{m}$$
+
+  If capacity **doubles** when full, resizes happen at sizes 1, 2, 4, 8, …, and the copies add up to
+  $1 + 2 + 4 + \dots < 2m$. Together with the $m$ writes, the total is under $3m$: amortized
+  $O(1)$ per append, even though one append is occasionally $O(n)$.
+
+  The growth rule matters. Growing by a **fixed amount** (say +10 slots) makes resizes happen every
+  10 appends, and the copies add up to about $m^2/20$: amortized $O(m)$ per append.
+
+  Amortized is **not** average-case: it's a guarantee over every sequence of operations, with no randomness.
+
+workedExample: |
+  Capacity starts at 2 and doubles. Append 9 items:
+
+  - Resizes happen at appends 3, 5 and 9 (when sizes 2, 4 and 8 are full), copying 2 + 4 + 8 = 14 items
+  - Writes: 9. Total work: 9 + 14 = 23
+  - Amortized: 23 / 9 ≈ 2.6 per append — a constant, despite the 8-item copy at append 9.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: amortized-analysis
+    clueFor: [s2]
+    establishes: "Doubling from capacity 1: resizes at sizes 1, 2, 4, … — {{log2(m)}} resizes for {{m}} appends."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A dynamic array starts with capacity 1 and doubles when full. What capacities does it pass through as you
+          append 8 items?
+        options:
+          - { text: "1, 2, 4, 8", correct: true }
+          - { text: "1, 2, 3, …, 8", misconception: growth-by-one }
+          - { text: "1, 11, 21", misconception: growth-additive }
+          - { text: "8 from the start", misconception: capacity-preallocated }
+        hints:
+          nudge: "Each resize multiplies the capacity by 2."
+          partial: "1 → 2 → 4 → …"
+        explanation: |
+          **Answer:** 1, 2, 4, 8
+
+          **Why:** Doubling: 1 → 2 → 4 → 8. Eight items fit after three resizes.
+
+          **Common mistakes:**
+          - "1, 2, 3, …" — growing by one slot would resize on every append.
+          - "1, 11, 21" — that's growing by a fixed 10.
+          - "8 from the start" — the array doesn't know how many items are coming.
+
+          **Connects to:** Q2 counts the copying those resizes cause.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A dynamic array starts with capacity 1 and **doubles** when full. How many resizes happen while appending
+          {{m}} items?
+        answer: { expr: "log2(m)" }
+        distractors:
+          - { expr: "m - 1", misconception: growth-by-one }
+          - { expr: "m / 2", misconception: doubling-as-linear }
+          - { expr: "log2(m) + 1", misconception: boundary-off-by-one }
+        hints:
+          nudge: "A resize happens when the array is full: at sizes 1, 2, 4, …"
+          partial: "Which powers of two are below {{m}}?"
+        explanation: |
+          **Answer:** {{log2(m)}}
+
+          **Why:** Resizes happen when appending to a full array of size 1, 2, 4, …, {{m/2}}: that's {{log2(m)}} resizes,
+          ending at capacity {{m}}.
+
+          **Common mistakes:**
+          - {{m-1}} — that's growing by one slot each time.
+          - {{m/2}} — capacity doubles, so resizes get rarer and rarer.
+          - {{log2(m)+1}} — the {{m}}th item fits without another resize.
+
+          **Connects to:** Q2 — the total copying.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          Same doubling array, but now you append **{{m+1}}** items. How many resizes, and what is the final capacity?
+        options:
+          - { text: "{{log2(m)+1}} resizes; capacity {{2*m}}", correct: true }
+          - { text: "{{log2(m)}} resizes; capacity {{m}}", misconception: boundary-off-by-one }
+          - { text: "{{log2(m)+1}} resizes; capacity {{m+1}}", misconception: growth-by-one }
+          - { text: "{{m}} resizes; capacity {{m+1}}", misconception: growth-additive }
+        hints:
+          nudge: "After {{m}} appends the array is exactly full. What does item {{m+1}} trigger?"
+          partial: "One more doubling: {{m}} → {{2*m}}."
+        explanation: |
+          **Answer:** {{log2(m)+1}} resizes; capacity {{2*m}}.
+
+          **Why:** {{m}} items fill capacity {{m}} exactly; item {{m+1}} finds it full and triggers one more doubling to {{2*m}}.
+          Almost half the new block is spare — that's the price of amortized $O(1)$.
+
+          **Common mistakes:**
+          - "{{log2(m)}}; {{m}}" — {{m+1}} items don't fit in {{m}} slots.
+          - "Capacity {{m+1}}" — capacity doubles; it doesn't grow to fit exactly.
+          - "{{m}} resizes" — resizes become rarer as the array grows.
+
+          **Connects to:** Q2 — the total copying.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: amortized-analysis
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "Doubling copies 1 + 2 + … + {{m/2}} = {{copies}} items over {{m}} appends — fewer than m."
+    standaloneContext: "A dynamic array starting at capacity 1 doubles when full, so resizes happen at sizes 1, 2, 4, …"
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          The resizes happen at sizes 1, 2, 4 and 8 (each copies that many items). What is the total number of items copied?
+        answer: { expr: "15" }
+        distractors:
+          - { expr: "8", misconception: last-resize-only }
+          - { expr: "64", misconception: copies-quadratic }
+          - { expr: "4", misconception: copies-count-resizes }
+        hints:
+          nudge: "Add the sizes."
+          partial: "1 + 2 + 4 + 8"
+        explanation: |
+          **Answer:** 15
+
+          **Why:** $1 + 2 + 4 + 8 = 15 = 2 \times 8 - 1$ — a doubling sum is just under twice its last term.
+
+          **Common mistakes:**
+          - 8 — that's the last resize only.
+          - 64 — the copies don't grow like $n^2$.
+          - 4 — that counts resizes, not items copied.
+
+          **Connects to:** Q3 — the cost per append.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          While appending {{m}} items to the doubling array (starting at capacity 1), how many item **copies** do the
+          resizes make in total?
+        answer: { expr: "m - 1" }
+        distractors:
+          - { expr: "m * (m - 1) / 2", misconception: copies-quadratic }
+          - { expr: "m / 2", misconception: last-resize-only }
+          - { expr: "log2(m)", misconception: copies-count-resizes }
+        hints:
+          nudge: "Each resize copies the items currently in the array."
+          buildsOn: "Q1: resizes happen at sizes 1, 2, 4, …, {{m/2}}."
+          partial: "$1 + 2 + 4 + \\dots + {{m/2}}$"
+        explanation: |
+          **Answer:** {{copies}}
+
+          **Why:** The resizes copy $1 + 2 + 4 + \dots + {{m/2}} = {{m}} - 1 = {{copies}}$ items (Q1's sizes). A doubling sum is less than
+          twice its largest term, which is less than $m$.
+
+          **Common mistakes:**
+          - {{m*(m-1)/2}} — that's growing by one slot (copying on every append).
+          - {{m/2}} — that's only the last resize.
+          - {{log2(m)}} — that's the number of resizes, not items copied.
+
+          **Connects to:** Q3 — the amortized cost.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A different array starts at capacity 1 and **triples** when full. Appending {{m}} items, roughly how many copies
+          happen in total?
+        options:
+          - { text: "O(m) — at most 1.5 × the largest resize, which is below m", correct: true }
+          - { text: "About m²/2", misconception: copies-quadratic }
+          - { text: "About 3m — triple the doubling case", misconception: growth-factor-scales-copies }
+          - { text: "Exactly m − 1, the same as doubling", misconception: growth-factor-ignored }
+        hints:
+          nudge: "Resizes happen at sizes 1, 3, 9, 27, … Add them up."
+          buildsOn: "Q1: a geometric growth factor makes resizes rare."
+          partial: "$1 + 3 + 9 + \\dots + 3^k = (3^{k+1} - 1)/2 < 1.5 \\times 3^k$, and the last resize size $3^k$ is below m."
+        explanation: |
+          **Answer:** $O(m)$ — under $1.5 \times$ the largest resize, which is itself below $m$.
+
+          **Why:** Copies are $1 + 3 + 9 + \dots + 3^k = (3^{k+1} - 1)/2 < 1.5 \times 3^k$, and $3^k < m$, so fewer than $1.5m$ copies in total.
+          Any constant growth factor above 1 gives $O(m)$ total copying; a larger factor resizes less often but leaves more spare memory.
+
+          **Common mistakes:**
+          - "m²/2" — that's for fixed-size increments.
+          - "About 3m" — a larger factor means *fewer* resizes.
+          - "Same as doubling" — the sum depends on the factor.
+
+          **Connects to:** Q3 — the amortized cost.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: amortized-analysis
+    uses: [s2]
+    clueFor: [s5]
+    establishes: "{{m}} writes + {{copies}} copies = {{m + copies}} total: amortized {{(m + copies)/m}} ≈ 2 per append — O(1)."
+    standaloneContext: "Appending {{m}} items to a doubling dynamic array does {{m}} writes plus {{copies}} copies during resizes."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          {{m}} appends do {{m}} writes and {{copies}} copies in total. What's the average cost per append?
+        answer: { expr: "(m + m - 1) / m" }
+        distractors:
+          - { expr: "m", misconception: amortized-worst-step }
+          - { expr: "1", misconception: copies-ignored }
+          - { expr: "(m - 1) / m", misconception: writes-ignored }
+        hints:
+          nudge: "Add the work, divide by the number of appends."
+          partial: "({{m}} + {{copies}}) ÷ {{m}}"
+        explanation: |
+          **Answer:** {{(2*m-1)/m}}
+
+          **Why:** $({{m}} + {{copies}})/{{m}} = {{(2*m-1)/m}}$ — just under 2. A constant: $O(1)$ amortized.
+
+          **Common mistakes:**
+          - {{m}} — that's the most expensive single append, not the average.
+          - 1 — the copies count too.
+          - {{(m-1)/m}} — the writes count too.
+
+          **Connects to:** Q5 — what goes wrong with a fixed increment.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          Counting one unit per item written and one per item copied, what is the **amortized** cost per append over
+          {{m}} appends to the doubling array?
+        answer: { expr: "(m + m - 1) / m" }
+        distractors:
+          - { expr: "m", misconception: amortized-worst-step }
+          - { expr: "log2(m)", misconception: amortized-log }
+          - { expr: "1", misconception: copies-ignored }
+        hints:
+          nudge: "Total cost of all the appends, divided by how many there were."
+          buildsOn: "Q2: the resizes copy {{copies}} items in total."
+          partial: "Total: {{m}} writes + {{copies}} copies."
+        explanation: |
+          **Answer:** {{(2*m-1)/m}}
+
+          **Why:** Total work $= {{m}} + {{copies}} = {{2*m-1}}$ (Q2), so the amortized cost is ${{2*m-1}}/{{m}} = {{(2*m-1)/m}}$ — under 2,
+          whatever $m$ is. So `append` is amortized $O(1)$, even though the append that triggers a resize costs $O(n)$.
+
+          **Common mistakes:**
+          - {{m}} — the worst single append is expensive, but rare.
+          - {{log2(m)}} — that's the number of resizes.
+          - 1 — the copying isn't free.
+
+          **Connects to:** Q5 — a growth rule that breaks this.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          A student says: "Appends are amortized O(1), so **every** append is fast." When is that wrong, and why does it
+          matter?
+        options:
+          - { text: "A single append that triggers a resize is O(n) — a problem if one slow step can't be tolerated (e.g. real-time code)", correct: true }
+          - { text: "It's never wrong: amortized O(1) means every operation is O(1)", misconception: amortized-every-step }
+          - { text: "It's wrong only on average, for random inputs", misconception: amortized-is-average-case }
+          - { text: "It's wrong because amortized O(1) really means O(log n)", misconception: amortized-log }
+        hints:
+          nudge: "Amortized bounds a *sequence* of operations. What about one operation in it?"
+          buildsOn: "Q2: the resize at size {{m/2}} copies {{m/2}} items in one go."
+          partial: "The total is small, but one resize still copies everything."
+        explanation: |
+          **Answer:** one append can still be $O(n)$.
+
+          **Why:** Amortized $O(1)$ bounds the **total** cost of a sequence ({{2*m-1}} for {{m}} appends), not each step. The resize that copies
+          {{m/2}} items (Q2) happens inside one append — a pause that matters for latency-sensitive code.
+
+          **Common mistakes:**
+          - "Never wrong" — amortized ≠ worst-case per operation.
+          - "Average, for random inputs" — amortized bounds hold for *every* sequence; no randomness involved.
+          - "Really O(log n)" — the amortized cost is a constant.
+
+          **Connects to:** Q5 — a growth rule that breaks amortized O(1).
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: amortized-analysis
+    clueFor: [s5]
+    establishes: "Fixed +10 growth: resizes every 10 appends; copies 10 + 20 + … ≈ m²/20."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          A different array starts with capacity 10 and adds **10 more slots** whenever it is full. At which sizes does it resize?
+        options:
+          - { text: "10, 20, 30, 40, …", correct: true }
+          - { text: "10, 20, 40, 80, …", misconception: growth-factor-ignored }
+          - { text: "Only once, at 10", misconception: capacity-preallocated }
+          - { text: "At every append", misconception: growth-by-one }
+        hints:
+          nudge: "Capacity goes 10 → 20 → 30 → …"
+          partial: "It's full whenever the size reaches a multiple of 10."
+        explanation: |
+          **Answer:** 10, 20, 30, 40, …
+
+          **Why:** Adding a fixed 10 makes the array full at every multiple of 10, so resizes keep coming at the same rate.
+
+          **Common mistakes:**
+          - "10, 20, 40, 80" — that's doubling.
+          - "Only once" — it fills up again 10 appends later.
+          - "Every append" — that's growth by one.
+
+          **Connects to:** Q5 — the total copying this causes.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          The +10 array (capacity 10, +10 when full) receives {{10*m}} appends. How many item copies do its resizes make?
+        answer: { expr: "10 * (m - 1) * m / 2" }
+        distractors:
+          - { expr: "10 * m - 1", misconception: growth-factor-ignored }
+          - { expr: "m - 1", misconception: copies-count-resizes }
+          - { expr: "10 * (m - 1)", misconception: last-resize-only }
+        hints:
+          nudge: "Resizes at 10, 20, …, {{10*(m-1)}} each copy that many items."
+          partial: "$10 \\times (1 + 2 + \\dots + {{m-1}})$"
+        explanation: |
+          **Answer:** {{10*(m-1)*m/2}}
+
+          **Why:** Resizes at 10, 20, …, {{10*(m-1)}} copy $10(1 + 2 + \dots + {{m-1}}) = 10 \times {{(m-1)*m/2}} = {{10*(m-1)*m/2}}$ items —
+          quadratic in the number of appends.
+
+          **Common mistakes:**
+          - {{10*m-1}} — that would be true for doubling.
+          - {{m-1}} — that's the number of resizes.
+          - {{10*(m-1)}} — that's just the last resize.
+
+          **Connects to:** Q5 — compare with doubling.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          The +10 array receives $n$ appends (a multiple of 10). What is the amortized cost per append, in Big-O?
+        options:
+          - { text: '$O(n)$ — total copying is about $n^2/20$', correct: true }
+          - { text: '$O(1)$ — resizes only happen every 10 appends', misconception: growth-factor-ignored }
+          - { text: '$O(\\log n)$', misconception: amortized-log }
+          - { text: '$O(n^2)$ per append', misconception: amortized-worst-step }
+        hints:
+          nudge: "Total copies ÷ number of appends."
+          partial: "Copies ≈ $10 \\cdot \\frac{(n/10)^2}{2} = \\frac{n^2}{20}$."
+        explanation: |
+          **Answer:** $O(n)$ amortized.
+
+          **Why:** The copies add to about $n^2/20$, so the average per append is about $n/20$: linear. "Only every 10 appends"
+          isn't enough — the copies keep getting bigger while the resizes don't get rarer.
+
+          **Common mistakes:**
+          - $O(1)$ — rare enough only with geometric growth.
+          - $O(\log n)$ — the total is quadratic, the average linear.
+          - $O(n^2)$ per append — that's the total, not the average.
+
+          **Connects to:** Q5 — doubling versus +10.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: amortized-analysis
+    uses: [s3, s4]
+    clueFor: [s6]
+    establishes: "For {{10*m}} appends: doubling copies {{10*m-1}}, +10 copies {{10*(m-1)*m/2}} — {{(10*(m-1)*m/2)/(10*m-1)}}× more."
+    standaloneContext: "A doubling array copies fewer than n items over n appends; an array that grows by a fixed 10 copies about n²/20."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          For {{10*m}} appends, the doubling array copies {{10*m - 1}} items and the +10 array copies {{10*(m-1)*m/2}}. How many
+          times more copying does the +10 array do?
+        answer: { expr: "(10 * (m - 1) * m / 2) / (10 * m - 1)", unit: "×" }
+        distractors:
+          - { expr: "10", unit: "×", misconception: ratio-constant-assumed }
+          - { expr: "(10 * (m - 1) * m / 2) - (10 * m - 1)", unit: "×", misconception: ratio-as-difference }
+          - { expr: "2", unit: "×", misconception: growth-factor-scales-copies }
+        hints:
+          nudge: "Divide."
+          partial: "{{10*(m-1)*m/2}} ÷ {{10*m-1}}"
+        explanation: |
+          **Answer:** {{(10*(m-1)*m/2)/(10*m-1)}} ×
+
+          **Why:** Dividing gives {{(10*(m-1)*m/2)/(10*m-1)}} — and the ratio grows with $n$, because one is linear and the other quadratic.
+
+          **Common mistakes:**
+          - 10 — the increment size isn't the ratio.
+          - The difference — "times more" means a ratio.
+          - 2 — the doubling factor isn't the ratio either.
+
+          **Connects to:** Q6 — choosing a growth rule.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          For {{10*m}} appends, compare the **amortized** cost per append of the doubling array and the +10 array
+          (writes + copies, divided by appends).
+        options:
+          - { text: "Doubling: about 2. +10: about {{(10*m + 10*(m-1)*m/2)/(10*m)}}.", correct: true }
+          - { text: "Both about 2 — both resize only occasionally", misconception: growth-factor-ignored }
+          - { text: "Doubling: about {{log2(10*m)}}. +10: about 2.", misconception: amortized-log }
+          - { text: "Doubling: about {{10*m}}. +10: about {{10*m}}.", misconception: amortized-worst-step }
+        hints:
+          nudge: "Total work ÷ appends, for each."
+          buildsOn: "Q3: doubling costs just under 2 per append. Q4: +10 copies {{10*(m-1)*m/2}} items."
+          partial: "+10 total: {{10*m}} writes + {{10*(m-1)*m/2}} copies."
+        explanation: |
+          **Answer:** doubling ≈ 2; +10 ≈ {{(10*m + 10*(m-1)*m/2)/(10*m)}}.
+
+          **Why:** Doubling: $(10m + 10m - 1)/10m \approx 2$ (Q3). +10: $({{10*m}} + {{10*(m-1)*m/2}})/{{10*m}} = {{(10*m + 10*(m-1)*m/2)/(10*m)}}$ (Q4),
+          and it keeps growing with $n$.
+
+          **Common mistakes:**
+          - "Both 2" — fixed increments resize too often as the array grows.
+          - Doubling "log n" — that's the number of resizes, not the cost per append.
+          - "{{10*m}}" — that's the worst single resize, not the average.
+
+          **Connects to:** Q6 — choosing a growth rule.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A team proposes growing by **1.5×** instead of 2× to waste less memory. What happens to the amortized cost of append?
+        options:
+          - { text: "Still O(1) — any constant factor above 1 keeps total copying linear", correct: true }
+          - { text: "It becomes O(n), like the +10 array", misconception: growth-factor-ignored }
+          - { text: "It becomes O(log n)", misconception: amortized-log }
+          - { text: "It halves, since 1.5 < 2", misconception: growth-factor-scales-copies }
+        hints:
+          nudge: "Is 1.5× a fixed *factor* or a fixed *amount*?"
+          buildsOn: "Q3: doubling gives under 2 per append. Q4: a fixed increment gives O(n)."
+          partial: "Copies: $1 + 1.5 + 1.5^2 + \\dots$ — a geometric sum, at most 3× its last term."
+        explanation: |
+          **Answer:** still $O(1)$ amortized.
+
+          **Why:** Geometric growth by any factor $r > 1$ makes the copies a geometric sum, at most $\tfrac{r}{r-1}$ times the final size:
+          $3n$ for $r = 1.5$, $2n$ for $r = 2$. Amortized cost stays constant (a bit higher), and less memory sits empty.
+          CPython actually grows lists by about 1.125×.
+
+          **Common mistakes:**
+          - "O(n)" — that's for fixed *amounts* (Q4), not fixed *factors*.
+          - "O(log n)" — the sum is still linear.
+          - "Halves" — smaller factors copy *more* often, so the constant goes up, not down.
+
+          **Connects to:** Q6 — choosing a growth rule.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: amortized-analysis
+    uses: [s2, s5]
+    establishes: "Doubling: amortized O(1), worst single append O(n), at most half the capacity unused."
+    standaloneContext: |
+      A doubling dynamic array copies fewer than n items over n appends (amortized O(1)); an occasional append copies everything.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          After {{m+1}} appends to the doubling array, the capacity is {{2*m}}. How many slots are unused?
+        answer: { expr: "m - 1" }
+        distractors:
+          - { expr: "0", misconception: growth-by-one }
+          - { expr: "m", misconception: boundary-off-by-one }
+          - { expr: "2 * m", misconception: capacity-preallocated }
+        hints:
+          nudge: "Capacity minus size."
+          partial: "{{2*m}} − {{m+1}}"
+        explanation: |
+          **Answer:** {{m-1}}
+
+          **Why:** ${{2*m}} - {{m+1}} = {{m-1}}$ — just under half the block is spare right after a resize. That's the memory price of amortized $O(1)$.
+
+          **Common mistakes:**
+          - 0 — capacity doubles, it doesn't grow to fit exactly.
+          - {{m}} — {{m+1}} items are stored.
+          - {{2*m}} — that's the whole capacity.
+
+          **Connects to:** the challenge — watch a doubling array grow.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: "Which summary of a doubling dynamic array's `append` is correct?"
+        options:
+          - { text: "Amortized O(1); a single append can be O(n); up to about half the capacity may be unused", correct: true }
+          - { text: "Always O(1), and no memory is wasted", misconception: amortized-every-step }
+          - { text: "Amortized O(log n), because resizes happen log n times", misconception: amortized-log }
+          - { text: "O(1) on average for random inputs, O(n) in the worst case", misconception: amortized-is-average-case }
+        hints:
+          nudge: "Separate three things: the cost over many appends, the worst single append, and memory use."
+          buildsOn: "Q2: copies total under n. Q5: other growth rules compared."
+          partial: "Total copies < n (Q2); one resize copies everything; capacity ≤ 2 × size."
+        explanation: |
+          **Answer:** amortized $O(1)$, worst single append $O(n)$, up to about half unused.
+
+          **Why:** Copies total under $n$ (Q2), so the cost per append averages out to a constant over **any** sequence — no
+          randomness involved. A resizing append still copies everything once. Right after a resize, nearly half the capacity is empty.
+
+          **Common mistakes:**
+          - "Always O(1)" — the resizing append is linear.
+          - "O(log n)" — counts resizes, not cost.
+          - "Random inputs" — amortized bounds are worst-case over a sequence.
+
+          **Connects to:** the challenge — watch a doubling array grow.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A stack is a doubling array that also **halves** its capacity when it becomes half full. A user alternates push,
+          pop, push, pop … right at the boundary. What can happen?
+        options:
+          - { text: "Every operation resizes — O(n) each; shrink only at a quarter full to fix it", correct: true }
+          - { text: "Nothing bad: halving mirrors doubling, so it's still amortized O(1)", misconception: amortized-every-step }
+          - { text: "Pops become O(log n)", misconception: amortized-log }
+          - { text: "The array runs out of memory", misconception: capacity-preallocated }
+        hints:
+          nudge: "Start full at capacity c. Push → grow to 2c. Pop → half full → shrink to c. Push → …"
+          buildsOn: "Q2: each resize copies everything. Q5: what keeps resizes rare?"
+          partial: "Shrinking at ½ leaves no slack; shrinking at ¼ leaves room on both sides."
+        explanation: |
+          **Answer:** every operation can resize ("thrashing"); shrink at a quarter full instead.
+
+          **Why:** At the boundary a push doubles and the next pop immediately halves, each copying $\sim n$ items. Shrinking only at
+          ¼ full guarantees many cheap operations between resizes, restoring amortized $O(1)$.
+
+          **Common mistakes:**
+          - "Still amortized O(1)" — amortized bounds need slack between resizes.
+          - "O(log n)" — each resize copies everything.
+          - "Out of memory" — the problem is time, not space.
+
+          **Connects to:** the challenge — watch a doubling array grow.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: amortized-analysis
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "What does 'amortized cost per operation' mean?"
+        options:
+          - { text: "The total cost of a sequence of operations divided by the number of operations", correct: true }
+          - { text: "The cost of the most expensive single operation", misconception: amortized-worst-step }
+          - { text: "The average cost over random inputs", misconception: amortized-is-average-case }
+          - { text: "The cost of the cheapest operation", misconception: copies-ignored }
+        hints:
+          nudge: "Think of spreading a big one-off cost over many cheap steps."
+          partial: "Total ÷ count, over any sequence."
+        explanation: |
+          **Answer:** total cost ÷ number of operations, for any sequence.
+
+          **Why:** A rare expensive step (a resize) is "paid for" by the many cheap ones around it. Unlike average-case analysis,
+          it holds for every sequence — no randomness.
+
+          **Common mistakes:**
+          - "Most expensive" — that's worst-case per operation.
+          - "Random inputs" — that's average-case analysis.
+          - "Cheapest" — ignores the expensive steps entirely.
+
+          **Connects to:** Q3 — the doubling array's amortized cost.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u1.l5.ch
+  type: algorithm-stepper
+  title: "Grow a dynamic array"
+  concept: amortized-analysis
+  uses: [s2, s3]
+  params:
+    sets:
+      - { a: 9 }
+      - { a: 10 }
+      - { a: 12 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Append {{a}} items to a dynamic array with capacity 1 that **doubles** when full. For each append, decide whether it fits or forces a resize — with at most 2 mistakes."
+      config:
+        algorithm: dynamic-array
+        input: { appends: "a", capacity: 1 }
+      check: { expr: "done and mistakes <= 2" }
+      feedback:
+        - { if: "not done", say: "Keep appending until all {{a}} items are in." }
+        - { if: "mistakes > 2", say: "A resize happens only when size = capacity.", misconception: growth-by-one }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "Compare size with capacity before each append."
+        buildsOn: "From Q1: resizes happen at sizes 1, 2, 4, …"
+        partial: "Full exactly when size equals capacity."
+      solution: { followTrace: true }
+      explanation: |
+        Resizes at sizes 1, 2, 4 and 8: rare, and each one copies only what's there. The total copies stay below the number of appends.
+    standard:
+      difficulty: 3
+      goal: "Append {{a + 8}} items (capacity 1, doubling). **No more than one mistake.** Watch the copy count."
+      config:
+        algorithm: dynamic-array
+        input: { appends: "a + 8", capacity: 1 }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep appending." }
+        - { if: "mistakes > 1", say: "Doubling makes resizes rarer and rarer — check size against capacity each time.", misconception: growth-by-one }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "When is the array full?"
+        buildsOn: "From Q2: copies add up to 1 + 2 + 4 + …"
+        partial: "Size = capacity means full."
+      solution: { followTrace: true }
+      explanation: |
+        The copy count stays below the number of appends: amortized $O(1)$.
+    harder:
+      difficulty: 4
+      goal: "Start at capacity **3** and append {{2*a + 6}} items, doubling when full — **with no mistakes at all**."
+      config:
+        algorithm: dynamic-array
+        input: { appends: "2*a + 6", capacity: 3 }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep appending." }
+        - { if: "mistakes > 0", say: "With capacity 3, resizes come at sizes 3, 6, 12, … — not at powers of two.", misconception: growth-factor-ignored }
+        - { if: "true", say: "No mistakes allowed." }
+      hints:
+        nudge: "The capacities are 3, 6, 12, 24, …"
+        buildsOn: "From Q1: resizes happen when the array is full."
+        partial: "Resize exactly when size = capacity."
+      solution: { followTrace: true }
+      explanation: |
+        Starting at 3, capacities go 3, 6, 12, 24, … Doubling still keeps total copying linear: amortized $O(1)$.
+
+summary:
+  keyTakeaways:
+    - "Amortized cost = total cost of a sequence ÷ number of operations — a guarantee, not an average over random inputs."
+    - "Doubling capacity: copies total under n, so append is amortized O(1), though one append can be O(n)."
+    - "Growing by a fixed amount makes copies total about n²/c: amortized O(n)."
+    - "Any constant growth factor above 1 works; shrink only when a quarter full to avoid thrashing."
+  next: dsa.u2.l1
