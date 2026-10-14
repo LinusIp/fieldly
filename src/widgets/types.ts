@@ -55,8 +55,8 @@ export interface WidgetViewProps<Q extends Question = Question, A = unknown> {
   /** Current (possibly partial) answer; null = nothing yet. */
   answer: A | null;
   onChange(answer: A | null): void;
-  /** After a wrong first attempt: which parts were right (marks stay visible). */
-  marks?: Grade;
+  /** After a wrong first attempt: that answer and its grade, so the marks stay visible (§2.5). */
+  marks?: { answer: A; grade: Grade };
   /** After the final attempt: show both. */
   reveal?: { correct: A; learner: A | null };
 }
