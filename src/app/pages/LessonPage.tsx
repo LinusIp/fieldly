@@ -18,10 +18,10 @@ function ComingSoon({
     <div className="mx-auto max-w-3xl px-4 py-16">
       <Badge>Coming soon</Badge>
       <h1 className="mt-3 text-2xl font-semibold">{title}</h1>
-      <p className="mt-2 text-muted">
+      <p className="mt-2 text-ink-2">
         This lesson is on the syllabus for {subjectTitle} but hasn’t been written yet.
       </p>
-      <Link to={`/s/${subjectId}`} className="mt-6 inline-block text-accent underline">
+      <Link to={`/s/${subjectId}`} className="mt-6 inline-block text-primary-ink underline">
         Back to {subjectTitle}
       </Link>
     </div>

@@ -57,7 +57,7 @@ export function BlankText({
         const i = n++;
         const ok = parts?.[i];
         const shown = revealed?.[i];
-        const cls = `mx-1 rounded-md border-2 bg-bg px-2 py-1 font-mono ${ok === true ? 'border-ok' : ok === false ? 'border-bad' : 'border-border focus:border-accent'}`;
+        const cls = `mx-1 rounded-md border-2 bg-surface-sunk px-2 py-1 font-mono ${ok === true ? 'border-correct' : ok === false ? 'border-wrong' : 'border-outline focus:border-primary'}`;
         const aria = `${label} ${i + 1}${ok === true ? ', right' : ok === false ? ', wrong' : ''}`;
         const field =
           b.type === 'choice' ? (
@@ -94,12 +94,12 @@ export function BlankText({
           <span key={si} className="inline-flex items-center">
             {field}
             {ok !== undefined && (
-              <span aria-hidden="true" className={ok ? 'text-ok' : 'text-bad'}>
+              <span aria-hidden="true" className={ok ? 'text-ink' : 'text-ink'}>
                 {ok ? '✓' : '✕'}
               </span>
             )}
             {shown && !ok && (
-              <span className="ml-1 text-sm font-semibold text-ok">→ {blankAnswer(b, scope)}</span>
+              <span className="ml-1 text-sm font-semibold text-ink">→ {blankAnswer(b, scope)}</span>
             )}
           </span>
         );

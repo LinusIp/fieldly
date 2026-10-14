@@ -3,7 +3,7 @@ import { Markdown } from '../../components/Markdown';
 import { math } from '../../engine/expr';
 import { normaliseInput } from '../common';
 import type { WidgetViewProps } from '../types';
-import { ExprCompare, Mark } from '../ui';
+import { AnswerField, ExprCompare } from '../ui';
 import { substituteParams, type ExpressionAnswer, type ExpressionQuestion } from './model';
 
 function toTex(input: string): string | null {
@@ -51,44 +51,39 @@ export function ExpressionView({
       <label htmlFor={id} className="sr-only">
         Your expression, using {vars.join(', ')}
       </label>
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          id={id}
-          ref={input}
-          type="text"
-          autoComplete="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          value={answer ?? ''}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.value.trim() ? e.target.value : null)}
-          className={`w-full max-w-md rounded-lg border-2 bg-bg px-3 py-2 font-mono text-lg ${wrongFirst ? 'border-bad' : 'border-border focus:border-accent'}`}
-          data-testid="expression-input"
-        />
-        {wrongFirst && <Mark ok={false} label="Not this" />}
-      </div>
+      <AnswerField
+        id={id}
+        inputRef={input}
+        inputMode="text"
+        mono
+        value={answer ?? ''}
+        onChange={(v) => onChange(v.trim() ? v : null)}
+        disabled={disabled}
+        state={wrongFirst ? 'wrong' : 'idle'}
+        testId="expression-input"
+      />
       <div className="mt-2 min-h-[2rem] text-lg" aria-live="polite">
         {tex ? (
           <Markdown inline>{`$${tex}$`}</Markdown>
         ) : answer ? (
-          <span className="text-sm text-muted">…</span>
+          <span className="text-sm text-ink-2">…</span>
         ) : null}
       </div>
       {!disabled && (
-        <div className="mt-1 flex flex-wrap gap-1" aria-label="Symbol keypad">
+        <div className="mt-2 flex flex-wrap gap-2" aria-label="Symbol keypad">
           {keys.map((k) => (
             <button
               key={k}
               type="button"
               onClick={() => insert(k === '−' ? '-' : k === '×' ? '*' : k === 'π' ? 'pi' : k)}
-              className="min-h-[44px] min-w-[44px] rounded-lg border border-border bg-surface px-2 font-mono text-sm hover:bg-surface-2"
+              className="min-h-[44px] min-w-[44px] rounded-lg border-2 border-outline bg-surface px-2 font-mono text-sm hover:bg-surface-sunk"
             >
               {k}
             </button>
           ))}
         </div>
       )}
-      <p className="mt-1 text-xs text-muted">
+      <p className="mt-1 text-xs text-ink-2">
         Use {vars.join(', ')}
         {q.allowedSymbols?.length ? ` and ${q.allowedSymbols.join(', ')}` : ''}. Write powers as x^2.
       </p>

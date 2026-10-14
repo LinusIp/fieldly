@@ -5,6 +5,7 @@ import { SubjectsPage } from './pages/SubjectsPage';
 import { TodayPage } from './pages/TodayPage';
 import { SubjectPage } from './pages/SubjectPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
 import { Loading } from '../components/ui';
 import { useProgress } from '../storage/progress';
 
@@ -36,6 +37,24 @@ export function App() {
             <Route path="subjects" element={<SubjectsPage />} />
             <Route path="s/:subjectId" element={<SubjectPage />} />
             <Route path="l/:lessonId" element={<LessonPage />} />
+            <Route
+              path="practice/*"
+              element={
+                <ComingSoonPage
+                  title="Practice"
+                  what="Practice sets, daily practice and mistakes review are being built."
+                />
+              }
+            />
+            <Route
+              path="puzzles/*"
+              element={
+                <ComingSoonPage
+                  title="Puzzles"
+                  what="Puzzle packs are being built, starting with circuits."
+                />
+              }
+            />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />

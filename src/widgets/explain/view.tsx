@@ -25,7 +25,7 @@ export function ExplainView({
         value={reveal ? (reveal.learner ?? '') : (answer ?? '')}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value.trim() ? e.target.value : null)}
-        className="w-full rounded-lg border-2 border-border bg-bg p-3 focus:border-accent"
+        className="w-full rounded-lg border-2 border-outline bg-surface-sunk p-3 focus:border-primary"
         placeholder="Write it in your own words…"
         data-testid="explain-input"
       />
@@ -58,8 +58,8 @@ export function ExpertCompare({
 }) {
   return (
     <div className="mt-3 space-y-3" data-testid="expert-compare">
-      <section className="rounded-xl border border-border bg-bg p-4">
-        <h4 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">An expert answer</h4>
+      <section className="rounded-xl border-2 border-outline bg-surface-sunk p-4">
+        <h4 className="mb-1 text-h3 text-ink">An expert answer</h4>
         <Tx s={expert} scope={scope} inline={false} />
       </section>
       <fieldset>
@@ -70,7 +70,7 @@ export function ExpertCompare({
               <label className="flex items-start gap-2 text-sm">
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4 accent-[var(--c-accent)]"
+                  className="mt-1 h-4 w-4 accent-[var(--primary)]"
                   checked={ticked[i] ?? false}
                   onChange={() => setTicked(ticked.map((t, j) => (j === i ? !t : t)))}
                 />
@@ -79,7 +79,7 @@ export function ExpertCompare({
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-1 text-xs text-ink-2">
           {ticked.filter(Boolean).length} of {checklist.length} ticked. This is for you — it isn’t scored.
         </p>
       </fieldset>

@@ -67,7 +67,7 @@ export function RiemannSum({
         aria-label="Riemann sum"
         data-testid="riemann-plot"
       >
-        <rect x={0} y={0} width={W} height={H} fill="var(--c-bg)" rx={10} />
+        <rect x={0} y={0} width={W} height={H} fill="var(--surface-sunk)" rx={10} />
         {ticks(x0, x1).map((t) => (
           <text
             key={`x${t}`}
@@ -75,31 +75,31 @@ export function RiemannSum({
             y={H - M.b + 16}
             textAnchor="middle"
             fontSize={11}
-            fill="var(--c-muted)"
+            fill="var(--ink-2)"
           >
             {formatNumber(t)}
           </text>
         ))}
         {ticks(y0, y1).map((t) => (
           <g key={`y${t}`}>
-            <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--c-border)" opacity={0.5} />
-            <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+            <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--ink-3)" opacity={0.5} />
+            <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
               {formatNumber(t)}
             </text>
           </g>
         ))}
-        {y0 <= 0 && y1 >= 0 && <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--c-muted)" />}
+        {y0 <= 0 && y1 >= 0 && <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--ink-2)" />}
         {shapes.map((d, i) => (
           <path
             key={i}
             d={d}
-            fill="var(--c-accent)"
+            fill="var(--primary)"
             fillOpacity={0.22}
-            stroke="var(--c-accent)"
+            stroke="var(--primary)"
             strokeWidth={n > 60 ? 0.5 : 1.2}
           />
         ))}
-        <path d={curve} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
+        <path d={curve} fill="none" stroke="var(--ink)" strokeWidth={2.5} />
         {[config.a, config.b].map((x) => (
           <line
             key={x}
@@ -107,7 +107,7 @@ export function RiemannSum({
             y1={M.t}
             x2={sx(x)}
             y2={H - M.b}
-            stroke="var(--c-muted)"
+            stroke="var(--ink-2)"
             strokeDasharray="4 4"
           />
         ))}
@@ -118,7 +118,7 @@ export function RiemannSum({
         {config.rules.map((r: Rule) => (
           <label
             key={r}
-            className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${state.rule === r ? 'border-[var(--c-accent)] bg-[var(--c-surface)] font-medium' : 'border-[var(--c-border)]'}`}
+            className={`cursor-pointer rounded-lg border-2 px-3 py-1.5 text-sm ${state.rule === r ? 'border-[var(--primary)] bg-[var(--surface)] font-medium' : 'border-[var(--ink-3)]'}`}
           >
             <input
               type="radio"
@@ -148,14 +148,14 @@ export function RiemannSum({
           value={n}
           disabled={disabled}
           onChange={(e) => onStateChange({ ...state, n: effectiveN(Number(e.target.value), state.rule) })}
-          className="accent-[var(--c-accent)]"
+          className="accent-[var(--primary)]"
           data-slider="n"
           aria-label="Subintervals n"
         />
       </label>
       <p className="font-mono text-sm" data-testid="riemann-readouts">
-        approximation {formatNumber(s.approx as number, { sig: 6 })} · exact{' '}
-        {formatNumber(config.exact, { sig: 6 })} · error {formatNumber(s.error as number)}
+        approximation {formatNumber(s.approx as number, { sig: 6 })}, exact{' '}
+        {formatNumber(config.exact, { sig: 6 })}, error {formatNumber(s.error as number)}
       </p>
     </div>
   );

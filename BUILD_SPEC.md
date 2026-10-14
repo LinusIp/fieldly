@@ -450,14 +450,14 @@ Use current stable versions and pin them in `package.json`.
 | Concern | Choice |
 |---|---|
 | Build | Vite + React + TypeScript (`strict: true`) |
-| Styling | Tailwind CSS, with CSS variables for themes |
+| Styling | Tailwind CSS, with the design tokens of §10.4 as CSS variables mapped into the Tailwind theme |
 | Routing | React Router with `HashRouter` |
 | State | Zustand for the progress store; React state for UI |
 | Markdown + math | `react-markdown` + `remark-math` + `rehype-katex` (KaTeX) |
 | Expressions | `mathjs`: answers, wrong answers, templates, checks, and expression-equivalence testing |
 | Drag and drop | `@dnd-kit` (pointer, touch and keyboard sensors) |
 | Content format | YAML in `content/`, parsed with `yaml`, validated with Zod at build time |
-| Plots & interactives | Custom SVG/Canvas components; three.js only for `revolve-viewer` |
+| Plots & interactives | Custom SVG/Canvas components drawn in the board style of §10.5; three.js only for `revolve-viewer` |
 | Code editor | CodeMirror 6 |
 | Code execution | JavaScript in a Web Worker; Python via Pyodide (pinned version, CDN) in a Web Worker |
 | Share links | `lz-string` |
@@ -2299,7 +2299,7 @@ ohm-multiply, ohm-inverted, ohm-rearrange, current-equals-voltage, current-used-
 ### 8.1 Lesson player
 
 **Layout of a screen**
-- One screen at a time, with a slim progress bar showing all screens (dots coloured by result).
+- One screen at a time, with the progress battery (§10.5) in the header: one cell per screen, filled as screens are completed.
 - A back arrow and a collapsible "Earlier in this lesson" history let the learner re-read any previous screen.
 - The **Facts panel** sits beside the main column (desktop) or in a bottom drawer (mobile).
 - The **Explanations** tab sits beside the main **Lesson** tab.
@@ -2750,22 +2750,169 @@ For interactives with a challenge creator (`circuit-builder`, `function-target`,
 
 ### 10.2 Layout
 
-- **Desktop:**
-  - main column, text max-width ≈ 720 px; interactives may use up to 960 px;
-  - right sidebar: Facts panel, progress dots, hint ladder.
+- **Desktop lesson screens:**
+  - header: leave button, the progress battery (§10.5) and the XP pill;
+  - a wrapping row: the question card or interactive board as the main column (prompt text kept under about 720 px wide), and a side column with the Facts panel (questions) or the missions list (explore screens);
+  - the hint ladder lives inside the question card, under the answer.
 - **Mobile:**
   - single column; interactives fill the width;
-  - Facts panel as a collapsible bottom drawer;
+  - the Facts panel collapses to a button with a count badge and opens as a bottom drawer;
   - controls sized for touch (≥ 44 px); recommend landscape for `circuit-builder`, `logic-gates` and `graph-builder`.
+- Exact sizes, colours and components: §10.4–10.5.
 
-### 10.3 Visual design
+### 10.3 Visual direction: "Arcade"
 
-- Calm, focused and bright, with game-like moments only where they reward real work.
-- Generous whitespace, clear typography, KaTeX for math.
-- Light and dark themes via CSS variables.
-- Interactives share one visual language: the same colours for "your input", "the model's output" and "the target"; draggable things look draggable.
-- Correct and incorrect states use **icon + text + colour**, never colour alone.
-- Subtle motion only; everything respects `prefers-reduced-motion`.
+The chosen look is **Arcade**: chunky, playful and game-like, in the spirit of Brilliant and Duolingo but with its own identity drawn from circuits and lab kit. Reference mockups exist on the "Stepwise screen mockups" design canvas (Direction B row): Today, path map, chained question, explore with circuit, puzzle pack. Where this section and a mockup disagree, this section wins.
+
+**Principles**
+1. **Things you can press look pressable.** Every interactive element has a 2 px ink outline and a hard, unblurred offset shadow; pressing it pushes it down onto its shadow.
+2. **One bold colour job each.** Violet means *you act here*; volt yellow means *energy* (current flowing, XP, streak, stars, progress); mint means *correct*; coral means *not yet*; pink dashes mean *target*.
+3. **Circuits are the motif.** Progress is a battery filling up; the path map is a wire that current flows along; lesson nodes and puzzle art use circuit symbols. Each subject keeps the motif but uses its own accent colour.
+4. **Calm where you think, loud where you win.** Question text sits on plain white cards with generous space. Colour and motion are saved for feedback, progress and celebrations.
+5. **Never colour alone.** Every state also has an icon and words.
+
+### 10.4 Design tokens
+
+Implement as CSS variables on `:root` (light) and `[data-theme="dark"]` (dark, also applied under `prefers-color-scheme: dark` when the setting is "system"), and map them into the Tailwind theme so components never use raw hex values.
+
+```css
+:root {
+  /* surfaces */
+  --ground: #F6F4FF;          /* page background */
+  --surface: #FFFFFF;         /* cards, inputs, tiles */
+  --surface-tint: #E7E3FB;    /* violet-tinted fills: chips, opened hints, linked facts */
+  --surface-sunk: #F6F4FF;    /* unit cells, figure backgrounds inside cards */
+  /* ink */
+  --ink: #1D1846;             /* text, outlines, hard shadows */
+  --ink-2: #514A7A;           /* secondary text (7.4:1 on ground) */
+  --ink-3: #8C84C2;           /* dashed outlines, idle wires — never body text */
+  /* roles */
+  --primary: #5B3DF5;         /* "you act here": primary buttons, current node, active tab */
+  --primary-ink: #3A22C4;     /* violet text on tints */
+  --on-primary: #FFFFFF;
+  --volt: #FFC42E;            /* energy: live current, XP, streak, stars, progress cells */
+  --volt-tint: #FFF1C7;
+  --correct: #19B37D;  --correct-tint: #D9F7EA;
+  --wrong: #FF5A4E;    --wrong-tint: #FFE3E0;
+  --target: #E0479A;          /* on light surfaces; always drawn dashed */
+  /* interactive board */
+  --board: #1D1846;  --board-dot: #3D3678;  --board-bar: #2A2360;
+  --wire-idle: #8C84C2;  --wire-live: #FFC42E;  --control: #B9AEFF;  --target-on-board: #FF6FB1;
+  --board-text: #FFFFFF;  --board-text-2: #DCD5FA;
+  /* progress battery */
+  --cell-done: #FFC42E;  --cell-current: #FFFFFF;  --cell-todo: #3A3370;
+}
+[data-theme="dark"] {
+  --ground: #14112B;  --surface: #221D47;  --surface-tint: #2E2760;  --surface-sunk: #1A1638;
+  --ink: #F4F1FF;  --ink-2: #C9C2F0;  --ink-3: #7A72B0;
+  --outline: #0A0820;         /* in dark mode outlines and hard shadows use --outline, not --ink */
+  --primary: #6A4EFF;  --primary-ink: #C7BBFF;  --on-primary: #FFFFFF;
+  --volt: #FFC42E;  --volt-tint: #3A3115;
+  --correct: #2CCB8F;  --correct-tint: #123A2E;
+  --wrong: #FF6B5E;    --wrong-tint: #3D1D24;
+  --target: #FF6FB1;
+  --board: #0E0B24;  --board-dot: #2C2660;  --board-bar: #1A1640;
+}
+```
+
+In light mode `--outline` equals `--ink`. Text placed on `--volt`, `--correct` or `--wrong` fills is always `--ink` (light) or `#14112B` (dark), never white.
+
+**Subject accents.** Used only on subject-level surfaces: subject cards, the live wire on that subject's path map, puzzle-pack hero cards and their doodles. Text on them is ink.
+
+| Subject | Accent |
+|---|---|
+| calc1 | Tangerine `#FF8A3D` |
+| calc2 | Bubblegum `#FF6FB1` |
+| phys1 | Sky `#3BA7FF` |
+| phys2 | Volt `#FFC42E` |
+| linalg | Aqua `#2BD4C4` |
+| discrete | Lime `#B8E04A` |
+| dsa | Lilac `#B39BFF` |
+| probstat | Salmon `#FF9F8A` |
+
+**Typography**
+- **Typeface:** Bricolage Grotesque (Google Fonts, variable `opsz` 12–96, `wght` 400–800) for everything except math. Self-host the `woff2` files in `public/fonts/` for speed and offline use.
+- **Math:** KaTeX's own fonts, at 1.05em relative to the surrounding text.
+- **Numbers** in readouts, scores, XP and counters use `font-variant-numeric: tabular-nums`.
+
+| Token | Size / line height | Weight | Tracking | Use |
+|---|---|---|---|---|
+| `display` | 34 / 1.05 | 800 | −0.02em | screen titles on Today and pack heroes (30 on phones) |
+| `prompt` | 28 / 1.3 | 700 | −0.015em | question prompts on desktop (24 on phones) |
+| `h2` | 22 / 1.15 | 800 | −0.01em | card and panel titles |
+| `h3` | 18 / 1.2 | 800 | 0 | list items, node labels, tile titles |
+| `body` | 17 / 1.45 | 400 | 0 | explanations, facts, task text |
+| `body-strong` | 17 / 1.45 | 600–800 | 0 | labels, inline emphasis |
+| `small` | 15 / 1.4 | 600 | 0 | meta lines, hints, chips |
+| `caption` | 13 / 1.3 | 700 | 0 | tile captions, tags |
+| `answer` | 30 / 1.1 | 800 | 0 | typed answers in numeric and expression inputs |
+
+Sentence case everywhere; no all-caps labels; emphasis in a prompt is a volt highlighter behind the words (`background: var(--volt); padding: 0 6px; border-radius: 6px`), used at most once per prompt.
+
+**Spacing, radii, outlines, shadows**
+
+| Token | Values |
+|---|---|
+| Spacing scale | 4, 8, 12, 16, 20, 24, 28, 32, 48 px |
+| Radius | `r-sm` 10 (chips, tags) · `r-md` 14 (buttons, inputs, icon buttons) · `r-lg` 18 (tiles, figures, fact cards) · `r-xl` 24 (question card, interactive board, hero cards) · `r-full` (pills, toggles, path nodes) |
+| Outline | 2 px `--outline` on every card, button, input and tile; 3 px for the element that needs attention now (active input, current task, linked facts) |
+| Hard shadow | `s-1` `0 3px 0 var(--outline)` (small pressables) · `s-2` `0 5px 0 var(--outline)` (primary buttons, hero cards) · `s-3` `0 6px 0 var(--outline)` (question card, interactive board) · no blur, ever |
+| Focus ring | `outline: 3px solid var(--primary); outline-offset: 3px` on every focusable element |
+
+**Layout**
+- Desktop: content max-width 1220 px, 24 px gutters. Question and explore screens are a wrapping row: the main card `flex: 999 1 560px`, the side column (Facts panel or missions) `flex: 1 1 300px; max-width: 400px`. Below about 900 px the side column drops under the main card.
+- Phone: 18 px gutters, single column, the floating bottom navigation bar, touch targets ≥ 44 px (main buttons 52–58 px).
+
+### 10.5 Components
+
+| Component | Spec |
+|---|---|
+| **Primary button** | `--primary` fill, `--on-primary` text 18–20 px weight 800, 2 px outline, `r-md` (16 on phones), min height 52 (56 for the main action on a screen), `s-2`. **Press:** `translateY(5px)` and shadow removed (80 ms). **Hover:** `translateY(-1px)`, shadow one step bigger. **Disabled:** `--surface-tint` fill, dashed `--ink-3` outline, no shadow, `--ink-2` text. |
+| **Accent button** | Same shape with `--volt` fill and ink text. Used for "Try again", "Continue" inside violet hero cards, and nowhere else. |
+| **Secondary button** | `--surface` fill, ink text weight 800, `s-1`. Hint buttons, "Start", "Play", "Show". |
+| **Icon button** | 46–48 px square, `r-md`, `s-1`, 20 px stroke icon, `aria-label` required. |
+| **Answer input** (numeric, expression) | 3 px outline, `r-lg`, value in `answer` type. Unit cell on the right: `--surface-sunk` fill, divided by a 3 px rule, unit in 22 px 800. Prefix cells (e.g. "×") work the same on the left. States: idle `--outline`; focus `--primary`; wrong `--wrong`; correct `--correct`. Expression inputs show the live KaTeX preview underneath. |
+| **Question card** | `--surface`, 2 px outline, `r-xl`, `s-3`, padding 28 (20 on phones), 20 px gap between blocks. Contains: step tag, chain chip, prompt, figure, answer area, feedback, hint ladder. |
+| **Step tag** | ink fill, white text, `r-sm`, `small` 800 ("Question 3"). |
+| **Chain chip** | `--surface-tint` fill, 2 px `--primary` outline, `--primary-ink` text 15 px 800, link icon: "Builds on Q1 and Q2". |
+| **Figure panel** | `--surface-sunk` fill, 2 px outline, `r-lg`; circuit symbols drawn with 4 px round strokes; the element the question is about is drawn in `--primary`. |
+| **Feedback banner** | `role="status"`. Wrong: `--wrong-tint` fill, 2 px outline, `r-lg`, a 40 px `--wrong` icon tile (down arrow for "too low", up arrow for "too high", ✕ otherwise) and two lines: a short verdict in 800 ("Too low. One more go.") and the misconception line in 400. Correct: same with `--correct-tint` and a check tile ("Nice!", "Called it!"). |
+| **Hint ladder** | Three secondary buttons with icons: "Nudge" (bulb), "Look back" (link), "Half the work" (plus). An opened hint becomes a `--surface-tint` tile with no shadow, and its text appears in a `--surface-tint` bubble (`r-lg`) underneath. |
+| **Facts panel** ("Your facts so far") | A vertical 5 px ink wire on the left with 20 px node dots; each fact is a `--surface` card, 2 px outline, `r-lg`. Facts the current question `uses` switch to `--surface-tint` with a 3 px `--primary` outline, a `0 4px 0 var(--primary)` shadow, a volt node dot and a "Used here" label. The next empty slot is a dashed `--ink-3` card ("Answer Q3 to add the next fact."). On phones and explore screens it collapses to a secondary button with a volt count badge. |
+| **Progress battery** | Ink frame `r-sm` with 4 px padding and a 6×12 px terminal nub on the right; one 16 px cell per screen (3 px gaps): done `--cell-done`, current `--cell-current`, upcoming `--cell-todo`. On Today cards it is 12 px tall. |
+| **XP pill and streak pill** | `--volt` fill, 2 px outline, `r-full`, bolt icon + number in 800. The streak pill adds up to two small battery icons (mint fill) for streak charges. |
+| **Daily goal ring** | 12 px stroke; track `--surface-tint`, progress `--primary`, round caps; the XP number in the centre (19 px 800). |
+| **Path map** | A 16 px ink wire with an 8 px inner line, snaking between nodes on alternating sides. Inner line: subject accent with moving white dots on the completed stretch (current flowing), `#DCD5FA` (dark: `--surface-tint`) ahead. Nodes 64 px circles with 3 px outline and `s-2`: done = subject accent + check; current = 78 px `--primary` with a 96 px `--surface-tint` halo and a white circuit glyph; upcoming = `--surface` with an ink circuit glyph (resistor, parallel pair, battery, junction, meter, capacitor…). Labels sit beside each node in `h3` plus a `small` note; "Try it first" is a volt tag; practice sets and puzzle packs appear as dashed `r-sm` tags under their lesson until unlocked, then as solid secondary buttons. |
+| **Interactive board** | The frame for every interactive in explore screens, challenges and puzzles. Outer: 2 px outline, `r-xl`, `s-3`. Canvas: `--board` with a 22 px dot grid (`radial-gradient(var(--board-dot) 1.6px, transparent 1.6px)`). Controls bar underneath in `--board-bar` with the controls on the left and a one-line legend on the right. **Colour language inside every interactive:** idle wires and inactive parts `--wire-idle` (5 px); live current, live readings and anything energised `--wire-live` (6 px, readouts as volt badges `r-sm` with ink 800 text); things the learner controls `--control` / `--primary`; targets `--target-on-board`, always dashed; components drawn in white 4 px strokes. |
+| **Task list** (explore "missions") | Done tasks: `--correct-tint` cards with a 34 px `--correct` check tile and short past-tense copy ("Called it! You predicted…"). Current task: `--surface` card with a 3 px `--primary` outline and `0 5px 0 var(--primary)` shadow, holding its widget. Upcoming tasks are hidden until unlocked. |
+| **Puzzle tiles** | 3-column grid, 10 px gaps, tiles 92 px tall, `r-lg`, big level number (28 px 800). Solved: `--surface` + `s-1` + three 18 px stars (volt fill, ink stroke; empty stars white). Current: `--primary` + `s-2` + "Play". Open: dashed `--ink-3` outline, "Open". Locked: `--surface-tint`, no shadow, lock icon. |
+| **Pack hero** | Subject-accent card, `r-xl`, `s-2`, `display` title, star total, a circuit doodle in the top-right corner (ink strokes with white accents). |
+| **Bottom navigation** (phone) | A floating `--surface` bar 12 px from the screen edges, 2 px outline, `r-xl`; five tabs (Today, Learn, Practice, Puzzles, Profile) with 22 px icons and 12 px labels; the active tab is a `--primary` pill with white text. |
+| **Chips** | Concept chips: `--surface-tint`, `r-full`, `small` 600. Status tags: `r-sm`, 2 px outline. |
+
+**Icons:** 24 px grid, 2.2–2.6 px round strokes, round joins; bolt and star are filled. Circuit symbols follow standard schematic shapes. No emoji anywhere.
+
+### 10.6 Motion
+
+Only these things move, and every one of them is replaced by an instant state change under `prefers-reduced-motion` or the reduced-motion setting:
+
+| Moment | Motion |
+|---|---|
+| Pressing any pressable | Drops onto its shadow (80 ms) and springs back on release. |
+| Correct answer | The question card pops once (scale 1 → 1.02 → 1, 180 ms); the feedback banner slides in from 8 px below (150 ms); the XP pill counts up. |
+| Wrong answer | The input shakes three times by 6 px (240 ms) and its outline turns `--wrong`. |
+| Current flowing | White dots travel along live wires on the path map and interactive boards (about 40 px/s, looping). |
+| Lesson or level complete | The progress battery's remaining cells fill left to right (60 ms each), then eight volt sparks burst from the last cell once. |
+| Streak extended | The streak pill's number rolls up by one. |
+
+Nothing else animates on its own: no entrance animations on cards, no hover effects beyond the press affordance.
+
+### 10.7 Voice in the interface
+
+- Short, warm, and specific, with a little game energy where it's earned: "Called it!", "Too low. One more go.", "Three stars: no hints, and no more parts than par."
+- Feedback names the idea, never the learner: "The current halves once, not once per resistor", not "You got confused".
+- Buttons say exactly what happens: "Continue lesson", "Try again", "Play level 7", "Start practice".
+- Empty and locked states say how to open them: "Practice set opens when you finish", "Answer Q3 to add the next fact."
 
 ---
 
@@ -2781,7 +2928,7 @@ For interactives with a challenge creator (`circuit-builder`, `function-target`,
 - **Interactives:**
   - Each implements `describeState()`, rendered in a visually hidden live region.
   - Where feasible, offer a keyboard alternative. For example, `circuit-builder` has a list-based editor ("add resistor between node 1 and node 2"), and graph interactives accept typed coordinates.
-- Colour palettes are colour-blind safe; series in plots are also distinguished by dash pattern or label.
+- Colour palettes are colour-blind safe; series in plots are also distinguished by dash pattern or label. Text colours follow the contrast rules in §10.4 (text on volt, correct and wrong fills is always ink).
 - KaTeX output must keep its MathML for screen readers.
 
 ---
@@ -4140,6 +4287,7 @@ Turn the concept phrases into slugs in each subject's `concepts.yaml` (with `req
 - [ ] All 8 subjects and every unit and lesson in §16 are browsable on path maps; unfinished lessons show "Coming soon".
 - [ ] Initial JS ≤ 250 KB gzipped; widgets, interactives, Pyodide and three.js lazy-load; interactives run at 60 fps on a mid-range phone.
 - [ ] Keyboard-only play-through of a full lesson is possible, including every drag-and-drop widget; contrast meets AA; reduced motion respected.
+- [ ] Every screen uses the Arcade tokens and components of §10.3–10.7 (no raw hex values in components); light and dark themes both pass contrast checks.
 
 **Lessons**
 - [ ] The reference lesson (§7.8) is implemented exactly and passes the validator with zero errors.

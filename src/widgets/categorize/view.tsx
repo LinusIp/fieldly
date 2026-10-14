@@ -24,7 +24,7 @@ function Bucket({ id, title, children }: { id: string; title: string; children: 
     <section
       ref={setNodeRef}
       aria-label={title}
-      className={`min-h-[96px] rounded-xl border-2 border-dashed p-2 ${isOver ? 'border-accent bg-accent-soft' : 'border-border bg-bg'}`}
+      className={`min-h-[96px] rounded-xl border-2 border-dashed p-2 ${isOver ? 'border-primary bg-surface-tint' : 'border-outline bg-surface-sunk'}`}
       data-bucket={id}
     >
       <h3 className="mb-2 text-sm font-semibold">{title}</h3>
@@ -60,12 +60,12 @@ function Card({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform) }}
-      className={`flex items-center gap-1 rounded-lg border-2 bg-surface px-2 py-1 text-sm ${mark === undefined ? 'border-border' : mark ? 'border-ok' : 'border-bad'} ${isDragging ? 'z-10 shadow-lg' : ''}`}
+      className={`flex items-center gap-1 rounded-lg border-2 bg-surface px-2 py-1 text-sm ${mark === undefined ? 'border-outline' : mark ? 'border-correct' : 'border-wrong'} ${isDragging ? 'z-10 shadow-lg' : ''}`}
       data-card={i}
     >
       <button
         type="button"
-        className={`min-h-[36px] px-1 text-muted ${disabled ? '' : 'cursor-grab'}`}
+        className={`min-h-[44px] px-1 text-ink-2 ${disabled ? '' : 'cursor-grab'}`}
         aria-label="Drag card. Space to pick up, arrows to move, Space to drop."
         disabled={disabled}
         {...attributes}
@@ -80,7 +80,7 @@ function Card({
       {!disabled && (
         <select
           aria-label="Move card to"
-          className="ml-1 min-h-[36px] max-w-[8rem] rounded border border-border bg-bg text-xs"
+          className="ml-1 min-h-[44px] max-w-[8rem] rounded border-2 border-outline bg-surface-sunk text-xs"
           value={bucket ?? ''}
           onChange={(e) => place(e.target.value || null)}
           data-testid="card-select"
@@ -164,7 +164,7 @@ export function CategorizeView({
         </div>
       </DndContext>
       {reveal && (
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-sm text-ink-2">
           Every card is shown in its correct bucket; “Misplaced” marks the ones you had elsewhere.
         </p>
       )}

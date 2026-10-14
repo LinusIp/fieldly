@@ -25,8 +25,10 @@ function RadioGroup<T extends string | number>({
         {options.map((o) => (
           <label
             key={String(o.value)}
-            className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
-              value === o.value ? 'border-accent bg-accent-soft font-semibold text-accent' : 'border-border'
+            className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
+              value === o.value
+                ? 'border-primary bg-surface-tint font-semibold text-primary-ink'
+                : 'border-outline'
             }`}
           >
             <input
@@ -38,7 +40,7 @@ function RadioGroup<T extends string | number>({
             />
             {value === o.value && <span aria-hidden="true">✓</span>}
             {o.label}
-            {o.hint && <span className="text-xs font-normal text-muted">{o.hint}</span>}
+            {o.hint && <span className="text-xs font-normal text-ink-2">{o.hint}</span>}
           </label>
         ))}
       </div>
@@ -47,7 +49,7 @@ function RadioGroup<T extends string | number>({
 }
 
 function Section({ children }: { children: ReactNode }) {
-  return <section className="rounded-xl border border-border bg-surface p-5">{children}</section>;
+  return <section className="rounded-xl border-2 border-outline bg-surface p-5">{children}</section>;
 }
 
 export default function SettingsPage() {
@@ -58,9 +60,11 @@ export default function SettingsPage() {
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 px-4 py-8">
-      <h1 className="text-2xl font-semibold">Settings</h1>
-      <p className="text-sm text-muted">Settings are saved in this browser along with your progress.</p>
+    <div className="mx-auto max-w-[760px] space-y-4 px-[18px] py-6 md:px-6">
+      <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.02em] md:text-display">
+        Settings
+      </h1>
+      <p className="text-sm text-ink-2">Settings are saved in this browser along with your progress.</p>
 
       <Section>
         <RadioGroup
@@ -89,7 +93,7 @@ export default function SettingsPage() {
             { value: 1.25, label: 'Larger' },
           ]}
         />
-        <p className="mt-3 text-sm text-muted" style={{ fontSize: `${settings.fontScale}em` }}>
+        <p className="mt-3 text-sm text-ink-2" style={{ fontSize: `${settings.fontScale}em` }}>
           Preview: a 6 V battery drives 2 A through a 3 Ω resistor.
         </p>
       </Section>
@@ -100,11 +104,11 @@ export default function SettingsPage() {
             type="checkbox"
             checked={settings.reducedMotion}
             onChange={(e) => set({ reducedMotion: e.target.checked })}
-            className="mt-1 h-4 w-4 accent-[var(--c-accent)]"
+            className="mt-1 h-4 w-4 accent-[var(--primary)]"
           />
           <span>
             <span className="font-semibold">Reduce motion</span>
-            <span className="block text-sm text-muted">
+            <span className="block text-sm text-ink-2">
               Turns off animations such as the current flow in circuits.
               {osReduced && ' Your device already asks for reduced motion, so animations are off either way.'}
             </span>
@@ -123,7 +127,7 @@ export default function SettingsPage() {
             { value: 'javascript', label: 'JavaScript' },
           ]}
         />
-        <p className="mt-2 text-sm text-muted">Used as the starting language in coding challenges.</p>
+        <p className="mt-2 text-sm text-ink-2">Used as the starting language in coding challenges.</p>
       </Section>
     </div>
   );

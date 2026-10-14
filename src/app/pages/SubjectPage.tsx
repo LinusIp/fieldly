@@ -1,140 +1,286 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
+import { BackIcon, Badge, buttonClass, CheckIcon, ErrorState, Loading, Stars } from '../../components/ui';
 import { FEATURES } from '../../config';
 import { allLessons, findLesson, useContentIndex } from '../../content/loader';
-import type { ContentIndex, LessonMeta, PuzzlePackMeta, SubjectMeta, UnitMeta } from '../../content/types';
+import type { ContentIndex, LessonMeta, SubjectMeta, UnitMeta } from '../../content/types';
 import { useProgress } from '../../storage/progress';
 import type { Progress } from '../../storage/schema';
-import { Badge, ErrorState, Loading, Stars } from '../../components/ui';
 import { NotFoundPage } from './NotFoundPage';
 
-/** Node states on the path map (§3.7), coloured consistently. */
-type NodeState = 'soon' | 'locked' | 'available' | 'in-progress' | 'completed' | 'mastered';
+/** Node states on the path map (§3.7). */
+type NodeState = 'soon' | 'available' | 'current' | 'in-progress' | 'completed';
 
 const STATE_LABEL: Record<NodeState, string> = {
   soon: 'coming soon',
-  locked: 'locked',
-  available: 'available',
+  available: 'not started',
+  current: 'up next',
   'in-progress': 'in progress',
   completed: 'completed',
-  mastered: 'mastered',
 };
 
 function lessonState(l: LessonMeta, progress: Progress): NodeState {
   if (!l.available) return 'soon';
   const s = progress.lessons[l.id]?.status;
-  if (s === 'completed') return 'completed';
+  if (s === 'completed' || s === 'tested-out') return 'completed';
   if (s === 'in-progress') return 'in-progress';
   return 'available';
 }
 
-function NodeDot({
-  state,
-  kind,
-  label,
-}: {
-  state: NodeState;
-  kind: 'lesson' | 'side' | 'gate';
-  label: ReactNode;
-}) {
-  const size = kind === 'lesson' ? 'h-10 w-10 text-sm' : 'h-7 w-7 text-xs';
-  const shape = kind === 'gate' ? 'rounded-lg' : 'rounded-full';
-  const look: Record<NodeState, string> = {
-    soon: 'border-2 border-dashed border-border bg-bg text-muted',
-    locked: 'border-2 border-border bg-surface-2 text-muted',
-    available: 'border-2 border-accent bg-surface text-accent',
-    'in-progress': 'border-2 border-accent bg-accent-soft text-accent',
-    completed: 'border-2 border-accent bg-accent text-on-accent',
-    mastered: 'border-2 border-ok bg-ok text-on-accent',
-  };
+/** Circuit-symbol glyphs for upcoming nodes (§10.5), cycled through a unit. */
+const GLYPHS: ReactNode[] = [
+  <path key="r" d="M1 15h6l2.5-6 4 12 4-12 4 12 2.5-6h6" />,
+  <path
+    key="p"
+    d="M2 15h5M23 15h5M7 6v18M23 6v18M7 6h4l1.5-3 3 6 3-6 1.5 3h3M7 24h4l1.5-3 3 6 3-6 1.5 3h3"
+  />,
+  <g key="b">
+    <path d="M2 15h9M19 15h9" />
+    <path d="M11 5v20" strokeWidth="3" />
+    <path d="M19 10v10" strokeWidth="5" />
+  </g>,
+  <g key="j">
+    <path d="M3 15h12M15 15l10-9M15 15l10 9" />
+    <circle cx="15" cy="15" r="3.5" fill="currentColor" />
+  </g>,
+  <g key="m">
+    <circle cx="15" cy="15" r="9" />
+    <path d="M11 19l4-9 4 9" />
+  </g>,
+  <path key="c" d="M2 15h10M18 15h10M12 6v18M18 6v18" />,
+];
+
+function Glyph({ i, className = 'h-[30px] w-[30px]' }: { i: number; className?: string }) {
   return (
-    <span
+    <svg
+      viewBox="0 0 30 30"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
-      className={`relative z-10 flex shrink-0 items-center justify-center font-semibold ${size} ${shape} ${look[state]}`}
     >
-      {label}
+      {GLYPHS[i % GLYPHS.length]}
+    </svg>
+  );
+}
+
+const ROW = 132;
+const W = 390;
+const LEFT_X = 95;
+const RIGHT_X = 295;
+const TOP = ROW / 2;
+
+/** The snaking wire through the node centres: accent with flowing dots behind, light ahead. */
+function Wire({ count, lit }: { count: number; lit: number }) {
+  if (count === 0) return null;
+  const pts = Array.from(
+    { length: count },
+    (_, i) => [i % 2 === 0 ? LEFT_X : RIGHT_X, TOP + i * ROW] as const,
+  );
+  const seg = (i: number) => {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[i + 1];
+    return `M${x0} ${y0} C ${x0} ${y0 + 70}, ${x1} ${y1 - 70}, ${x1} ${y1}`;
+  };
+  const all = pts
+    .slice(0, -1)
+    .map((_, i) => seg(i))
+    .join(' ');
+  const tail = `M${pts[count - 1][0]} ${pts[count - 1][1]} L ${pts[count - 1][0]} ${pts[count - 1][1] + 60}`;
+  const litPath = pts
+    .slice(0, Math.max(0, lit))
+    .map((_, i) => (i < count - 1 ? seg(i) : ''))
+    .join(' ');
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${count * ROW}`}
+      className="pointer-events-none absolute inset-x-0 top-0 h-full w-full"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d={`${all} ${tail}`}
+        fill="none"
+        stroke="var(--outline)"
+        strokeWidth="16"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d={`${all} ${tail}`}
+        fill="none"
+        stroke="var(--path-ahead)"
+        strokeWidth="8"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      {litPath && (
+        <>
+          <path
+            d={litPath}
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={litPath}
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="2 18"
+            opacity="0.9"
+            className="flow-anim"
+            vectorEffect="non-scaling-stroke"
+          />
+        </>
+      )}
+    </svg>
+  );
+}
+
+function SideTags({
+  lesson,
+  completed,
+  subject,
+}: {
+  lesson: LessonMeta;
+  completed: boolean;
+  subject: SubjectMeta;
+}) {
+  if (!lesson.available) return null;
+  const packs = subject.puzzles.filter((p) => p.unlockAfter === lesson.id);
+  const practiceOpen = FEATURES.practice && completed;
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {practiceOpen ? (
+        <Link
+          to={`/practice/lesson/${lesson.id}`}
+          className={buttonClass('secondary', 'min-h-[44px] px-3 text-small')}
+        >
+          Practice set
+        </Link>
+      ) : (
+        <Badge tone="dashed">
+          {FEATURES.practice ? 'Practice set opens when you finish' : 'Practice sets are coming soon'}
+        </Badge>
+      )}
+      {packs.map((p) =>
+        FEATURES.puzzles && completed ? (
+          <Link
+            key={p.id}
+            to={`/puzzles/${p.id}`}
+            className={buttonClass('secondary', 'min-h-[44px] px-3 text-small')}
+          >
+            {p.title}: {p.levels} puzzles
+          </Link>
+        ) : (
+          <Badge key={p.id} tone="dashed">
+            {FEATURES.puzzles
+              ? `${p.levels} ${p.title} puzzles open when you finish`
+              : `${p.title} puzzles coming soon`}
+          </Badge>
+        ),
+      )}
     </span>
   );
 }
 
-/** One row on the path: a dot, then text. Becomes a link only when it leads somewhere playable. */
-function PathNode({
-  to,
-  state,
-  kind,
-  dot,
-  title,
-  meta,
-  children,
-  testId,
-}: {
-  to?: string;
-  state: NodeState;
-  kind: 'lesson' | 'side' | 'gate';
-  dot: ReactNode;
-  title: string;
-  meta?: ReactNode;
-  children?: ReactNode;
-  testId?: string;
-}) {
-  const indent = kind === 'side' ? 'pl-[3px] sm:pl-1.5' : '';
-  const body = (
-    <div className={`flex items-start gap-4 ${indent}`}>
-      <NodeDot state={state} kind={kind} label={dot} />
-      <div className="min-w-0 flex-1 pt-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`${kind === 'lesson' ? 'font-medium' : 'text-sm'} ${state === 'soon' ? 'text-muted' : 'text-text'}`}
-          >
-            {title}
-          </span>
-          {meta}
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-  return (
-    <li className="relative py-2" data-lesson-id={testId} data-state={state}>
-      {to ? (
-        <Link
-          to={to}
-          className="block rounded-lg px-2 py-1 no-underline hover:bg-surface-2"
-          aria-label={`${title}, ${STATE_LABEL[state]}`}
-        >
-          {body}
-        </Link>
-      ) : (
-        <div className="px-2 py-1" aria-label={`${title}, ${STATE_LABEL[state]}`}>
-          {body}
-        </div>
-      )}
-    </li>
-  );
-}
-
-function RecommendedFirst({
+function LessonNode({
   lesson,
+  i,
+  state,
   progress,
+  subject,
   index,
 }: {
   lesson: LessonMeta;
+  i: number;
+  state: NodeState;
   progress: Progress;
+  subject: SubjectMeta;
   index: ContentIndex;
 }) {
+  const right = i % 2 === 1;
+  const lp = progress.lessons[lesson.id];
+  const attempt = lp?.attempt;
+  const isCurrent = state === 'current' || state === 'in-progress';
   const missing = lesson.prerequisites.filter((p) => progress.lessons[p]?.status !== 'completed');
-  if (!lesson.available || missing.length === 0 || progress.lessons[lesson.id]?.status === 'completed')
-    return null;
-  return (
-    <p className="mt-1 text-xs text-warn">
-      Recommended first:{' '}
-      {missing.map((p, i) => (
-        <span key={p}>
-          {i > 0 && ', '}
-          {findLesson(index, p)?.lesson.title ?? p}
+  const note =
+    state === 'soon'
+      ? 'Coming soon'
+      : state === 'in-progress' && attempt
+        ? `Screen ${attempt.screenIndex + 1} of ${attempt.sequence.length}`
+        : lesson.estimatedMinutes
+          ? `About ${lesson.estimatedMinutes} minutes`
+          : undefined;
+
+  let dot: ReactNode;
+  if (state === 'completed')
+    dot = (
+      <span className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-outline bg-[var(--accent)] text-on-fill shadow-s2">
+        <CheckIcon className="h-7 w-7" />
+      </span>
+    );
+  else if (isCurrent)
+    dot = (
+      <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-tint">
+        <span className="flex h-[78px] w-[78px] items-center justify-center rounded-full border-[3px] border-outline bg-primary text-on-primary shadow-s2">
+          <Glyph i={i} className="h-9 w-9" />
         </span>
-      ))}
-    </p>
+      </span>
+    );
+  else
+    dot = (
+      <span
+        className={`flex h-16 w-16 items-center justify-center rounded-full border-[3px] bg-surface text-ink shadow-s2 ${state === 'soon' ? 'border-dashed border-ink-3 text-ink-3 shadow-none' : 'border-outline'}`}
+      >
+        <Glyph i={i} />
+      </span>
+    );
+
+  const label = `${lesson.title}, ${STATE_LABEL[state]}`;
+  return (
+    <li
+      className={`relative flex items-center gap-3.5 ${right ? 'flex-row-reverse text-right' : ''}`}
+      style={{
+        height: ROW,
+        paddingLeft: right ? 0 : `calc(${(LEFT_X / W) * 100}% - ${isCurrent ? 48 : 32}px)`,
+        paddingRight: right ? `calc(${((W - RIGHT_X) / W) * 100}% - ${isCurrent ? 48 : 32}px)` : 0,
+      }}
+      data-lesson-id={lesson.id}
+      data-state={state === 'current' ? 'available' : state}
+    >
+      <Link
+        to={`/l/${lesson.id}`}
+        aria-label={label}
+        className="relative z-10 shrink-0 rounded-full no-underline transition-transform active:translate-y-1"
+      >
+        {dot}
+      </Link>
+      <div className={`flex min-w-0 flex-col gap-1 ${right ? 'items-end' : 'items-start'}`}>
+        <Link
+          to={`/l/${lesson.id}`}
+          className="inline-flex min-h-[44px] items-center text-h3 text-ink no-underline hover:underline"
+        >
+          {lesson.title}
+        </Link>
+        {lesson.tryFirst && <Badge tone="warn">Try it first</Badge>}
+        {state === 'completed' && <Stars count={lp?.stars ?? 0} />}
+        {note && <span className="text-small font-semibold text-ink-2">{note}</span>}
+        {missing.length > 0 && state !== 'completed' && lesson.available && (
+          <span className="text-small font-semibold text-ink-2">
+            Recommended first: {missing.map((p) => findLesson(index, p)?.lesson.title ?? p).join(', ')}
+          </span>
+        )}
+        <SideTags lesson={lesson} completed={state === 'completed'} subject={subject} />
+      </div>
+    </li>
   );
 }
 
@@ -144,140 +290,76 @@ function UnitPath({
   subject,
   progress,
   index,
+  currentId,
 }: {
   unit: UnitMeta;
   number: number;
   subject: SubjectMeta;
   progress: Progress;
   index: ContentIndex;
+  currentId?: string;
 }) {
-  const packsAfter = (lessonId: string): PuzzlePackMeta[] =>
-    subject.puzzles.filter((p) => p.unlockAfter === lessonId);
-  const done = unit.lessons.filter((l) => progress.lessons[l.id]?.status === 'completed').length;
+  const states = unit.lessons.map((l) => {
+    const s = lessonState(l, progress);
+    return l.id === currentId && s === 'available' ? 'current' : s;
+  });
+  const done = states.filter((s) => s === 'completed').length;
+  // Current flows up to the first lesson that isn't finished.
+  const firstOpen = states.findIndex((s) => s !== 'completed');
+  const lit = firstOpen === -1 ? unit.lessons.length : firstOpen + 1;
   const anyAvailable = unit.lessons.some((l) => l.available);
   const allDone = done === unit.lessons.length;
-
   return (
-    <section
-      className="rounded-xl border border-border bg-surface p-4 sm:p-5"
-      aria-labelledby={`unit-${unit.id}`}
-    >
-      <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-sm font-semibold text-muted">Unit {number}</span>
-        <h2 id={`unit-${unit.id}`} className="flex-1 text-lg font-semibold">
-          {unit.title}
-        </h2>
-        <span className="text-xs text-muted">
-          Level {unit.baseDifficulty} · {done}/{unit.lessons.length} lessons
+    <section aria-labelledby={`unit-${unit.id}`} className="flex flex-col gap-2">
+      <header className="flex items-center gap-3">
+        <div className="flex flex-1 flex-col">
+          <span className="text-small font-semibold text-ink-2">Unit {number}</span>
+          <h2 id={`unit-${unit.id}`} className="text-h2">
+            {unit.title}
+          </h2>
+        </div>
+        <span
+          className="tabular rounded-[12px] border-2 border-outline bg-surface px-2.5 py-1 font-extrabold"
+          aria-label={`${done} of ${unit.lessons.length} lessons done`}
+        >
+          {done}/{unit.lessons.length}
         </span>
       </header>
-      <ol className="relative mt-3 before:absolute before:bottom-6 before:left-[27px] before:top-6 before:w-0.5 before:bg-border">
-        {unit.lessons.map((l, li) => {
-          const state = lessonState(l, progress);
-          const lp = progress.lessons[l.id];
-          const completed = state === 'completed';
-          const practiceState: NodeState =
-            !l.available || !FEATURES.practice ? 'soon' : completed ? 'available' : 'locked';
-          return [
-            <PathNode
+      <div className="relative mx-auto w-full max-w-[390px]">
+        <Wire count={unit.lessons.length} lit={lit} />
+        <ol role="list" aria-label={`Lessons in unit ${number}`} className="relative">
+          {unit.lessons.map((l, i) => (
+            <LessonNode
               key={l.id}
-              testId={l.id}
-              to={`/l/${l.id}`}
-              state={state}
-              kind="lesson"
-              dot={li + 1}
-              title={l.title}
-              meta={
-                <>
-                  {state === 'soon' && <Badge>Coming soon</Badge>}
-                  {state === 'in-progress' && <Badge tone="accent">In progress</Badge>}
-                  {l.tryFirst && <Badge tone="warn">Try first</Badge>}
-                  {l.available && <Stars count={lp?.stars ?? 0} />}
-                  {l.estimatedMinutes && <span className="text-xs text-muted">{l.estimatedMinutes} min</span>}
-                </>
-              }
-            >
-              <RecommendedFirst lesson={l} progress={progress} index={index} />
-            </PathNode>,
-            l.available && (
-              <PathNode
-                key={`${l.id}#practice`}
-                to={practiceState === 'available' ? `/practice/lesson/${l.id}` : undefined}
-                state={practiceState}
-                kind="side"
-                dot="↻"
-                title="Practice set"
-                meta={
-                  practiceState === 'locked' ? (
-                    <span className="text-xs text-muted">Complete the lesson to unlock</span>
-                  ) : practiceState === 'soon' ? (
-                    <Badge>Coming soon</Badge>
-                  ) : null
-                }
-              />
-            ),
-            ...packsAfter(l.id).map((p) => {
-              const ps: NodeState = !FEATURES.puzzles ? 'soon' : completed ? 'available' : 'locked';
-              return (
-                <PathNode
-                  key={p.id}
-                  to={ps === 'available' ? `/puzzles/${p.id}` : undefined}
-                  state={ps}
-                  kind="side"
-                  dot="★"
-                  title={`${p.title} — puzzle pack`}
-                  meta={
-                    ps === 'locked' ? (
-                      <span className="text-xs text-muted">Unlocks after “{l.title}”</span>
-                    ) : ps === 'soon' ? (
-                      <Badge>Coming soon</Badge>
-                    ) : (
-                      <span className="text-xs text-muted">{p.levels} levels</span>
-                    )
-                  }
-                />
-              );
-            }),
-          ];
-        })}
-        <PathNode
-          key="checkpoint"
-          to={anyAvailable && FEATURES.practice ? `/checkpoint/${unit.id}` : undefined}
-          state={anyAvailable && FEATURES.practice ? 'available' : 'soon'}
-          kind="gate"
-          dot="✓"
-          title="Unit checkpoint"
-          meta={
-            anyAvailable && FEATURES.practice ? (
-              <span className="text-xs text-muted">
-                {unit.checkpointItems} mixed questions · pass to test out
-              </span>
-            ) : (
-              <Badge>Coming soon</Badge>
-            )
-          }
-        />
-        <PathNode
-          key="hard"
-          to={allDone && FEATURES.practice ? `/practice/hard/${unit.id}` : undefined}
-          state={!anyAvailable || !FEATURES.practice ? 'soon' : allDone ? 'available' : 'locked'}
-          kind="gate"
-          dot="⚡"
-          title="Hard mode"
-          meta={
-            !anyAvailable || !FEATURES.practice ? (
-              <Badge>Coming soon</Badge>
-            ) : allDone ? null : (
-              <span className="text-xs text-muted">Complete every lesson in the unit to unlock</span>
-            )
-          }
-        />
-      </ol>
+              lesson={l}
+              i={i}
+              state={states[i]}
+              progress={progress}
+              subject={subject}
+              index={index}
+            />
+          ))}
+        </ol>
+      </div>
+      <div className="flex flex-wrap gap-2 pt-2">
+        <Badge tone="dashed">
+          {anyAvailable && FEATURES.practice
+            ? `Unit checkpoint: ${unit.checkpointItems} mixed questions`
+            : 'Unit checkpoint coming soon'}
+        </Badge>
+        <Badge tone="dashed">
+          {!anyAvailable || !FEATURES.practice
+            ? 'Hard mode coming soon'
+            : allDone
+              ? 'Hard mode is open'
+              : 'Hard mode opens when you finish every lesson'}
+        </Badge>
+      </div>
     </section>
   );
 }
 
-/** `#/s/:subjectId`: the subject's path map (§3.7, §10.1). */
+/** `#/s/:subjectId`: the subject's path map (§3.7, §10.5). */
 export function SubjectPage() {
   const { subjectId } = useParams();
   const { data: index, error } = useContentIndex();
@@ -288,46 +370,59 @@ export function SubjectPage() {
   if (!subject) return <NotFoundPage />;
   const lessons = allLessons(subject);
   const completed = lessons.filter((l) => progress.lessons[l.id]?.status === 'completed').length;
+  const inProgress = lessons.find((l) => progress.lessons[l.id]?.status === 'in-progress');
+  const next =
+    inProgress ?? lessons.find((l) => l.available && progress.lessons[l.id]?.status !== 'completed');
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <nav aria-label="Breadcrumb" className="text-sm text-muted">
-        <Link to="/subjects" className="hover:text-accent">
-          Subjects
-        </Link>{' '}
-        / <span aria-current="page">{subject.short}</span>
-      </nav>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">{subject.title}</h1>
-      <p className="mt-2 text-muted">{subject.description}</p>
-      <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-sm">
-        <div>
-          <dt className="inline text-muted">Prerequisites: </dt>
-          <dd className="inline">
-            {subject.prerequisites.length === 0 && !subject.background && 'none'}
+    <div
+      className="mx-auto flex max-w-[760px] flex-col gap-8 px-[18px] py-6 md:px-6"
+      style={{ '--accent': `var(--color-${subject.id}, var(--volt))` } as CSSProperties}
+    >
+      <header className="flex items-center gap-3">
+        <Link
+          to="/subjects"
+          aria-label="Back to subjects"
+          className="press press-s1 flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-surface text-ink"
+        >
+          <BackIcon />
+        </Link>
+        <div className="flex flex-1 flex-col">
+          <span className="text-small font-semibold text-ink-2">
+            {completed} of {lessons.length} lessons done
+          </span>
+          <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.02em] md:text-display">
+            {subject.title}
+          </h1>
+        </div>
+      </header>
+      <p className="-mt-4 max-w-[640px] text-ink-2">
+        {subject.description}
+        {(subject.prerequisites.length > 0 || subject.background) && (
+          <>
+            {' '}
+            Before this:{' '}
             {subject.prerequisites.map((p, i) => (
               <span key={p}>
                 {i > 0 && ', '}
-                <Link to={`/s/${p}`} className="text-accent underline">
+                <Link to={`/s/${p}`} className="font-semibold text-primary-ink underline">
                   {index.subjects.find((s) => s.id === p)?.title ?? p}
                 </Link>
               </span>
             ))}
-            {subject.background && (
-              <span>
-                {subject.prerequisites.length > 0 && ' · '}
-                {subject.background}
-              </span>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt className="inline text-muted">Progress: </dt>
-          <dd className="inline">
-            {completed} of {lessons.length} lessons completed
-          </dd>
-        </div>
-      </dl>
-      <div className="mt-8 space-y-4" data-testid="path-map">
+            {subject.background && `${subject.prerequisites.length ? '; ' : ''}${subject.background}`}.
+          </>
+        )}
+      </p>
+      {next && (
+        <Link
+          to={`/l/${next.id}`}
+          className={buttonClass('primary', 'min-h-[56px] self-start px-8 text-[19px]')}
+        >
+          {inProgress ? `Continue: ${next.title}` : `Start: ${next.title}`}
+        </Link>
+      )}
+      <div className="flex flex-col gap-10" data-testid="path-map">
         {subject.units.map((unit, ui) => (
           <UnitPath
             key={unit.id}
@@ -336,6 +431,7 @@ export function SubjectPage() {
             subject={subject}
             progress={progress}
             index={index}
+            currentId={next?.id}
           />
         ))}
       </div>

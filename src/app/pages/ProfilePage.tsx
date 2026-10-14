@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Markdown } from '../../components/Markdown';
-import { Badge, Button, ErrorState, Loading } from '../../components/ui';
+import { Badge, Button, ErrorState, Loading, SettingsIcon } from '../../components/ui';
 import { findLesson, loadSubject, useContentIndex } from '../../content/loader';
 import { nsId, type SubjectContent } from '../../content/types';
 import { recall } from '../../engine/memory';
@@ -77,8 +77,19 @@ export default function ProfilePage() {
     });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
-      <h1 className="text-2xl font-semibold">Your progress</h1>
+    <div className="mx-auto max-w-[1000px] space-y-6 px-[18px] py-6 md:px-6">
+      <header className="flex items-center justify-between gap-3">
+        <h1 className="text-[30px] leading-[1.05] font-extrabold tracking-[-0.02em] md:text-display">
+          Your progress
+        </h1>
+        <Link
+          to="/settings"
+          className="press press-s1 inline-flex min-h-[48px] items-center gap-2 rounded-md bg-surface px-4 font-extrabold text-ink no-underline"
+        >
+          <SettingsIcon />
+          Settings
+        </Link>
+      </header>
 
       <section aria-label="Totals" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -87,25 +98,25 @@ export default function ProfilePage() {
           ['Questions answered', s.questionsAnswered],
           ['XP', s.xp],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-xl border border-border bg-surface p-4">
+          <div key={label} className="rounded-xl border-2 border-outline bg-surface p-4">
             <div className="text-2xl font-semibold">{value}</div>
-            <div className="text-xs text-muted">{label}</div>
+            <div className="text-xs text-ink-2">{label}</div>
           </div>
         ))}
       </section>
 
-      <section className="rounded-xl border border-border bg-surface p-5">
+      <section className="rounded-xl border-2 border-outline bg-surface p-5">
         <h2 className="font-semibold">Concepts</h2>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-ink-2">
           A level appears after 3 graded answers: Practised → Proficient → Mastered. “Needs review” means it's
           time to practise it again.
         </p>
         {groups.length === 0 && (
-          <p className="mt-3 text-sm text-muted">Answer some questions to see your concepts here.</p>
+          <p className="mt-3 text-sm text-ink-2">Answer some questions to see your concepts here.</p>
         )}
         {groups.map(({ subj, rows }) => (
           <div key={subj.id} className="mt-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{subj.title}</h3>
+            <h3 className="text-h3 text-ink">{subj.title}</h3>
             <ul className="mt-2 space-y-2" data-testid={`concepts-${subj.id}`}>
               {rows.map((c) => (
                 <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -115,7 +126,7 @@ export default function ProfilePage() {
                     {c.level ? (
                       <Badge tone={LEVEL[c.level].tone}>{LEVEL[c.level].label}</Badge>
                     ) : (
-                      <span className="text-xs text-muted">{Math.min(c.n, 3)} of 3 answers</span>
+                      <span className="text-xs text-ink-2">{Math.min(c.n, 3)} of 3 answers</span>
                     )}
                   </span>
                 </li>
@@ -125,24 +136,25 @@ export default function ProfilePage() {
         ))}
       </section>
 
-      <section className="rounded-xl border border-border bg-surface p-5">
+      <section className="rounded-xl border-2 border-outline bg-surface p-5">
         <h2 className="font-semibold">Misconceptions you've met most</h2>
         {misconceptions.length === 0 ? (
-          <p className="mt-1 text-sm text-muted">None yet.</p>
+          <p className="mt-1 text-sm text-ink-2">None yet.</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {misconceptions.map((m) => (
-              <li key={m.id} className="rounded-lg bg-bg p-3 text-sm">
+              <li key={m.id} className="rounded-lg bg-surface-sunk p-3 text-sm">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium">
                     <Markdown inline>{m.info?.short ?? m.id}</Markdown>
                   </span>
-                  <span className="text-xs text-muted">
-                    {m.count}× · last {new Date(m.lastSeen).toLocaleDateString()}
+                  <span className="text-xs text-ink-2">
+                    met {m.count} time{m.count === 1 ? '' : 's'}, last on{' '}
+                    {new Date(m.lastSeen).toLocaleDateString()}
                   </span>
                 </div>
                 {m.info && (
-                  <div className="mt-1 text-muted">
+                  <div className="mt-1 text-ink-2">
                     <Markdown>{m.info.explain}</Markdown>
                   </div>
                 )}
@@ -153,8 +165,8 @@ export default function ProfilePage() {
                       const loc = findLesson(index, l);
                       return (
                         <span key={l}>
-                          {i > 0 && ' · '}
-                          <Link to={`/l/${l}`} className="text-accent underline">
+                          {i > 0 && ', '}
+                          <Link to={`/l/${l}`} className="text-primary-ink underline">
                             {loc?.lesson.title ?? l}
                           </Link>
                           {loc && !loc.lesson.available && ' (coming soon)'}
@@ -194,11 +206,11 @@ function BackupSection({ progress }: { progress: Progress }) {
   };
 
   return (
-    <section className="rounded-xl border border-border bg-surface p-5" aria-labelledby="backup-h">
+    <section className="rounded-xl border-2 border-outline bg-surface p-5" aria-labelledby="backup-h">
       <h2 id="backup-h" className="font-semibold">
         Back up, restore or reset
       </h2>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-ink-2">
         Your progress lives only in this browser. Export it to keep a copy or move it to another device.
       </p>
       <div className="mt-3 flex flex-wrap gap-3">
@@ -224,14 +236,14 @@ function BackupSection({ progress }: { progress: Progress }) {
       </div>
 
       <div aria-live="polite">
-        {message && <p className="mt-3 rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">{message}</p>}
+        {message && <p className="mt-3 rounded-lg bg-wrong-tint px-3 py-2 text-sm text-ink">{message}</p>}
         {pending && (
           <div
-            className="mt-3 rounded-lg border border-border bg-bg p-4 text-sm"
+            className="mt-3 rounded-lg border-2 border-outline bg-surface-sunk p-4 text-sm"
             data-testid="import-summary"
           >
             <p className="font-semibold">Replace your current progress with this file?</p>
-            <ul className="mt-1 list-disc pl-5 text-muted">
+            <ul className="mt-1 list-disc pl-5 text-ink-2">
               <li>Started {new Date(pending.summary.createdAt).toLocaleDateString()}</li>
               <li>
                 {pending.summary.lessonsCompleted} lessons completed ({pending.summary.stars} stars),{' '}
@@ -260,7 +272,7 @@ function BackupSection({ progress }: { progress: Progress }) {
       </div>
 
       <details className="mt-5">
-        <summary className="cursor-pointer text-sm font-semibold text-bad">Reset all progress…</summary>
+        <summary className="cursor-pointer text-sm font-semibold text-ink">Reset all progress…</summary>
         <div className="mt-3 space-y-2 text-sm">
           <p>
             This deletes every rating, star, answer and puzzle result in this browser. It can't be undone.
@@ -270,7 +282,7 @@ function BackupSection({ progress }: { progress: Progress }) {
             <input
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="ml-2 rounded border border-border bg-surface px-2 py-1"
+              className="ml-2 rounded border-2 border-outline bg-surface px-2 py-1"
               data-testid="reset-input"
             />
           </label>

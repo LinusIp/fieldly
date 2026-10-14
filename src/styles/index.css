@@ -3,114 +3,399 @@
 /* Dark mode follows data-theme (set from settings) or, for "system", prefers-color-scheme. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
+/* Bricolage Grotesque, self-hosted (§10.4): variable wght 200–800 and opsz 12–96. OFL, see /fonts/OFL.txt. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/bricolage-grotesque-latin.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/bricolage-grotesque-latin-ext.woff2') format('woff2-variations');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Design tokens (§10.4) mapped into the Tailwind theme: components use these names, never raw hex. */
 @theme inline {
-  --color-bg: var(--c-bg);
-  --color-surface: var(--c-surface);
-  --color-surface-2: var(--c-surface-2);
-  --color-border: var(--c-border);
-  --color-text: var(--c-text);
-  --color-muted: var(--c-muted);
-  --color-accent: var(--c-accent);
-  --color-accent-soft: var(--c-accent-soft);
-  --color-on-accent: var(--c-on-accent);
-  --color-ok: var(--c-ok);
-  --color-ok-soft: var(--c-ok-soft);
-  --color-bad: var(--c-bad);
-  --color-bad-soft: var(--c-bad-soft);
-  --color-warn: var(--c-warn);
-  --color-warn-soft: var(--c-warn-soft);
-  --font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-tint: var(--surface-tint);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-outline: var(--outline);
+  --color-primary: var(--primary);
+  --color-primary-ink: var(--primary-ink);
+  --color-on-primary: var(--on-primary);
+  --color-volt: var(--volt);
+  --color-volt-tint: var(--volt-tint);
+  --color-correct: var(--correct);
+  --color-correct-tint: var(--correct-tint);
+  --color-wrong: var(--wrong);
+  --color-wrong-tint: var(--wrong-tint);
+  --color-target: var(--target);
+  --color-on-fill: var(--on-fill);
+  --color-board: var(--board);
+  --color-board-dot: var(--board-dot);
+  --color-board-bar: var(--board-bar);
+  --color-wire-idle: var(--wire-idle);
+  --color-wire-live: var(--wire-live);
+  --color-control: var(--control);
+  --color-target-on-board: var(--target-on-board);
+  --color-board-text: var(--board-text);
+  --color-board-text-2: var(--board-text-2);
+  --color-cell-done: var(--cell-done);
+  --color-cell-current: var(--cell-current);
+  --color-cell-todo: var(--cell-todo);
+  --color-path-ahead: var(--path-ahead);
+  --color-calc1: #ff8a3d;
+  --color-calc2: #ff6fb1;
+  --color-phys1: #3ba7ff;
+  --color-phys2: #ffc42e;
+  --color-linalg: #2bd4c4;
+  --color-discrete: #b8e04a;
+  --color-dsa: #b39bff;
+  --color-probstat: #ff9f8a;
+
+  --font-sans: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-s1: 0 3px 0 var(--outline);
+  --shadow-s2: 0 5px 0 var(--outline);
+  --shadow-s3: 0 6px 0 var(--outline);
+  --shadow-primary: 0 5px 0 var(--primary);
+  --shadow-linked: 0 4px 0 var(--primary);
+
+  /* Type scale (§10.4). */
+  --text-display: 34px;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 800;
+  --text-prompt: 28px;
+  --text-prompt--line-height: 1.3;
+  --text-prompt--letter-spacing: -0.015em;
+  --text-prompt--font-weight: 700;
+  --text-h2: 22px;
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 800;
+  --text-h3: 18px;
+  --text-h3--line-height: 1.2;
+  --text-h3--font-weight: 800;
+  --text-body: 17px;
+  --text-body--line-height: 1.45;
+  --text-small: 15px;
+  --text-small--line-height: 1.4;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.3;
+  --text-answer: 30px;
+  --text-answer--line-height: 1.1;
+  --text-answer--font-weight: 800;
 }
 
 :root {
-  --c-bg: #f7f6f2;
-  --c-surface: #ffffff;
-  --c-surface-2: #f0eee8;
-  --c-border: #dcd9d0;
-  --c-text: #1d2127;
-  --c-muted: #555c66;
-  --c-accent: #1d4f91;
-  --c-accent-soft: #e3ebf6;
-  --c-on-accent: #ffffff;
-  --c-ok: #17703a;
-  --c-ok-soft: #e2f2e7;
-  --c-bad: #b3261e;
-  --c-bad-soft: #f9e3e1;
-  --c-warn: #8a5a00;
-  --c-warn-soft: #fbefd5;
+  /* surfaces */
+  --ground: #f6f4ff;
+  --surface: #ffffff;
+  --surface-tint: #e7e3fb;
+  --surface-sunk: #f6f4ff;
+  /* ink */
+  --ink: #1d1846;
+  --ink-2: #514a7a;
+  --ink-3: #8c84c2;
+  --outline: var(--ink);
+  /* roles */
+  --primary: #5b3df5;
+  --primary-ink: #3a22c4;
+  --on-primary: #ffffff;
+  --volt: #ffc42e;
+  --volt-tint: #fff1c7;
+  --correct: #19b37d;
+  --correct-tint: #d9f7ea;
+  --wrong: #ff5a4e;
+  --wrong-tint: #ffe3e0;
+  --target: #e0479a;
+  /* text on volt / correct / wrong fills (§10.4) */
+  --on-fill: #1d1846;
+  /* interactive board */
+  --board: #1d1846;
+  --board-dot: #3d3678;
+  --board-bar: #2a2360;
+  --wire-idle: #8c84c2;
+  --wire-live: #ffc42e;
+  --control: #b9aeff;
+  --target-on-board: #ff6fb1;
+  --board-text: #ffffff;
+  --board-text-2: #dcd5fa;
+  /* progress battery */
+  --cell-done: #ffc42e;
+  --cell-current: #ffffff;
+  --cell-todo: #3a3370;
+  /* path map: the stretch of wire ahead */
+  --path-ahead: #dcd5fa;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --c-bg: #121519;
-    --c-surface: #1a1e24;
-    --c-surface-2: #222830;
-    --c-border: #343b45;
-    --c-text: #e7e9ec;
-    --c-muted: #a3aab4;
-    --c-accent: #8db4ef;
-    --c-accent-soft: #1f2d42;
-    --c-on-accent: #0d1420;
-    --c-ok: #6fcf8f;
-    --c-ok-soft: #173023;
-    --c-bad: #f2938b;
-    --c-bad-soft: #3a1d1b;
-    --c-warn: #e8c063;
-    --c-warn-soft: #362a12;
+    --ground: #14112b;
+    --surface: #221d47;
+    --surface-tint: #2e2760;
+    --surface-sunk: #1a1638;
+    --ink: #f4f1ff;
+    --ink-2: #c9c2f0;
+    --ink-3: #7a72b0;
+    --outline: #0a0820;
+    --primary: #6a4eff;
+    --primary-ink: #c7bbff;
+    --on-primary: #ffffff;
+    --volt: #ffc42e;
+    --volt-tint: #3a3115;
+    --correct: #2ccb8f;
+    --correct-tint: #123a2e;
+    --wrong: #ff6b5e;
+    --wrong-tint: #3d1d24;
+    --target: #ff6fb1;
+    --on-fill: #14112b;
+    --board: #0e0b24;
+    --board-dot: #2c2660;
+    --board-bar: #1a1640;
+    --path-ahead: var(--surface-tint);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --c-bg: #121519;
-  --c-surface: #1a1e24;
-  --c-surface-2: #222830;
-  --c-border: #343b45;
-  --c-text: #e7e9ec;
-  --c-muted: #a3aab4;
-  --c-accent: #8db4ef;
-  --c-accent-soft: #1f2d42;
-  --c-on-accent: #0d1420;
-  --c-ok: #6fcf8f;
-  --c-ok-soft: #173023;
-  --c-bad: #f2938b;
-  --c-bad-soft: #3a1d1b;
-  --c-warn: #e8c063;
-  --c-warn-soft: #362a12;
+  --ground: #14112b;
+  --surface: #221d47;
+  --surface-tint: #2e2760;
+  --surface-sunk: #1a1638;
+  --ink: #f4f1ff;
+  --ink-2: #c9c2f0;
+  --ink-3: #7a72b0;
+  --outline: #0a0820;
+  --primary: #6a4eff;
+  --primary-ink: #c7bbff;
+  --on-primary: #ffffff;
+  --volt: #ffc42e;
+  --volt-tint: #3a3115;
+  --correct: #2ccb8f;
+  --correct-tint: #123a2e;
+  --wrong: #ff6b5e;
+  --wrong-tint: #3d1d24;
+  --target: #ff6fb1;
+  --on-fill: #14112b;
+  --board: #0e0b24;
+  --board-dot: #2c2660;
+  --board-bar: #1a1640;
+  --path-ahead: var(--surface-tint);
   color-scheme: dark;
 }
 
 html {
-  background: var(--c-bg);
-  color: var(--c-text);
+  background: var(--ground);
+  color: var(--ink);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--c-bg);
-  color: var(--c-text);
+  background: var(--ground);
+  color: var(--ink);
   font-family: var(--font-sans);
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.45;
   min-height: 100vh;
+  font-optical-sizing: auto;
 }
 
 :focus-visible {
-  outline: 3px solid var(--c-accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
 }
 
-/* Reduced motion: honour both the OS setting and the in-app toggle. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Volt highlighter behind emphasised words in a prompt (§10.4). */
+.prompt strong,
+.hl {
+  background: var(--volt);
+  color: var(--on-fill);
+  padding: 0 6px;
+  border-radius: 6px;
+  font-weight: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* KaTeX at 1.05em of the surrounding text (§10.4). */
+.katex {
+  font-size: 1.05em;
+}
+
+/* ───────────── Pressables (§10.5, §10.6): 2 px outline, hard shadow, press drops onto it ───────────── */
+.press {
+  border: 2px solid var(--outline);
+  transition:
+    transform 80ms ease-out,
+    box-shadow 80ms ease-out;
+}
+.press-s1 {
+  box-shadow: var(--shadow-s1);
+}
+.press-s2 {
+  box-shadow: var(--shadow-s2);
+}
+.press:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+.press-s1:not(:disabled):hover {
+  box-shadow: 0 4px 0 var(--outline);
+}
+.press-s2:not(:disabled):hover {
+  box-shadow: 0 6px 0 var(--outline);
+}
+.press-s1:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.press-s2:not(:disabled):active {
+  transform: translateY(5px);
+  box-shadow: none;
+}
+.press:disabled {
+  background: var(--surface-tint);
+  border-style: dashed;
+  border-color: var(--ink-3);
+  box-shadow: none;
+  color: var(--ink-2);
+  cursor: not-allowed;
+}
+
+/* Dot-grid canvas of the interactive board (§10.5). */
+.board-canvas {
+  background-color: var(--board);
+  background-image: radial-gradient(var(--board-dot) 1.6px, transparent 1.6px);
+  background-size: 22px 22px;
+}
+
+/* ───────────── Motion (§10.6). Everything is an instant state change under reduced motion. ───────────── */
+@keyframes pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+.anim-pop {
+  animation: pop 180ms ease-out;
+}
+@keyframes slide-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.anim-slide-up {
+  animation: slide-up 150ms ease-out;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  16%,
+  50%,
+  83% {
+    transform: translateX(-6px);
+  }
+  33%,
+  66% {
+    transform: translateX(6px);
+  }
+}
+.anim-shake {
+  animation: shake 240ms ease-in-out;
+}
+@keyframes roll-up {
+  from {
+    transform: translateY(60%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.anim-roll {
+  display: inline-block;
+  animation: roll-up 220ms ease-out;
+}
+/* Current flowing: white dots travel along live wires at about 40 px/s. */
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.flow-anim {
+  animation: flow-dash 0.5s linear infinite;
+}
+@keyframes cell-fill {
+  from {
+    background: var(--cell-todo);
+  }
+  to {
+    background: var(--cell-done);
+  }
+}
+.anim-cell-fill {
+  animation: cell-fill 60ms linear both;
+}
+@keyframes spark {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0.4);
+    opacity: 0;
+  }
+}
+.anim-spark {
+  animation: spark 480ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
@@ -120,6 +405,7 @@ body {
 :root[data-motion='reduce'] *::after {
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;
+  animation-delay: 0ms !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
 }
@@ -158,19 +444,19 @@ body {
   margin-top: 0.25em;
 }
 .prose-body strong {
-  font-weight: 650;
+  font-weight: 750;
 }
 .prose-body code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--c-surface-2);
+  background: var(--surface-tint);
   padding: 0.1em 0.3em;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 .prose-body pre {
-  background: var(--c-surface-2);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
+  background: var(--surface-sunk);
+  border: 2px solid var(--outline);
+  border-radius: var(--radius-md);
   padding: 0.75em 1em;
   overflow-x: auto;
 }
@@ -187,13 +473,4 @@ body {
 .prose-inline p {
   display: inline;
   margin: 0;
-}
-
-@keyframes flow-dash {
-  to {
-    stroke-dashoffset: -20;
-  }
-}
-.flow-anim {
-  animation: flow-dash 0.8s linear infinite;
 }

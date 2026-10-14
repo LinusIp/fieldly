@@ -21,7 +21,7 @@ export function McqView({
     if (options[i].index !== wrong) onChange(options[i].index);
   });
   return (
-    <div role="radiogroup" aria-label="Options" className="grid gap-2" data-testid="mcq">
+    <div role="radiogroup" aria-label="Options" className="grid gap-3" data-testid="mcq">
       {options.map((o, pos) => {
         const isWrong = wrong === o.index || (reveal && reveal.learner === o.index && !o.correct);
         const isCorrect = !!reveal && o.correct;
@@ -31,7 +31,7 @@ export function McqView({
         return (
           <label
             key={o.index}
-            className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${markClass(state)} ${off ? 'cursor-default' : 'cursor-pointer hover:border-accent'}`}
+            className={`flex min-h-[56px] items-center gap-3 rounded-lg border-2 px-4 py-3 text-[18px] font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-primary ${markClass(state)} ${state === 'picked' ? 'shadow-linked' : state === 'none' && !off ? 'shadow-s1' : ''} ${off ? 'cursor-default' : 'cursor-pointer'}`}
             data-option={pos}
           >
             <input
@@ -44,7 +44,7 @@ export function McqView({
             />
             <span
               aria-hidden="true"
-              className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border bg-bg text-xs font-semibold text-muted"
+              className="tabular flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border-2 border-outline bg-surface-sunk text-small font-extrabold text-ink"
             >
               {pos + 1}
             </span>

@@ -57,25 +57,25 @@ export function TransientPlotter({
         aria-label={`${what} against time`}
         data-testid="transient-plot"
       >
-        <rect x={0} y={0} width={W} height={H} fill="var(--c-bg)" rx={10} />
+        <rect x={0} y={0} width={W} height={H} fill="var(--surface-sunk)" rx={10} />
         {/* axes */}
-        <line x1={M.l} y1={H - M.b} x2={W - M.r} y2={H - M.b} stroke="var(--c-border)" />
-        <line x1={M.l} y1={M.t} x2={M.l} y2={H - M.b} stroke="var(--c-border)" />
+        <line x1={M.l} y1={H - M.b} x2={W - M.r} y2={H - M.b} stroke="var(--ink-3)" />
+        <line x1={M.l} y1={M.t} x2={M.l} y2={H - M.b} stroke="var(--ink-3)" />
         {ticks.map((t) => (
           <g key={t}>
-            <line x1={sx(t)} y1={H - M.b} x2={sx(t)} y2={H - M.b + 5} stroke="var(--c-muted)" />
-            <text x={sx(t)} y={H - M.b + 18} textAnchor="middle" fontSize={11} fill="var(--c-muted)">
+            <line x1={sx(t)} y1={H - M.b} x2={sx(t)} y2={H - M.b + 5} stroke="var(--ink-2)" />
+            <text x={sx(t)} y={H - M.b + 18} textAnchor="middle" fontSize={11} fill="var(--ink-2)">
               {formatNumber(t)}
             </text>
           </g>
         ))}
-        <text x={(W + M.l) / 2} y={H - 6} textAnchor="middle" fontSize={12} fill="var(--c-muted)">
+        <text x={(W + M.l) / 2} y={H - 6} textAnchor="middle" fontSize={12} fill="var(--ink-2)">
           time (s)
         </text>
-        <text x={M.l - 8} y={sy(yScale) + 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+        <text x={M.l - 8} y={sy(yScale) + 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
           {formatNumber(yScale)} {unit}
         </text>
-        <text x={M.l - 8} y={sy(0) + 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+        <text x={M.l - 8} y={sy(0) + 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
           0
         </text>
         {/* 63% / 37% reference at t = τ */}
@@ -86,10 +86,10 @@ export function TransientPlotter({
               y1={M.t}
               x2={sx(tau)}
               y2={H - M.b}
-              stroke="var(--c-accent)"
+              stroke="var(--primary)"
               strokeDasharray="4 4"
             />
-            <text x={sx(tau) + 4} y={M.t + 12} fontSize={11} fill="var(--c-accent)">
+            <text x={sx(tau) + 4} y={M.t + 12} fontSize={11} fill="var(--primary)">
               τ = {formatNumber(tau)} s
             </text>
             <line
@@ -97,7 +97,7 @@ export function TransientPlotter({
               y1={sy(ref * yMaxVal)}
               x2={sx(tau)}
               y2={sy(ref * yMaxVal)}
-              stroke="var(--c-accent)"
+              stroke="var(--primary)"
               strokeDasharray="2 4"
               opacity={0.7}
             />
@@ -110,24 +110,24 @@ export function TransientPlotter({
               cy={sy(config.target.frac * yMaxVal)}
               r={7}
               fill="none"
-              stroke="var(--c-warn)"
+              stroke="var(--volt)"
               strokeWidth={2.5}
             />
             <text
               x={sx(config.target.t) + 10}
               y={sy(config.target.frac * yMaxVal) + 16}
               fontSize={11}
-              fill="var(--c-warn)"
+              fill="var(--volt)"
             >
               target: {Math.round(config.target.frac * 100)}% at {formatNumber(config.target.t)} s
             </text>
           </g>
         )}
-        <path d={path} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
+        <path d={path} fill="none" stroke="var(--ink)" strokeWidth={2.5} />
         {config.markers.map((t) => (
           <g key={t}>
-            <circle cx={sx(t)} cy={sy(yAt(t, v, config.mode))} r={4} fill="var(--c-accent)" />
-            <text x={sx(t) + 6} y={sy(yAt(t, v, config.mode)) - 6} fontSize={11} fill="var(--c-text)">
+            <circle cx={sx(t)} cy={sy(yAt(t, v, config.mode))} r={4} fill="var(--primary)" />
+            <text x={sx(t) + 6} y={sy(yAt(t, v, config.mode)) - 6} fontSize={11} fill="var(--ink)">
               {formatNumber(yAt(t, v, config.mode))} {unit} ({Math.round(fracAt(t, tau, config.mode) * 100)}%)
             </text>
           </g>
@@ -156,14 +156,14 @@ export function TransientPlotter({
                   values: { ...state.values, [s.name]: Number(Number(e.target.value).toPrecision(12)) },
                 })
               }
-              className="accent-[var(--c-accent)]"
+              className="accent-[var(--primary)]"
               data-slider={s.name}
               aria-label={s.name}
             />
           </label>
         ))}
       </div>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-ink-2">
         Fixed:{' '}
         {Object.entries(config.fixed)
           .filter(([k]) => !config.sliders.some((s) => s.name === k))

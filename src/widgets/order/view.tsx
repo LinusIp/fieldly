@@ -54,7 +54,7 @@ function Row({
     >
       <button
         type="button"
-        className={`flex min-h-[44px] min-w-[32px] items-center justify-center rounded text-muted ${disabled ? '' : 'cursor-grab hover:bg-surface-2'}`}
+        className={`flex min-h-[44px] min-w-[32px] items-center justify-center rounded text-ink-2 ${disabled ? '' : 'cursor-grab hover:bg-surface-sunk'}`}
         aria-label={`Drag to reorder (position ${pos + 1} of ${count}). Space to pick up, arrows to move, Space to drop.`}
         disabled={disabled}
         {...attributes}
@@ -62,7 +62,7 @@ function Row({
       >
         ⠿
       </button>
-      <span className="w-6 text-sm font-semibold text-muted">{pos + 1}.</span>
+      <span className="w-6 text-sm font-semibold text-ink-2">{pos + 1}.</span>
       <span className="min-w-0 flex-1">
         <Tx s={text} scope={scope} />
       </span>
@@ -71,7 +71,7 @@ function Row({
         <span className="flex gap-1">
           <button
             type="button"
-            className="min-h-[44px] min-w-[36px] rounded border border-border hover:bg-surface-2 disabled:opacity-40"
+            className="min-h-[44px] min-w-[36px] rounded border-2 border-outline hover:bg-surface-sunk disabled:opacity-40"
             disabled={pos === 0}
             onClick={() => move(pos - 1)}
             aria-label="Move up"
@@ -80,7 +80,7 @@ function Row({
           </button>
           <button
             type="button"
-            className="min-h-[44px] min-w-[36px] rounded border border-border hover:bg-surface-2 disabled:opacity-40"
+            className="min-h-[44px] min-w-[36px] rounded border-2 border-outline hover:bg-surface-sunk disabled:opacity-40"
             disabled={pos === count - 1}
             onClick={() => move(pos + 1)}
             aria-label="Move down"
@@ -134,7 +134,7 @@ export function OrderView({
   return (
     <div data-testid="order">
       {reveal && (
-        <p className="mb-2 text-sm font-semibold text-ok">
+        <p className="mb-2 text-sm font-semibold text-ink">
           Correct order{reveal.learner ? ' (yours is listed below)' : ''}:
         </p>
       )}
@@ -158,7 +158,7 @@ export function OrderView({
         </SortableContext>
       </DndContext>
       {reveal?.learner && reveal.learner.join() !== order.join() && (
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-sm text-ink-2">
           Yours:{' '}
           {reveal.learner.map((id, i) => (
             <span key={id}>

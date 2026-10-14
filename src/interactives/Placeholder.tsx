@@ -15,11 +15,11 @@ export function makePlaceholder<C, S>(describe: (state: S, config: C) => string)
     }
     return (
       <div
-        className="rounded-xl border border-dashed border-border bg-bg p-4 text-sm"
+        className="rounded-xl border-2 border-dashed border-outline bg-surface-sunk p-4 text-sm"
         data-testid="interactive-placeholder"
       >
         <p className="font-medium">Interactive preview</p>
-        <p className="mt-1 text-muted" aria-live="polite">
+        <p className="mt-1 text-ink-2" aria-live="polite">
           {text}
         </p>
       </div>

@@ -55,7 +55,7 @@ export function FindTheErrorView({
           return (
             <li key={i}>
               <label
-                className={`flex items-start gap-3 rounded-lg border-2 px-3 py-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${markClass(state)} ${disabled ? '' : 'cursor-pointer hover:border-accent'}`}
+                className={`flex items-start gap-3 rounded-lg border-2 px-3 py-2 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-primary ${markClass(state)} ${disabled ? '' : 'cursor-pointer hover:border-primary'}`}
                 data-line={i}
               >
                 <input
@@ -66,7 +66,7 @@ export function FindTheErrorView({
                   disabled={disabled || !!reveal}
                   onChange={() => set({ line: i })}
                 />
-                <span className="w-6 shrink-0 text-sm font-semibold text-muted">{i + 1}</span>
+                <span className="w-6 shrink-0 text-sm font-semibold text-ink-2">{i + 1}</span>
                 <span className="min-w-0 flex-1">
                   <Tx s={line} scope={ctx.scope} />
                 </span>

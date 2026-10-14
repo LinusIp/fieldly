@@ -34,7 +34,7 @@ export function OddOneOutView({
           return (
             <label
               key={i}
-              className={`flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 p-2 text-center has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${markClass(state)} ${disabled ? '' : 'cursor-pointer hover:border-accent'}`}
+              className={`flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border-2 p-2 text-center has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-primary ${markClass(state)} ${disabled ? '' : 'cursor-pointer hover:border-primary'}`}
             >
               <input
                 type="radio"

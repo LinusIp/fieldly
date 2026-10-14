@@ -32,29 +32,22 @@ function Axes({
 }) {
   return (
     <>
-      <rect x={0} y={0} width={W} height={H} fill="var(--c-bg)" rx={10} />
+      <rect x={0} y={0} width={W} height={H} fill="var(--surface-sunk)" rx={10} />
       {ticks(x[0], x[1]).map((t) => (
-        <text
-          key={`x${t}`}
-          x={sx(t)}
-          y={H - M.b + 16}
-          textAnchor="middle"
-          fontSize={11}
-          fill="var(--c-muted)"
-        >
+        <text key={`x${t}`} x={sx(t)} y={H - M.b + 16} textAnchor="middle" fontSize={11} fill="var(--ink-2)">
           {formatNumber(t)}
         </text>
       ))}
       {ticks(y[0], y[1]).map((t) => (
         <g key={`y${t}`}>
-          <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--c-border)" opacity={0.5} />
-          <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+          <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--ink-3)" opacity={0.5} />
+          <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
             {formatNumber(t)}
           </text>
         </g>
       ))}
-      {y[0] <= 0 && y[1] >= 0 && <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--c-muted)" />}
-      <text x={W - M.r} y={H - 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+      {y[0] <= 0 && y[1] >= 0 && <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--ink-2)" />}
+      <text x={W - M.r} y={H - 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
         {xLabel}
       </text>
     </>
@@ -104,10 +97,10 @@ function SeriesPlots({ config, N }: { config: SeriesConfig; N: number }) {
               y1={t.sy(0)}
               x2={t.sx(n)}
               y2={t.sy(config.terms[n - config.n0])}
-              stroke="var(--c-accent)"
+              stroke="var(--primary)"
               strokeWidth={2}
             />
-            <circle cx={t.sx(n)} cy={t.sy(config.terms[n - config.n0])} r={3} fill="var(--c-accent)" />
+            <circle cx={t.sx(n)} cy={t.sy(config.terms[n - config.n0])} r={3} fill="var(--primary)" />
           </g>
         ))}
       </svg>
@@ -125,7 +118,7 @@ function SeriesPlots({ config, N }: { config: SeriesConfig; N: number }) {
             y1={p.sy(config.limit)}
             x2={W - M.r}
             y2={p.sy(config.limit)}
-            stroke="var(--c-warn)"
+            stroke="var(--volt)"
             strokeDasharray="6 4"
           />
         )}
@@ -134,11 +127,11 @@ function SeriesPlots({ config, N }: { config: SeriesConfig; N: number }) {
             .map((n, i) => `${i ? 'L' : 'M'}${p.sx(n).toFixed(1)},${p.sy(sums[n - config.n0]).toFixed(1)}`)
             .join('')}
           fill="none"
-          stroke="var(--c-text)"
+          stroke="var(--ink)"
           strokeWidth={2}
         />
         {shown.map((n) => (
-          <circle key={n} cx={p.sx(n)} cy={p.sy(sums[n - config.n0])} r={2.5} fill="var(--c-text)" />
+          <circle key={n} cx={p.sx(n)} cy={p.sy(sums[n - config.n0])} r={2.5} fill="var(--ink)" />
         ))}
       </svg>
     </div>
@@ -177,17 +170,17 @@ function TaylorPlot({ config, degree }: { config: TaylorConfig; degree: number }
           y={M.t}
           width={sx(config.interval[1]) - sx(config.interval[0])}
           height={H - M.t - M.b}
-          fill="var(--c-accent)"
+          fill="var(--primary)"
           opacity={0.08}
         />
-        <path d={pathOf(f)} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
-        <path d={pathOf(T)} fill="none" stroke="var(--c-accent)" strokeWidth={2.2} strokeDasharray="7 4" />
-        <circle cx={sx(config.center)} cy={sy(f(config.center))} r={4} fill="var(--c-warn)" />
+        <path d={pathOf(f)} fill="none" stroke="var(--ink)" strokeWidth={2.5} />
+        <path d={pathOf(T)} fill="none" stroke="var(--primary)" strokeWidth={2.2} strokeDasharray="7 4" />
+        <circle cx={sx(config.center)} cy={sy(f(config.center))} r={4} fill="var(--volt)" />
       </g>
-      <text x={M.l} y={18} fontSize={12} fill="var(--c-text)">
+      <text x={M.l} y={18} fontSize={12} fill="var(--ink)">
         — f(x)
       </text>
-      <text x={M.l + 70} y={18} fontSize={12} fill="var(--c-accent)">
+      <text x={M.l + 70} y={18} fontSize={12} fill="var(--primary)">
         - - Taylor polynomial, degree {degree}
       </text>
     </svg>
@@ -223,7 +216,7 @@ export function SeriesExplorer({
           value={k}
           disabled={disabled}
           onChange={(e) => onStateChange({ k: Number(e.target.value) })}
-          className="accent-[var(--c-accent)]"
+          className="accent-[var(--primary)]"
           data-slider={series ? 'N' : 'degree'}
           aria-label={series ? 'N, terms added' : 'Degree'}
         />
@@ -231,10 +224,10 @@ export function SeriesExplorer({
       <p className="font-mono text-sm" data-testid="series-readouts">
         {series
           ? `S_${k} = ${fmt(s.SN)}` +
-            (s.limit !== undefined ? ` · sum ${fmt(s.limit)} · error ${formatNumber(s.error as number)}` : '')
+            (s.limit !== undefined ? `, sum ${fmt(s.limit)}, error ${formatNumber(s.error as number)}` : '')
           : `largest error on [${formatNumber(config.interval[0])}, ${formatNumber(config.interval[1])}] = ${formatNumber(s.maxErrorOnInterval as number)}` +
             (s.error !== undefined
-              ? ` · error at x = ${formatNumber(config.at!)}: ${formatNumber(s.error as number)}`
+              ? `, error at x = ${formatNumber(config.at!)}: ${formatNumber(s.error as number)}`
               : '')}
       </p>
     </div>

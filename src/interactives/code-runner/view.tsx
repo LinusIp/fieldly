@@ -13,27 +13,27 @@ const LANG_NAME: Record<Lang, string> = { python: 'Python', javascript: 'JavaScr
 
 const theme = EditorView.theme({
   '&': {
-    backgroundColor: 'var(--c-bg)',
-    color: 'var(--c-text)',
+    backgroundColor: 'var(--surface-sunk)',
+    color: 'var(--ink)',
     fontSize: '0.9rem',
-    border: '1px solid var(--c-border)',
+    border: '1px solid var(--ink-3)',
     borderRadius: '10px',
   },
-  '.cm-content': { fontFamily: 'var(--font-mono)', caretColor: 'var(--c-text)' },
+  '.cm-content': { fontFamily: 'var(--font-mono)', caretColor: 'var(--ink)' },
   '.cm-gutters': {
-    backgroundColor: 'var(--c-surface-2)',
-    color: 'var(--c-muted)',
+    backgroundColor: 'var(--surface-tint)',
+    color: 'var(--ink-2)',
     border: 'none',
     borderTopLeftRadius: '10px',
     borderBottomLeftRadius: '10px',
   },
-  '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--c-accent) 8%, transparent)' },
-  '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--c-text)' },
-  '&.cm-focused': { outline: '3px solid var(--c-accent)', outlineOffset: '2px' },
+  '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--primary) 8%, transparent)' },
+  '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--ink)' },
+  '&.cm-focused': { outline: '3px solid var(--primary)', outlineOffset: '2px' },
   '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'color-mix(in srgb, var(--c-accent) 25%, transparent) !important',
+    backgroundColor: 'color-mix(in srgb, var(--primary) 25%, transparent) !important',
   },
-  '.cm-cursor': { borderLeftColor: 'var(--c-text)' },
+  '.cm-cursor': { borderLeftColor: 'var(--ink)' },
 });
 
 function langExt(l: Lang) {
@@ -145,8 +145,8 @@ export function CodeRunner({
           {LANGS.map((l) => (
             <label
               key={l}
-              className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm font-medium has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-accent ${
-                state.lang === l ? 'border-accent bg-accent-soft text-accent' : 'border-border'
+              className={`cursor-pointer rounded-lg border-2 px-3 py-1.5 text-sm font-medium has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-primary ${
+                state.lang === l ? 'border-primary bg-surface-tint text-primary-ink' : 'border-outline'
               }`}
             >
               <input
@@ -161,14 +161,14 @@ export function CodeRunner({
             </label>
           ))}
         </div>
-        <span className="text-xs text-muted">
+        <span className="text-xs text-ink-2">
           Write <code className="font-mono">{config.entry[state.lang]}</code>
         </span>
         <div className="ml-auto flex gap-2">
           {!disabled && (
             <button
               type="button"
-              className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-2"
+              className="rounded-lg border-2 border-outline px-3 py-1.5 text-sm hover:bg-surface-sunk"
               onClick={() =>
                 onStateChange({
                   ...state,
@@ -184,7 +184,7 @@ export function CodeRunner({
             type="button"
             disabled={running}
             onClick={() => void run()}
-            className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-on-primary disabled:opacity-50"
             data-testid="run-tests"
           >
             {running ? 'Running…' : 'Run tests'}
@@ -192,45 +192,45 @@ export function CodeRunner({
         </div>
       </div>
 
-      {showingSolution && <p className="text-sm text-muted">Reference solution (read-only):</p>}
+      {showingSolution && <p className="text-sm text-ink-2">Reference solution (read-only):</p>}
       <div ref={host} data-testid="code-editor" />
 
-      <div aria-live="polite" className="min-h-[1.25rem] text-sm text-muted">
+      <div aria-live="polite" className="min-h-[1.25rem] text-sm text-ink-2">
         {status}
       </div>
 
       {r && (
         <section
           aria-label="Test results"
-          className="rounded-lg border border-border p-3 text-sm"
+          className="rounded-lg border-2 border-outline p-3 text-sm"
           data-testid="test-results"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <strong>
               {r.passed} of {r.total} tests passed
             </strong>
-            {!fresh && <span className="text-xs text-warn">The code has changed since this run.</span>}
+            {!fresh && <span className="text-xs text-ink">The code has changed since this run.</span>}
           </div>
           {r.error && (
-            <pre className="mt-2 overflow-x-auto rounded bg-bad-soft p-2 text-xs text-bad">{r.error}</pre>
+            <pre className="mt-2 overflow-x-auto rounded bg-wrong-tint p-2 text-xs text-ink">{r.error}</pre>
           )}
           <ul className="mt-2 space-y-1.5">
             {r.tests.map((t, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className={t.ok ? 'text-ok' : 'text-bad'}>
+                <span className={t.ok ? 'text-ink' : 'text-ink'}>
                   {t.ok ? <CheckIcon className="mt-0.5 h-4 w-4" /> : <CrossIcon className="mt-0.5 h-4 w-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="font-medium">
                     {t.name}
-                    {t.hidden && <span className="ml-1 text-xs text-muted">(hidden)</span>}
+                    {t.hidden && <span className="ml-1 text-xs text-ink-2">(hidden)</span>}
                     <span className="sr-only">{t.ok ? ' passed' : ' failed'}</span>
                   </span>
                   {!t.hidden && (
-                    <span className="block font-mono text-xs text-muted">
+                    <span className="block font-mono text-xs text-ink-2">
                       input {t.args} → expected {t.expected}
                       {t.got !== undefined && <>, got {t.got}</>}
-                      {t.error && <span className="text-bad">, error: {t.error}</span>}
+                      {t.error && <span className="text-ink">, error: {t.error}</span>}
                     </span>
                   )}
                 </span>
@@ -238,7 +238,7 @@ export function CodeRunner({
             ))}
           </ul>
           {r.perfPassed !== null && (
-            <p className={`mt-2 ${r.perfPassed ? 'text-ok' : 'text-bad'}`}>
+            <p className={`mt-2 ${r.perfPassed ? 'text-ink' : 'text-ink'}`}>
               {r.perfPassed ? '✓' : '✕'} Performance test{' '}
               {r.perfPassed
                 ? `passed (${Math.round(r.perfMs ?? 0)} ms)`

@@ -41,9 +41,9 @@ export function EstimateView({
         value={sliderValue}
         disabled={disabled}
         onChange={(e) => onChange(String(Number(Number(e.target.value).toPrecision(6))))}
-        className="w-full accent-[var(--c-accent)]"
+        className="w-full accent-[var(--primary)]"
       />
-      <div className="mt-1 flex justify-between text-xs text-muted" aria-hidden="true">
+      <div className="mt-1 flex justify-between text-xs text-ink-2" aria-hidden="true">
         <span>
           {formatNumber(lo)}
           {unit}
@@ -54,7 +54,7 @@ export function EstimateView({
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <span className="text-sm text-muted">or type:</span>
+        <span className="text-sm text-ink-2">or type:</span>
         <input
           type="text"
           inputMode="decimal"
@@ -62,10 +62,10 @@ export function EstimateView({
           value={answer ?? ''}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value.trim() ? e.target.value : null)}
-          className="w-32 rounded-lg border-2 border-border bg-bg px-3 py-1.5 font-mono focus:border-accent"
+          className="w-32 rounded-lg border-2 border-outline bg-surface-sunk px-3 py-1.5 font-mono focus:border-primary"
           data-testid="estimate-input"
         />
-        {unit && <span className="text-muted">{unit}</span>}
+        {unit && <span className="text-ink-2">{unit}</span>}
       </div>
       {reveal && learner !== null && (
         <NumberLine learner={learner} correct={evalNumber(q.answer.expr, ctx.scope)} unit={q.answer.unit} />

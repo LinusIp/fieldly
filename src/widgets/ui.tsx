@@ -13,24 +13,27 @@ export function Tx({ s, scope, inline = true }: { s: string; scope: Scope; inlin
   return <Markdown inline={inline}>{renderTemplate(s, scope)}</Markdown>;
 }
 
-/** Icon + text + colour for a marked part (never colour alone, §10.3). */
+/** Icon tile + text for a marked part (never colour alone, §10.3): mint check or coral cross, ink text. */
 export function Mark({ ok, label }: { ok: boolean; label?: string }) {
   return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1 text-sm font-semibold ${ok ? 'text-ok' : 'text-bad'}`}
-    >
-      {ok ? <CheckIcon /> : <CrossIcon />}
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-small font-extrabold text-ink">
+      <span
+        className={`flex h-6 w-6 items-center justify-center rounded-[8px] border-2 border-outline text-on-fill ${ok ? 'bg-correct' : 'bg-wrong'}`}
+      >
+        {ok ? <CheckIcon className="h-3.5 w-3.5" /> : <CrossIcon className="h-3.5 w-3.5" />}
+      </span>
       {label ?? (ok ? 'Right' : 'Wrong')}
     </span>
   );
 }
 
+/** Tile states: right (mint), wrong (coral), picked by the learner (violet), idle. */
 export function markClass(state: 'ok' | 'bad' | 'picked' | 'none'): string {
   return {
-    ok: 'border-ok bg-ok-soft',
-    bad: 'border-bad bg-bad-soft',
-    picked: 'border-accent bg-accent-soft',
-    none: 'border-border',
+    ok: 'border-correct bg-correct-tint',
+    bad: 'border-wrong bg-wrong-tint',
+    picked: 'border-primary bg-surface-tint',
+    none: 'border-outline bg-surface',
   }[state];
 }
 
@@ -113,9 +116,9 @@ export function MiniPlot({
       role="img"
       aria-label={label ?? `graph of y = ${plot}`}
     >
-      <line x1={sx(x[0])} x2={sx(x[1])} y1={sy(0)} y2={sy(0)} stroke="var(--c-border)" />
-      {x[0] < 0 && x[1] > 0 && <line x1={sx(0)} x2={sx(0)} y1={6} y2={H - 6} stroke="var(--c-border)" />}
-      <path d={pathOf(pts, sx, sy)} fill="none" stroke="var(--c-accent)" strokeWidth={2} />
+      <line x1={sx(x[0])} x2={sx(x[1])} y1={sy(0)} y2={sy(0)} stroke="var(--ink-3)" />
+      {x[0] < 0 && x[1] > 0 && <line x1={sx(0)} x2={sx(0)} y1={6} y2={H - 6} stroke="var(--ink-3)" />}
+      <path d={pathOf(pts, sx, sy)} fill="none" stroke="var(--primary)" strokeWidth={2} />
     </svg>
   );
 }
@@ -138,23 +141,23 @@ export function NumberLine({ learner, correct, unit }: { learner: number; correc
         role="img"
         aria-label={`Your answer ${formatNumber(learner)}${u}; correct ${formatNumber(correct)}${u}`}
       >
-        <line x1={16} x2={W - 16} y1={30} y2={30} stroke="var(--c-border)" strokeWidth={2} />
+        <line x1={16} x2={W - 16} y1={30} y2={30} stroke="var(--ink-3)" strokeWidth={2} />
         {ticks(lo, hi).map((t) => (
           <g key={t}>
-            <line x1={sx(t)} x2={sx(t)} y1={26} y2={34} stroke="var(--c-border)" />
-            <text x={sx(t)} y={48} fontSize={9} textAnchor="middle" fill="var(--c-muted)">
+            <line x1={sx(t)} x2={sx(t)} y1={26} y2={34} stroke="var(--ink-3)" />
+            <text x={sx(t)} y={48} fontSize={9} textAnchor="middle" fill="var(--ink-2)">
               {formatNumber(t)}
             </text>
           </g>
         ))}
-        <circle cx={sx(correct)} cy={30} r={6} fill="var(--c-ok)" />
-        <text x={sx(correct)} y={14} fontSize={10} textAnchor="middle" fill="var(--c-ok)">
+        <circle cx={sx(correct)} cy={30} r={6} fill="var(--correct)" />
+        <text x={sx(correct)} y={14} fontSize={10} textAnchor="middle" fill="var(--correct)">
           correct
         </text>
         {learner !== correct && (
           <>
-            <rect x={sx(learner) - 5} y={25} width={10} height={10} fill="var(--c-bad)" />
-            <text x={sx(learner)} y={14} fontSize={10} textAnchor="middle" fill="var(--c-bad)">
+            <rect x={sx(learner) - 5} y={25} width={10} height={10} fill="var(--wrong)" />
+            <text x={sx(learner)} y={14} fontSize={10} textAnchor="middle" fill="var(--wrong)">
               you
             </text>
           </>
@@ -210,14 +213,90 @@ export function ExprCompare({
         role="img"
         aria-label={`Your expression plotted against the correct one over ${variable} from ${range[0]} to ${range[1]}`}
       >
-        <rect x={0} y={0} width={W} height={H} fill="var(--c-bg)" rx={8} />
-        <path d={pathOf(a, sx, sy)} fill="none" stroke="var(--c-ok)" strokeWidth={2.5} />
-        <path d={pathOf(b, sx, sy)} fill="none" stroke="var(--c-bad)" strokeWidth={2} strokeDasharray="6 4" />
+        <rect x={0} y={0} width={W} height={H} fill="var(--surface-sunk)" rx={8} />
+        <path d={pathOf(a, sx, sy)} fill="none" stroke="var(--correct)" strokeWidth={2.5} />
+        <path d={pathOf(b, sx, sy)} fill="none" stroke="var(--wrong)" strokeWidth={2} strokeDasharray="6 4" />
       </svg>
-      <figcaption className="text-xs text-muted">
-        <span className="text-ok">━ correct</span> · <span className="text-bad">╍ yours</span> (over{' '}
+      <figcaption className="text-xs text-ink-2">
+        <span className="text-ink">━ correct</span>, <span className="text-ink">╍ yours</span> (over{' '}
         {variable} from {range[0]} to {range[1]})
       </figcaption>
     </figure>
+  );
+}
+
+/**
+ * Answer input (§10.5): 3 px outline, the value in `answer` type, an optional unit cell on the
+ * right (and prefix cell on the left) divided by a 3 px rule. States: idle, focus (violet),
+ * wrong (coral), correct (mint).
+ */
+export function AnswerField({
+  id,
+  value,
+  onChange,
+  disabled,
+  state = 'idle',
+  unit,
+  prefix,
+  inputMode = 'decimal',
+  testId,
+  mono = false,
+  inputRef,
+  label,
+}: {
+  id: string;
+  value: string;
+  onChange(v: string): void;
+  disabled?: boolean;
+  state?: 'idle' | 'wrong' | 'correct';
+  unit?: string;
+  prefix?: string;
+  inputMode?: 'decimal' | 'text';
+  testId?: string;
+  mono?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
+  label?: string;
+}) {
+  const border = {
+    idle: 'border-outline focus-within:border-primary',
+    wrong: 'border-wrong',
+    correct: 'border-correct',
+  }[state];
+  const rule = { idle: 'border-outline', wrong: 'border-wrong', correct: 'border-correct' }[state];
+  return (
+    <div
+      className={`flex max-w-[460px] items-stretch overflow-hidden rounded-lg border-[3px] bg-surface has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-primary ${border}`}
+      data-state={state}
+    >
+      {prefix && (
+        <span
+          className={`flex items-center border-r-[3px] bg-surface-sunk px-4 text-[22px] font-extrabold ${rule}`}
+        >
+          {prefix}
+        </span>
+      )}
+      <input
+        id={id}
+        ref={inputRef}
+        type="text"
+        inputMode={inputMode}
+        autoComplete="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        aria-label={label}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className={`min-w-0 flex-1 bg-transparent px-4 py-3 text-ink focus-visible:outline-none disabled:opacity-100 ${mono ? 'font-mono text-[24px] font-bold' : 'tabular text-answer'}`}
+        data-testid={testId}
+      />
+      {unit && (
+        <span
+          className={`flex items-center border-l-[3px] bg-surface-sunk px-[18px] text-[22px] font-extrabold ${rule}`}
+        >
+          {unit}
+        </span>
+      )}
+    </div>
   );
 }

@@ -30,8 +30,8 @@ export function MultiView({
   // Marks after a wrong first attempt describe that answer; after the reveal, the final one.
   const shown = reveal ? new Set(reveal.learner ?? []) : marks ? new Set(marks.answer) : null;
   return (
-    <fieldset className="grid gap-2" data-testid="multi">
-      <legend className="mb-1 text-sm text-muted">Select all that apply.</legend>
+    <fieldset className="grid gap-3" data-testid="multi">
+      <legend className="mb-1 text-sm text-ink-2">Select all that apply.</legend>
       {order.map((i, pos) => {
         const o = q.options[i];
         let state: 'ok' | 'bad' | 'picked' | 'none' = picked.has(i) ? 'picked' : 'none';
@@ -49,16 +49,16 @@ export function MultiView({
         return (
           <label
             key={i}
-            className={`flex items-start gap-3 rounded-xl border-2 px-4 py-3 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${markClass(state)} ${disabled ? 'cursor-default' : 'cursor-pointer hover:border-accent'}`}
+            className={`flex min-h-[56px] items-center gap-3 rounded-lg border-2 px-4 py-3 text-[18px] font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-primary ${markClass(state)} ${state === 'picked' ? 'shadow-linked' : state === 'none' && !disabled ? 'shadow-s1' : ''} ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
           >
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 accent-[var(--c-accent)]"
+              className="mt-1 h-4 w-4 accent-[var(--primary)]"
               checked={picked.has(i)}
               disabled={disabled}
               onChange={() => toggle(i)}
             />
-            <span aria-hidden="true" className="mt-0.5 text-xs font-semibold text-muted">
+            <span aria-hidden="true" className="mt-0.5 text-xs font-semibold text-ink-2">
               {pos + 1}
             </span>
             <span className="min-w-0 flex-1">

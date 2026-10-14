@@ -42,9 +42,9 @@ export function HotspotView({
     if (!marks || !marks.answer.includes(id) || !tapped.includes(id)) return undefined;
     return q.ordered ? undefined : marks.answer.includes(id) && marks.grade.parts?.[marks.answer.indexOf(id)];
   };
-  if (error) return <p className="text-bad">Could not load the interactive: {error.message}</p>;
+  if (error) return <p className="text-ink">Could not load the interactive: {error.message}</p>;
   if (!mod || !resolved) return <Loading what="Loading the diagram" />;
-  if ('error' in resolved) return <p className="text-bad">{resolved.error!.message}</p>;
+  if ('error' in resolved) return <p className="text-ink">{resolved.error!.message}</p>;
   return (
     <div data-testid="hotspot">
       <InteractiveFrame
@@ -56,7 +56,7 @@ export function HotspotView({
         targets={q.targets}
         onTap={tap}
       />
-      <p className="mt-3 text-sm text-muted">
+      <p className="mt-3 text-sm text-ink-2">
         {q.ordered
           ? 'Tap the elements in order. Tap one again to remove it.'
           : q.answer.length > 1
@@ -79,7 +79,7 @@ export function HotspotView({
               data-target={id}
             >
               {id}
-              {q.ordered && pos >= 0 && <span className="text-xs text-muted">#{pos + 1}</span>}
+              {q.ordered && pos >= 0 && <span className="text-xs text-ink-2">#{pos + 1}</span>}
             </button>
           );
         })}

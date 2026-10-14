@@ -132,7 +132,7 @@ export function GraphManipulator({
         onPointerUp={() => (dragging.current = null)}
         onPointerLeave={() => (dragging.current = null)}
       >
-        <rect x={0} y={0} width={W} height={H} fill="var(--c-bg)" rx={10} />
+        <rect x={0} y={0} width={W} height={H} fill="var(--surface-sunk)" rx={10} />
         <defs>
           <clipPath id={`${id}-clip`}>
             <rect x={M.l} y={M.t} width={W - M.l - M.r} height={H - M.t - M.b} />
@@ -140,27 +140,23 @@ export function GraphManipulator({
         </defs>
         {ticks(x0v, x1v).map((t) => (
           <g key={`x${t}`}>
-            <line x1={sx(t)} y1={M.t} x2={sx(t)} y2={H - M.b} stroke="var(--c-border)" opacity={0.5} />
-            <text x={sx(t)} y={H - M.b + 16} textAnchor="middle" fontSize={11} fill="var(--c-muted)">
+            <line x1={sx(t)} y1={M.t} x2={sx(t)} y2={H - M.b} stroke="var(--ink-3)" opacity={0.5} />
+            <text x={sx(t)} y={H - M.b + 16} textAnchor="middle" fontSize={11} fill="var(--ink-2)">
               {formatNumber(t)}
             </text>
           </g>
         ))}
         {ticks(y0v, y1v).map((t) => (
           <g key={`y${t}`}>
-            <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--c-border)" opacity={0.5} />
-            <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--c-muted)">
+            <line x1={M.l} y1={sy(t)} x2={W - M.r} y2={sy(t)} stroke="var(--ink-3)" opacity={0.5} />
+            <text x={M.l - 6} y={sy(t) + 4} textAnchor="end" fontSize={11} fill="var(--ink-2)">
               {formatNumber(t)}
             </text>
           </g>
         ))}
         <g clipPath={`url(#${id}-clip)`}>
-          {y0v <= 0 && y1v >= 0 && (
-            <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--c-muted)" />
-          )}
-          {x0v <= 0 && x1v >= 0 && (
-            <line x1={sx(0)} y1={M.t} x2={sx(0)} y2={H - M.b} stroke="var(--c-muted)" />
-          )}
+          {y0v <= 0 && y1v >= 0 && <line x1={M.l} y1={sy(0)} x2={W - M.r} y2={sy(0)} stroke="var(--ink-2)" />}
+          {x0v <= 0 && x1v >= 0 && <line x1={sx(0)} y1={M.t} x2={sx(0)} y2={H - M.b} stroke="var(--ink-2)" />}
           {m.band && (
             <g data-testid="graph-band">
               <rect
@@ -168,7 +164,7 @@ export function GraphManipulator({
                 y={sy(m.band.y + m.band.eps)}
                 width={W - M.l - M.r}
                 height={Math.max(0, sy(m.band.y - m.band.eps) - sy(m.band.y + m.band.eps))}
-                fill="var(--c-accent)"
+                fill="var(--primary)"
                 opacity={0.12}
               />
               <line
@@ -176,7 +172,7 @@ export function GraphManipulator({
                 y1={sy(m.band.y)}
                 x2={W - M.r}
                 y2={sy(m.band.y)}
-                stroke="var(--c-accent)"
+                stroke="var(--primary)"
                 strokeDasharray="4 4"
               />
               {m.band.x !== undefined && m.band.dx !== undefined && (
@@ -186,11 +182,11 @@ export function GraphManipulator({
                     y={M.t}
                     width={Math.max(0, sx(m.band.x + m.band.dx) - sx(m.band.x - m.band.dx))}
                     height={H - M.t - M.b}
-                    fill="var(--c-warn)"
+                    fill="var(--volt)"
                     opacity={0.1}
                   />
                   {[m.band.x - m.band.dx, m.band.x + m.band.dx].map((xx) => (
-                    <line key={xx} x1={sx(xx)} y1={M.t} x2={sx(xx)} y2={H - M.b} stroke="var(--c-warn)" />
+                    <line key={xx} x1={sx(xx)} y1={M.t} x2={sx(xx)} y2={H - M.b} stroke="var(--volt)" />
                   ))}
                 </g>
               )}
@@ -200,18 +196,18 @@ export function GraphManipulator({
                   y1={M.t}
                   x2={sx(m.band.x)}
                   y2={H - M.b}
-                  stroke="var(--c-accent)"
+                  stroke="var(--primary)"
                   strokeDasharray="4 4"
                 />
               )}
             </g>
           )}
-          {areaPath && <path d={areaPath} fill="var(--c-accent)" opacity={0.25} />}
+          {areaPath && <path d={areaPath} fill="var(--primary)" opacity={0.25} />}
           {m.target && (
             <path
               d={pathOf(m.target, domain(config, m))}
               fill="none"
-              stroke="var(--c-warn)"
+              stroke="var(--volt)"
               strokeWidth={2.5}
               strokeDasharray="7 5"
               data-testid="graph-target"
@@ -221,21 +217,21 @@ export function GraphManipulator({
             <path
               d={fnPath(fp)}
               fill="none"
-              stroke="var(--c-accent)"
+              stroke="var(--primary)"
               strokeWidth={1.8}
               strokeDasharray="5 4"
             />
           )}
           {m.A && (
-            <path d={fnPath(m.A)} fill="none" stroke="var(--c-ok)" strokeWidth={2} strokeDasharray="2 3" />
+            <path d={fnPath(m.A)} fill="none" stroke="var(--correct)" strokeWidth={2} strokeDasharray="2 3" />
           )}
-          <path d={pathOf(m.main, domain(config, m))} fill="none" stroke="var(--c-text)" strokeWidth={2.5} />
+          <path d={pathOf(m.main, domain(config, m))} fill="none" stroke="var(--ink)" strokeWidth={2.5} />
           {f &&
             fp &&
             m.tangents.map((x, i) => {
               const y = f(x);
               return Number.isFinite(y) ? (
-                <path key={i} d={line(x, y, fp(x))} stroke="var(--c-accent)" strokeWidth={1.8} fill="none" />
+                <path key={i} d={line(x, y, fp(x))} stroke="var(--primary)" strokeWidth={1.8} fill="none" />
               ) : null;
             })}
           {f &&
@@ -247,13 +243,13 @@ export function GraphManipulator({
               if (!Number.isFinite(y) || !Number.isFinite(y2) || h === 0) return null;
               return (
                 <g>
-                  <path d={line(x, y, (y2 - y) / h)} stroke="var(--c-warn)" strokeWidth={1.8} fill="none" />
-                  <circle cx={sx(x + h)} cy={sy(y2)} r={4} fill="var(--c-warn)" />
+                  <path d={line(x, y, (y2 - y) / h)} stroke="var(--volt)" strokeWidth={1.8} fill="none" />
+                  <circle cx={sx(x + h)} cy={sy(y2)} r={4} fill="var(--volt)" />
                 </g>
               );
             })()}
           {config.data.map(([x, y], i) => (
-            <circle key={i} cx={sx(x)} cy={sy(y)} r={4} fill="var(--c-accent)" />
+            <circle key={i} cx={sx(x)} cy={sy(y)} r={4} fill="var(--primary)" />
           ))}
         </g>
         {f &&
@@ -281,11 +277,11 @@ export function GraphManipulator({
                     cx={sx(x)}
                     cy={cy}
                     r={7}
-                    fill={Number.isFinite(y) ? 'var(--c-accent)' : 'var(--c-bg)'}
-                    stroke="var(--c-accent)"
+                    fill={Number.isFinite(y) ? 'var(--primary)' : 'var(--surface-sunk)'}
+                    stroke="var(--primary)"
                     strokeWidth={2.5}
                   />
-                  <text x={sx(x)} y={cy - 12} textAnchor="middle" fontSize={11} fill="var(--c-text)">
+                  <text x={sx(x)} y={cy - 12} textAnchor="middle" fontSize={11} fill="var(--ink)">
                     {k.label}
                   </text>
                 </g>
@@ -309,7 +305,7 @@ export function GraphManipulator({
               value={values[k.name]}
               disabled={disabled}
               onChange={(e) => update(k.name, snap(Number(e.target.value), k))}
-              className="accent-[var(--c-accent)]"
+              className="accent-[var(--primary)]"
               data-slider={k.name}
               aria-label={k.label}
             />
@@ -318,7 +314,7 @@ export function GraphManipulator({
       </div>
       {readouts.length > 0 && (
         <p className="font-mono text-sm" data-testid="graph-readouts">
-          {readouts.join(' · ')}
+          {readouts.join(', ')}
         </p>
       )}
     </div>

@@ -5,11 +5,11 @@ import type { Config, State } from './model';
 import { cell, node, type Tone, type View } from './trace';
 
 const TONE: Record<Tone, string> = {
-  active: 'border-accent bg-accent-soft',
-  done: 'border-ok bg-ok-soft',
-  muted: 'border-border bg-surface-2 text-muted opacity-60',
-  found: 'border-ok bg-ok-soft font-bold',
-  new: 'border-warn bg-warn-soft',
+  active: 'border-primary bg-surface-tint',
+  done: 'border-correct bg-correct-tint',
+  muted: 'border-outline bg-surface-sunk text-ink-2 opacity-60',
+  found: 'border-correct bg-correct-tint font-bold',
+  new: 'border-volt bg-volt-tint',
 };
 
 function ArrayCells({
@@ -25,7 +25,7 @@ function ArrayCells({
   const many = view.values.length > 20;
   return (
     <div>
-      {view.label && <div className="mb-1 text-xs font-medium text-muted">{view.label}</div>}
+      {view.label && <div className="mb-1 text-xs font-medium text-ink-2">{view.label}</div>}
       <div
         className={`flex flex-wrap gap-1.5 ${many ? 'max-w-[34rem]' : ''}`}
         role="group"
@@ -39,13 +39,13 @@ function ArrayCells({
           const content = (
             <>
               <span
-                className={`flex ${many ? 'h-9 w-9 text-sm' : 'h-11 w-11'} items-center justify-center rounded-md border-2 font-mono ${tone ? TONE[tone] : 'border-border bg-bg'}`}
+                className={`flex ${many ? 'h-9 w-9 text-sm' : 'h-11 w-11'} items-center justify-center rounded-md border-2 font-mono ${tone ? TONE[tone] : 'border-outline bg-surface-sunk'}`}
               >
                 {v === null ? '' : v}
               </span>
-              {label !== '' && <span className="text-[10px] text-muted">{label}</span>}
+              {label !== '' && <span className="text-[10px] text-ink-2">{label}</span>}
               {here.length > 0 && (
-                <span className="text-[10px] font-semibold text-accent">{here.join(',')}</span>
+                <span className="text-[10px] font-semibold text-primary-ink">{here.join(',')}</span>
               )}
             </>
           );
@@ -90,10 +90,10 @@ function ListNodes({
           const clickable = !disabled && (view.clickable ?? []).includes(n.id);
           const box = (
             <span
-              className={`flex items-center overflow-hidden rounded-md border-2 font-mono ${here.includes('curr') ? 'border-accent' : 'border-border'}`}
+              className={`flex items-center overflow-hidden rounded-md border-2 font-mono ${here.includes('curr') ? 'border-primary' : 'border-outline'}`}
             >
               <span className="px-3 py-2">{n.value}</span>
-              <span className="border-l border-border bg-surface-2 px-2 py-2 text-xs text-muted">
+              <span className="border-l border-outline bg-surface-sunk px-2 py-2 text-xs text-ink-2">
                 → {n.next === null ? 'None' : byId.get(n.next)?.value}
               </span>
             </span>
@@ -113,13 +113,13 @@ function ListNodes({
               ) : (
                 box
               )}
-              <span className="h-4 text-[11px] font-semibold text-accent">{here.join(', ')}</span>
+              <span className="h-4 text-[11px] font-semibold text-primary-ink">{here.join(', ')}</span>
             </div>
           );
         })}
       </div>
-      <div className="text-xs text-muted">
-        {ptrs.map(([k, p]) => `${k} = ${p === null ? 'None' : byId.get(p)?.value}`).join(' · ')}
+      <div className="text-xs text-ink-2">
+        {ptrs.map(([k, p]) => `${k} = ${p === null ? 'None' : byId.get(p)?.value}`).join(', ')}
       </div>
     </div>
   );
@@ -146,9 +146,9 @@ export function ViewPanel({
               key={i}
               className={
                 i === view.input!.index
-                  ? 'rounded bg-accent px-1 text-on-accent'
+                  ? 'rounded bg-primary px-1 text-on-primary'
                   : i < view.input!.index
-                    ? 'text-muted'
+                    ? 'text-ink-2'
                     : ''
               }
             >
@@ -161,15 +161,15 @@ export function ViewPanel({
       {view.list && <ListNodes view={view.list} onPick={onPick} disabled={disabled} />}
       {view.stack && (
         <div>
-          <div className="mb-1 text-xs font-medium text-muted">{view.stack.label}</div>
-          <div className="flex min-h-11 items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 font-mono">
+          <div className="mb-1 text-xs font-medium text-ink-2">{view.stack.label}</div>
+          <div className="flex min-h-11 items-center gap-1 rounded-md border-2 border-dashed border-outline px-2 py-1 font-mono">
             {view.stack.items.length === 0 ? (
-              <span className="text-sm text-muted">empty</span>
+              <span className="text-sm text-ink-2">empty</span>
             ) : (
               view.stack.items.map((x, i) => (
                 <span
                   key={i}
-                  className={`rounded border px-2 py-1 ${i === view.stack!.items.length - 1 ? 'border-accent bg-accent-soft' : 'border-border'}`}
+                  className={`rounded border-2 px-2 py-1 ${i === view.stack!.items.length - 1 ? 'border-primary bg-surface-tint' : 'border-outline'}`}
                 >
                   {x}
                 </span>
@@ -182,7 +182,7 @@ export function ViewPanel({
         <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
           {Object.entries(view.vars).map(([k, v]) => (
             <div key={k}>
-              <dt className="inline text-muted">{k}: </dt>
+              <dt className="inline text-ink-2">{k}: </dt>
               <dd className="inline font-mono">{v}</dd>
             </div>
           ))}
@@ -218,12 +218,12 @@ export function AlgorithmStepper({
 
   return (
     <div className="space-y-4" data-testid="stepper">
-      <div className="flex items-center justify-between text-sm text-muted">
+      <div className="flex items-center justify-between text-sm text-ink-2">
         <span>
           Step {Math.min(state.step + 1, steps.length)} of {steps.length}
         </span>
         <span>
-          Mistakes: <strong className="text-text">{state.mistakes}</strong>
+          Mistakes: <strong className="text-ink">{state.mistakes}</strong>
         </span>
       </div>
       <ViewPanel view={view} onPick={pick} disabled={disabled || done} />
@@ -240,7 +240,7 @@ export function AlgorithmStepper({
                   type="button"
                   disabled={disabled}
                   onClick={() => pick(a.id)}
-                  className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-accent hover:bg-accent-soft"
+                  className="rounded-lg border-2 border-outline px-3 py-1.5 text-sm hover:border-primary hover:bg-surface-tint"
                   data-target={a.id}
                 >
                   {a.label}
@@ -252,19 +252,19 @@ export function AlgorithmStepper({
       )}
       <div aria-live="polite" className="min-h-[1.5rem] text-sm">
         {state.lastWrong && (
-          <p className="flex items-start gap-2 rounded-lg bg-bad-soft px-3 py-2 text-bad">
+          <p className="flex items-start gap-2 rounded-lg bg-wrong-tint px-3 py-2 text-ink">
             <CrossIcon className="mt-0.5 h-4 w-4 shrink-0" />{' '}
             <span>Not that one. {state.lastWrong} Try again.</span>
           </p>
         )}
         {!state.lastWrong && state.lastNote && (
-          <p className="flex items-start gap-2 text-ok">
+          <p className="flex items-start gap-2 text-ink">
             <CheckIcon className="mt-0.5 h-4 w-4 shrink-0" /> <span>{state.lastNote}</span>
           </p>
         )}
       </div>
       {done && (
-        <div className="rounded-lg bg-ok-soft px-3 py-2 text-sm" data-testid="stepper-done">
+        <div className="rounded-lg bg-correct-tint px-3 py-2 text-sm" data-testid="stepper-done">
           <Markdown>{`**Done.** ${config.trace.summary}`}</Markdown>
         </div>
       )}

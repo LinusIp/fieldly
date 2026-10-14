@@ -57,7 +57,7 @@ export function MatchView({
                 <span className="sr-only">Match for item {i + 1}</span>
                 <span aria-hidden="true">↔</span>
                 <select
-                  className="min-h-[44px] rounded-lg border border-border bg-bg px-2 font-semibold"
+                  className="min-h-[44px] rounded-lg border-2 border-outline bg-surface-sunk px-2 font-semibold"
                   value={current[i] ?? ''}
                   disabled={disabled || !!reveal}
                   onChange={(e) => set(i, e.target.value === '' ? null : Number(e.target.value))}
@@ -89,8 +89,11 @@ export function MatchView({
       </ol>
       <ul className="grid gap-2" aria-label="Choices">
         {order.map((ri, pos) => (
-          <li key={ri} className="flex items-center gap-3 rounded-xl border border-border bg-bg px-3 py-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-2 text-sm font-bold">
+          <li
+            key={ri}
+            className="flex items-center gap-3 rounded-xl border-2 border-outline bg-surface-sunk px-3 py-2"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-surface-sunk text-sm font-bold">
               {LETTERS[pos]}
             </span>
             <Side s={rights[ri]} scope={ctx.scope} />
