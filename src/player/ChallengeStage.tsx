@@ -62,6 +62,7 @@ export function ChallengeStage() {
         progress.settings.reducedMotion || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
       }
       debug={debug}
+      codeLang={progress.settings.codeLang}
       setSaved={setSaved}
       onSolved={(score, difficulty) =>
         update((p) => applyChallengeScore(lesson, p, difficulty, score, new Date()))

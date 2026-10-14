@@ -1,0 +1,797 @@
+id: dsa.u1.l2
+title: "Analysing loops"
+version: 1
+concepts: [loop-analysis]
+estimatedMinutes: 25
+
+# Scenario: a program processing n sensor readings, with several loops over them.
+params:
+  sets:
+    - { n: 100, k: 3 }
+    - { n: 200, k: 7 }
+    - { n: 150, k: 4 }
+derived:
+  stepped: "ceil(n / k)"
+  doubling: "ceil(log2(n))"
+  tri: "n * (n - 1) / 2"
+
+intro: |
+  To find a loop's cost, **count how many times its body runs** as a function of $n$.
+
+  - **Simple loop** `for i in range(n)`: $n$ times — $O(n)$.
+  - **Stepping by $k$**, `range(0, n, k)`: about $n/k$ times — still $O(n)$ for a fixed $k$.
+  - **Doubling** `i = 1; while i < n: i *= 2`: $i$ takes values $1, 2, 4, \dots$ — about $\log_2 n$
+    times, so $O(\log n)$. Halving behaves the same way.
+  - **Nested loops** multiply: an $O(n)$ loop around an $O(\log n)$ loop is $O(n \log n)$.
+  - **Dependent nested loops**, where the inner range depends on the outer index (`for j in range(i + 1, n)`),
+    need a sum: $(n-1) + (n-2) + \dots + 0 = n(n-1)/2$, which is still $O(n^2)$.
+  - **Loops one after another** add: $O(n) + O(n^2) = O(n^2)$.
+
+  Count carefully at the boundaries (does the loop stop *before* $n$ or *at* $n$?) — then simplify
+  to Big-O.
+
+workedExample: |
+  ```python
+  for i in range(1, 9):
+      j = 1
+      while j < 9:
+          j *= 3
+  ```
+  - Outer loop: 8 times.
+  - Inner loop: $j = 1, 3$ then 9 stops it — 2 times (that's $\lceil\log_3 9\rceil$).
+  - Total inner steps: $8 \times 2 = 16$; in general $O(n \log n)$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: loop-analysis
+    clueFor: [s6]
+    establishes: "range(0, {{n}}, {{k}}) runs ⌈n/k⌉ = {{stepped}} times — still O(n) for fixed k."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          `for i in range(0, 12, 3):` — which values does `i` take?
+        options:
+          - { text: "0, 3, 6, 9", correct: true }
+          - { text: "0, 3, 6, 9, 12", misconception: range-end-included }
+          - { text: "3, 6, 9, 12", misconception: range-starts-at-step }
+          - { text: "0, 1, 2, …, 11", misconception: step-ignored }
+        hints:
+          nudge: "`range(start, stop, step)` stops *before* `stop`."
+          partial: "Start at 0 and add 3 while the value is below 12."
+        explanation: |
+          **Answer:** 0, 3, 6, 9
+
+          **Why:** `range` starts at 0, adds the step 3, and stops before reaching 12: four values.
+
+          **Common mistakes:**
+          - "… 12" — the stop value is excluded.
+          - "3, 6, 9, 12" — `range` starts at `start` (0), not at the first step.
+          - "0, 1, 2, …" — that ignores the step.
+
+          **Connects to:** Q6 adds this loop's cost to another's.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          ```python
+          for i in range(0, n, k):
+              check(readings[i])
+          ```
+          With $n = {{n}}$ and $k = {{k}}$, how many times does `check` run?
+        answer: { expr: "ceil(n / k)" }
+        distractors:
+          - { expr: "n", misconception: step-ignored }
+          - { expr: "n * k", misconception: step-multiplies }
+          - { expr: "floor(n / k)", misconception: floor-instead-of-ceil }
+        hints:
+          nudge: "Which values does `i` take, and where does it stop?"
+          partial: "`i` = 0, {{k}}, {{2*k}}, … while `i` < {{n}}."
+        explanation: |
+          **Answer:** {{stepped}}
+
+          **Why:** `i` takes 0, {{k}}, {{2*k}}, … up to the last multiple of {{k}} below {{n}}. That's
+          $\lceil {{n}}/{{k}} \rceil = {{stepped}}$ values (counting 0). For a fixed step that's still $O(n)$.
+
+          **Common mistakes:**
+          - {{n}} — the loop jumps by {{k}}, not 1.
+          - {{n*k}} — a bigger step means *fewer* iterations.
+          - {{floor(n/k)}} — forgets the iteration at `i = 0`.
+
+          **Connects to:** Q6 combines this loop with another.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          ```python
+          for i in range(n - 1, -1, -k):
+              check(readings[i])
+          ```
+          With $n = {{n}}$ and $k = {{k}}$, how many times does `check` run?
+        answer: { expr: "ceil(n / k)" }
+        distractors:
+          - { expr: "floor(n / k)", misconception: floor-instead-of-ceil }
+          - { expr: "n", misconception: step-ignored }
+          - { expr: "ceil(n / k) + 1", misconception: range-end-included }
+        hints:
+          nudge: "Counting down from {{n-1}} by {{k}}, stopping before −1: how many values?"
+          partial: "The values are {{n-1}}, {{n-1-k}}, … down to the last one that is ≥ 0."
+        explanation: |
+          **Answer:** {{stepped}}
+
+          **Why:** From {{n-1}} down by {{k}} while the value is ≥ 0 gives the same count as counting up:
+          $\lceil {{n}}/{{k}} \rceil = {{stepped}}$. Direction doesn't change the number of steps.
+
+          **Common mistakes:**
+          - {{floor(n/k)}} — that misses the last partial step.
+          - {{n}} — the step is {{k}}.
+          - {{stepped+1}} — `range` stops *before* −1, so it never reaches below 0.
+
+          **Connects to:** Q6 combines this loop with another.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: loop-analysis
+    clueFor: [s3]
+    establishes: "Doubling loop: ⌈log₂ {{n}}⌉ = {{doubling}} iterations — O(log n)."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          ```python
+          i = 1
+          while i < 20:
+              i *= 2
+          ```
+          Which values does `i` take *inside* the loop?
+        options:
+          - { text: "1, 2, 4, 8, 16", correct: true }
+          - { text: "1, 2, 3, …, 19", misconception: doubling-as-linear }
+          - { text: "1, 2, 4, 8, 16, 32", misconception: range-end-included }
+          - { text: "2, 4, 8, 16", misconception: range-starts-at-step }
+        hints:
+          nudge: "Each pass multiplies `i` by 2. When does the condition fail?"
+          partial: "After `i` becomes 32, `32 < 20` is false."
+        explanation: |
+          **Answer:** 1, 2, 4, 8, 16
+
+          **Why:** The body runs with `i` = 1, 2, 4, 8, 16; then `i` becomes 32 and the test `32 < 20` fails.
+          Five iterations — about $\log_2 20 \approx 4.3$, rounded up.
+
+          **Common mistakes:**
+          - "1, 2, 3, …" — `i` doubles; it doesn't add 1.
+          - "… 32" — the loop exits before running with 32.
+          - "2, 4, …" — the first pass runs with `i = 1`.
+
+          **Connects to:** Q3 nests this loop inside another.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          ```python
+          i = 1
+          while i < n:
+              i *= 2
+          ```
+          With $n = {{n}}$, how many times does the loop body run?
+        answer: { expr: "ceil(log2(n))" }
+        distractors:
+          - { expr: "n / 2", misconception: doubling-as-linear }
+          - { expr: "floor(log2(n))", misconception: boundary-off-by-one }
+          - { expr: "n", misconception: linear-guess }
+        hints:
+          nudge: "List the values: 1, 2, 4, 8, … How many are below {{n}}?"
+          partial: "Count the powers of two below {{n}}: $2^0, 2^1, \\dots$"
+        explanation: |
+          **Answer:** {{doubling}}
+
+          **Why:** `i` runs through $2^0, 2^1, \dots$ while below {{n}}: the largest is $2^{ {{doubling-1}} } = {{2^(doubling-1)}}$,
+          so there are {{doubling}} values — $\lceil \log_2 {{n}} \rceil$. Growth: $O(\log n)$.
+
+          **Common mistakes:**
+          - {{n/2}} — doubling reaches {{n}} far faster than counting up does.
+          - {{floor(log2(n))}} — don't forget the first pass, with `i = 1`.
+          - {{n}} — that's a counting loop, not a doubling one.
+
+          **Connects to:** Q3 nests this loop.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          ```python
+          i = n
+          while i > 1:
+              i //= 2
+          ```
+          With $n = {{n}}$, how many times does the loop body run?
+        answer: { expr: "floor(log2(n))" }
+        distractors:
+          - { expr: "n / 2", misconception: doubling-as-linear }
+          - { expr: "ceil(log2(n))", misconception: boundary-off-by-one }
+          - { expr: "n - 1", misconception: linear-guess }
+        hints:
+          nudge: "Write out `i`: {{n}}, {{floor(n/2)}}, {{floor(n/4)}}, … When does it reach 1?"
+          partial: "Each pass halves `i` (rounding down). It stops when `i` ≤ 1."
+        explanation: |
+          **Answer:** {{floor(log2(n))}}
+
+          **Why:** Halving {{n}} repeatedly reaches 1 after $\lfloor \log_2 {{n}} \rfloor = {{floor(log2(n))}}$ steps.
+          Halving and doubling loops are both $O(\log n)$; here it's the floor because we stop *at* 1.
+
+          **Common mistakes:**
+          - {{n/2}} — halving is much faster than subtracting.
+          - {{ceil(log2(n))}} — the loop stops once `i` reaches 1, one step sooner.
+          - {{n-1}} — that's decrementing by 1.
+
+          **Connects to:** Q3 nests a logarithmic loop inside a linear one.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: loop-analysis
+    uses: [s2]
+    clueFor: [s5]
+    establishes: "n × (doubling loop) = {{n}} × {{doubling}} = {{n*doubling}} steps — O(n log n)."
+    standaloneContext: "A doubling loop `i = 1; while i < n: i *= 2` runs ⌈log₂ n⌉ times; for n = {{n}} that's {{doubling}}."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          The doubling loop runs {{doubling}} times for $n = {{n}}$. It is placed inside `for r in range(n):`.
+          How many times does the inner body run in total?
+        answer: { expr: "n * ceil(log2(n))" }
+        distractors:
+          - { expr: "n + ceil(log2(n))", misconception: loops-add-not-multiply }
+          - { expr: "n^2", misconception: nested-loops-always-n2 }
+          - { expr: "ceil(log2(n))", misconception: outer-loop-ignored }
+        hints:
+          nudge: "For each of the {{n}} outer passes, the inner loop runs fully."
+          partial: "{{n}} × {{doubling}}"
+        explanation: |
+          **Answer:** {{n*doubling}}
+
+          **Why:** Each of the {{n}} outer iterations runs the doubling loop {{doubling}} times:
+          ${{n}} \times {{doubling}} = {{n*doubling}}$.
+
+          **Common mistakes:**
+          - {{n+doubling}} — nested loops multiply.
+          - {{n^2}} — the inner loop isn't $n$ long; it's $\log n$.
+          - {{doubling}} — that's one outer pass only.
+
+          **Connects to:** Q5 contrasts this with a dependent nested loop.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          ```python
+          for r in range(n):
+              i = 1
+              while i < n:
+                  i *= 2
+          ```
+          With $n = {{n}}$, how many times does `i *= 2` run in total?
+        answer: { expr: "n * ceil(log2(n))" }
+        distractors:
+          - { expr: "n^2", misconception: nested-loops-always-n2 }
+          - { expr: "n + ceil(log2(n))", misconception: loops-add-not-multiply }
+          - { expr: "n * floor(log2(n))", misconception: boundary-off-by-one }
+        hints:
+          nudge: "How many times does the inner loop run per outer pass?"
+          buildsOn: "Q2: the doubling loop runs {{doubling}} times for n = {{n}}."
+          partial: "{{n}} outer passes × {{doubling}} inner passes."
+        explanation: |
+          **Answer:** {{n*doubling}}
+
+          **Why:** From Q2 the inner loop runs {{doubling}} times; it's repeated for each of {{n}} values of `r`:
+          ${{n}} \times {{doubling}} = {{n*doubling}}$ — $O(n \log n)$.
+
+          **Common mistakes:**
+          - {{n^2}} — two nested loops aren't automatically $n^2$; the inner one is logarithmic.
+          - {{n+doubling}} — nested loops multiply.
+          - {{n*floor(log2(n))}} — the doubling loop runs ⌈log₂ n⌉ times (it includes `i = 1`).
+
+          **Connects to:** Q5 — a nested loop that *is* quadratic.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          ```python
+          for r in range(n):
+              i = 1
+              while i < r:
+                  i *= 2
+          ```
+          What is the overall Big-O?
+        options:
+          - { text: '$O(n \log n)$', correct: true }
+          - { text: '$O(n^2)$ — two nested loops', misconception: nested-loops-always-n2 }
+          - { text: '$O(n)$ — the inner loop is short for small $r$', misconception: shrinking-inner-ignored }
+          - { text: '$O(\log n)$ — the inner loop is logarithmic', misconception: outer-loop-ignored }
+        hints:
+          nudge: "The inner loop runs about $\\log_2 r$ times. What's $\\sum_r \\log_2 r$ roughly?"
+          buildsOn: "Q2: a doubling loop up to n runs about log₂ n times."
+          partial: "Half of the values of $r$ are above $n/2$, and each of those costs at least $\\log_2(n/2)$."
+        explanation: |
+          **Answer:** $O(n \log n)$
+
+          **Why:** The inner loop runs about $\log_2 r$ times, so the total is $\sum_{r<n} \log_2 r = \log_2 (n!)$,
+          which is $\Theta(n \log n)$: the larger half of the $r$ values each cost about $\log_2 n - 1$.
+
+          **Common mistakes:**
+          - $O(n^2)$ — the inner loop doubles; it isn't linear.
+          - $O(n)$ — small $r$ are cheap, but most $r$ are large.
+          - $O(\log n)$ — it runs once for every outer pass.
+
+          **Connects to:** Q5 — a nested loop that is quadratic.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: loop-analysis
+    clueFor: [s5, s6]
+    establishes: "Dependent nested loop (j from i + 1): n(n − 1)/2 = {{tri}} steps."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          ```python
+          for i in range(4):
+              for j in range(i + 1, 4):
+                  compare(i, j)
+          ```
+          How many times does `compare` run?
+        answer: { expr: "6" }
+        distractors:
+          - { expr: "16", misconception: nested-loops-always-n2 }
+          - { expr: "10", misconception: pairs-include-self }
+          - { expr: "12", misconception: pairs-ordered }
+        hints:
+          nudge: "Count `j` for each `i`: i = 0, 1, 2, 3."
+          partial: "3 + 2 + 1 + 0"
+        explanation: |
+          **Answer:** 6
+
+          **Why:** `j` runs 3, 2, 1, 0 times for `i` = 0, 1, 2, 3: total 6 $= 4 \times 3 / 2$.
+
+          **Common mistakes:**
+          - 16 — the inner range shrinks; it isn't 4 every time.
+          - 10 — that would include `j = i`.
+          - 12 — each pair is visited once, not in both orders.
+
+          **Connects to:** Q5 finds this loop's Big-O.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          ```python
+          for i in range(n):
+              for j in range(i + 1, n):
+                  compare(readings[i], readings[j])
+          ```
+          With $n = {{n}}$, how many times does `compare` run?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "n^2", misconception: nested-loops-always-n2 }
+          - { expr: "n * (n + 1) / 2", misconception: pairs-include-self }
+          - { expr: "n * (n - 1)", misconception: pairs-ordered }
+        hints:
+          nudge: "The inner loop's length depends on `i`. Add up the lengths."
+          partial: "$(n-1) + (n-2) + \\dots + 1 + 0$"
+        explanation: |
+          **Answer:** {{tri}}
+
+          **Why:** `j` runs $n - 1 - i$ times, so the total is $\sum_{i=0}^{n-1}(n-1-i) = n(n-1)/2 = {{tri}}$.
+
+          **Common mistakes:**
+          - {{n^2}} — the inner loop gets shorter each time.
+          - {{n*(n+1)/2}} — `j` starts at `i + 1`, so `i` is never paired with itself.
+          - {{n*(n-1)}} — each pair is compared once.
+
+          **Connects to:** Q5 — is this still quadratic?
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          ```python
+          for i in range(n):
+              for j in range(i):
+                  for m in range(j):
+                      compare(i, j, m)
+          ```
+          With $n = {{n}}$, how many times does `compare` run? (It runs once for each $m < j < i < n$.)
+        answer: { expr: "n * (n - 1) * (n - 2) / 6" }
+        distractors:
+          - { expr: "n^3", misconception: nested-loops-always-n2 }
+          - { expr: "n * (n - 1) / 2", misconception: inner-loop-ignored }
+          - { expr: "n * (n - 1) * (n - 2)", misconception: pairs-ordered }
+        hints:
+          nudge: "Each run corresponds to choosing 3 different indices in increasing order."
+          partial: "The number of ways to choose 3 of $n$ items is $\\binom{n}{3} = \\dfrac{n(n-1)(n-2)}{6}$."
+        explanation: |
+          **Answer:** {{n*(n-1)*(n-2)/6}}
+
+          **Why:** Every run is one triple $m < j < i$, i.e. one way to choose 3 indices from {{n}}:
+          $\binom{n}{3} = n(n-1)(n-2)/6 = {{n*(n-1)*(n-2)/6}}$ — $O(n^3)$, with a factor of ⅙.
+
+          **Common mistakes:**
+          - {{n^3}} — the ranges shrink, giving the ⅙.
+          - {{n*(n-1)/2}} — that's two loops, not three.
+          - {{n*(n-1)*(n-2)}} — that counts each triple in all 6 orders.
+
+          **Connects to:** Q5 — Big-O of dependent loops.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: loop-analysis
+    uses: [s3, s4]
+    clueFor: [s6]
+    establishes: "Dependent nested loops are still O(n²); log-inner loops give O(n log n)."
+    standaloneContext: "A loop with `j` from `i + 1` to n runs n(n − 1)/2 times; a loop with a doubling inner loop runs about n log₂ n times."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          The dependent nested loop runs $n(n-1)/2 = \tfrac12 n^2 - \tfrac12 n$ times. What is its Big-O?
+        options:
+          - { text: '$O(n^2)$', correct: true }
+          - { text: '$O(n^2/2)$', misconception: big-o-keeps-constants }
+          - { text: '$O(n \log n)$ — the inner loop shrinks', misconception: shrinking-inner-is-log }
+          - { text: '$O(n)$', misconception: lower-order-dominates }
+        hints:
+          nudge: "Keep the dominant term, drop the constant."
+          partial: "$\\tfrac12 n^2$ dominates."
+        explanation: |
+          **Answer:** $O(n^2)$
+
+          **Why:** The dominant term is $\tfrac12 n^2$; dropping the constant gives $O(n^2)$.
+
+          **Common mistakes:**
+          - $O(n^2/2)$ — the same class as $O(n^2)$.
+          - $O(n \log n)$ — the inner loop shrinks by 1 each time, not by half.
+          - $O(n)$ — the $n^2$ term dominates.
+
+          **Connects to:** Q6 adds another loop.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The dependent loop from Q4 has an inner loop that gets shorter every time. Which statement is true?
+        options:
+          - { text: 'It is still $O(n^2)$: about half of $n^2$ is still quadratic', correct: true }
+          - { text: 'It is $O(n \log n)$, like the doubling loop in Q3', misconception: shrinking-inner-is-log }
+          - { text: 'It is $O(n)$: on average the inner loop is short', misconception: triangular-is-linear }
+          - { text: 'It is $O(n^2/2)$, a smaller class than $O(n^2)$', misconception: big-o-keeps-constants }
+        hints:
+          nudge: "Compare {{tri}} (Q4) with {{n^2}} and with {{n*doubling}} (Q3)."
+          buildsOn: "Q3: n × doubling = {{n*doubling}} steps. Q4: dependent loop = {{tri}} steps."
+          partial: "The inner loop averages $n/2$ iterations — that's linear, not logarithmic."
+        explanation: |
+          **Answer:** still $O(n^2)$.
+
+          **Why:** The inner loop shrinks by **one** each time, so on average it runs $n/2$ times: $n \times n/2$ is
+          quadratic. Compare {{tri}} steps (Q4) with only {{n*doubling}} for the doubling inner loop (Q3), where
+          the inner loop has $\log n$ iterations.
+
+          **Common mistakes:**
+          - $O(n \log n)$ — that needs an inner loop that halves or doubles.
+          - $O(n)$ — the average inner length is $n/2$, not a constant.
+          - $O(n^2/2)$ — constants don't change the class.
+
+          **Connects to:** Q6 — the cost of the whole program.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          At $n = {{n}}$, the dependent loop does {{tri}} steps and the doubling version {{n*doubling}}.
+          If $n$ grows tenfold, by about what factor does the **gap** between their counts grow?
+        options:
+          - { text: "About 100×", correct: true }
+          - { text: "About 10×", misconception: linear-scaling-assumed }
+          - { text: "About log₂ 10 ≈ 3.3×", misconception: shrinking-inner-is-log }
+          - { text: "It stays about the same", misconception: ratio-constant-assumed }
+        hints:
+          nudge: "Which term dominates the gap for large n?"
+          buildsOn: "Q3: n log₂ n steps. Q4: n(n − 1)/2 steps."
+          partial: "The gap is about $\\tfrac12 n^2 - n\\log_2 n$, dominated by $\\tfrac12 n^2$."
+        explanation: |
+          **Answer:** about 100×.
+
+          **Why:** The gap $\tfrac12 n^2 - n \log_2 n$ is dominated by $\tfrac12 n^2$ (Q4), which grows 100-fold when $n$
+          grows tenfold; the $n \log n$ part (Q3) grows only about 13-fold.
+
+          **Common mistakes:**
+          - "10×" — the quadratic term sets the pace.
+          - "3.3×" — that's how $\log n$ alone grows.
+          - "Same" — the gap widens with $n$.
+
+          **Connects to:** Q6 — the cost of the whole program.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: loop-analysis
+    uses: [s1, s4, s5]
+    establishes: "Loops in sequence add: {{stepped}} + {{tri}} = {{stepped + tri}} steps — O(n²) overall."
+    standaloneContext: |
+      A program first runs `for i in range(0, n, k)` ({{stepped}} iterations for n = {{n}}, k = {{k}}), then a
+      dependent nested loop with n(n − 1)/2 = {{tri}} iterations.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          A program runs the stepped loop ({{stepped}} iterations) and **then** the dependent nested loop
+          ({{tri}} iterations). How many iterations in total?
+        answer: { expr: "ceil(n / k) + n * (n - 1) / 2" }
+        distractors:
+          - { expr: "ceil(n / k) * n * (n - 1) / 2", misconception: sequential-multiplies }
+          - { expr: "n * (n - 1) / 2", misconception: lower-order-dropped-in-count }
+          - { expr: "n + n^2", misconception: pairs-ordered }
+        hints:
+          nudge: "One loop runs after the other finishes."
+          partial: "{{stepped}} + {{tri}}"
+        explanation: |
+          **Answer:** {{stepped + tri}}
+
+          **Why:** Sequential loops add: ${{stepped}} + {{tri}} = {{stepped + tri}}$.
+
+          **Common mistakes:**
+          - {{stepped*tri}} — multiply only when one loop is *inside* the other.
+          - {{tri}} — Big-O may drop the small loop, but an exact count can't.
+          - {{n+n^2}} — neither loop runs exactly $n$ or $n^2$ times.
+
+          **Connects to:** the challenge — count loop iterations in code.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          A program runs the stepped loop and **then** the dependent nested loop. With $n = {{n}}$ and
+          $k = {{k}}$, how many iterations in total, and what is the Big-O?
+        options:
+          - { text: "{{stepped + tri}} iterations — $O(n^2)$", correct: true }
+          - { text: "{{stepped*tri}} iterations — $O(n^3)$", misconception: sequential-multiplies }
+          - { text: "{{stepped + tri}} iterations — $O(n^2 + n)$", misconception: big-o-keeps-terms }
+          - { text: "{{tri}} iterations — $O(n^2)$", misconception: lower-order-dropped-in-count }
+        hints:
+          nudge: "Do these loops run one inside the other, or one after the other?"
+          buildsOn: "Q1: {{stepped}} iterations. Q4: {{tri}} iterations. Q5: the nested loop is O(n²)."
+          partial: "Sequential loops add; Big-O keeps the bigger term."
+        explanation: |
+          **Answer:** {{stepped + tri}} iterations — $O(n^2)$.
+
+          **Why:** Sequential loops add: {{stepped}} (Q1) + {{tri}} (Q4) = {{stepped + tri}}. Big-O keeps the dominant
+          part: $O(n) + O(n^2) = O(n^2)$ (Q5).
+
+          **Common mistakes:**
+          - Multiplying — that's for nested loops.
+          - $O(n^2 + n)$ — Big-O drops the smaller term.
+          - {{tri}} — exact counts include every loop.
+
+          **Connects to:** the challenge — count loop iterations in code.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          The stepped loop is moved **inside** the outer loop of the dependent nested loop (before the inner `for j`).
+          With $n = {{n}}$ and $k = {{k}}$, how many iterations do the two inner loops do in total?
+        answer: { expr: "n * ceil(n / k) + n * (n - 1) / 2" }
+        distractors:
+          - { expr: "ceil(n / k) + n * (n - 1) / 2", misconception: outer-loop-ignored }
+          - { expr: "n * ceil(n / k) * (n - 1) / 2", misconception: sequential-multiplies }
+          - { expr: "n * ceil(n / k)", misconception: inner-loop-ignored }
+        hints:
+          nudge: "Now the stepped loop runs once per outer iteration."
+          buildsOn: "Q1: one stepped loop = {{stepped}}. Q4: the dependent loop's inner part totals {{tri}}."
+          partial: "{{n}} × {{stepped}} for the stepped loop, plus {{tri}} for the `j` loop."
+        explanation: |
+          **Answer:** {{n*stepped + tri}}
+
+          **Why:** Inside the outer loop the stepped loop runs {{n}} times: ${{n}} \times {{stepped}} = {{n*stepped}}$. The `j`
+          loop still totals {{tri}} (Q4). Sum: {{n*stepped + tri}} — still $O(n^2)$, but with a bigger constant.
+
+          **Common mistakes:**
+          - {{stepped + tri}} — the stepped loop now repeats {{n}} times.
+          - {{n*stepped*(n-1)/2}} — the two inner loops run one after the other inside each outer pass.
+          - {{n*stepped}} — the `j` loop still runs.
+
+          **Connects to:** the challenge — count loop iterations in code.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: loop-analysis
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "An outer loop runs $n$ times. Inside it, an inner loop runs $\\log_2 n$ times. How many inner iterations in total?"
+        options:
+          - { text: '$n \log_2 n$', correct: true }
+          - { text: '$n + \log_2 n$', misconception: loops-add-not-multiply }
+          - { text: '$n^2$', misconception: nested-loops-always-n2 }
+          - { text: '$\log_2 n$', misconception: outer-loop-ignored }
+        hints:
+          nudge: "How many times does the inner loop *start*?"
+          partial: "It starts $n$ times and runs $\\log_2 n$ iterations each time."
+        explanation: |
+          **Answer:** $n \log_2 n$
+
+          **Why:** Nested loops multiply: $n$ outer passes × $\log_2 n$ inner iterations.
+
+          **Common mistakes:**
+          - $n + \log_2 n$ — that's for loops one after another.
+          - $n^2$ — the inner loop isn't $n$ long.
+          - $\log_2 n$ — that's one outer pass.
+
+          **Connects to:** Q3 — the doubling loop inside a linear loop.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u1.l2.ch
+  type: code-runner
+  title: "Count the iterations"
+  concept: loop-analysis
+  uses: [s4, s5]
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        Write `count_pairs(n)` returning how many times `work()` runs in this code:
+
+        ```python
+        for i in range(n):
+            for j in range(i + 1, n):
+                work()
+        ```
+      config:
+        entry: { python: count_pairs, javascript: countPairs }
+        starter:
+          python: |
+            def count_pairs(n):
+                # Return how many times work() runs for this n.
+                return 0
+          javascript: |
+            function countPairs(n) {
+              // Return how many times work() runs for this n.
+              return 0;
+            }
+        tests:
+          - { args: [0], expected: 0 }
+          - { args: [1], expected: 0 }
+          - { args: [2], expected: 1 }
+          - { args: [5], expected: 10 }
+          - { args: [12], expected: 66, hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None of the tests pass yet. Try counting with two loops, exactly like the code." }
+        - { if: "passed < total", say: "Some tests fail. Check small cases by hand: for n = 5, the inner loop runs 4 + 3 + 2 + 1 + 0 times.", misconception: pairs-include-self }
+        - { if: "true", say: "Not quite — run the tests and read the failures." }
+      hints:
+        nudge: "You can simulate the loops and count, or find a formula."
+        buildsOn: "From Q4: the count is n(n − 1)/2."
+        partial: "Python: `return n * (n - 1) // 2`."
+      solution:
+        python: |
+          def count_pairs(n):
+              count = 0
+              for i in range(n):
+                  for j in range(i + 1, n):
+                      count += 1
+              return count
+        javascript: |
+          function countPairs(n) {
+            let count = 0;
+            for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) count++;
+            return count;
+          }
+      explanation: |
+        Simulating the loops works; so does the formula $n(n-1)/2$ from Q4. Both give 10 for $n = 5$.
+    standard:
+      difficulty: 3
+      goal: |
+        Write `count_triples(n)` returning how many times `work()` runs here:
+
+        ```python
+        for i in range(n):
+            for j in range(i + 1, n):
+                for m in range(j + 1, n):
+                    work()
+        ```
+      config:
+        entry: { python: count_triples, javascript: countTriples }
+        starter:
+          python: |
+            def count_triples(n):
+                return 0
+          javascript: |
+            function countTriples(n) {
+              return 0;
+            }
+        tests:
+          - { args: [0], expected: 0 }
+          - { args: [2], expected: 0 }
+          - { args: [3], expected: 1 }
+          - { args: [5], expected: 10 }
+          - { args: [20], expected: 1140, hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None of the tests pass yet. For n = 3 there is exactly one triple: (0, 1, 2)." }
+        - { if: "passed < total", say: "Close. Remember each loop starts one past the previous index — no repeats and no reordering.", misconception: pairs-ordered }
+        - { if: "true", say: "Run the tests and compare with the expected values." }
+      hints:
+        nudge: "Each run is one way to pick three increasing indices."
+        buildsOn: "From Q4: three dependent loops count the ways to choose 3 of n."
+        partial: "$\\binom{n}{3} = n(n-1)(n-2)/6$."
+      solution:
+        python: |
+          def count_triples(n):
+              return n * (n - 1) * (n - 2) // 6
+        javascript: |
+          function countTriples(n) {
+            return (n * (n - 1) * (n - 2)) / 6;
+          }
+      explanation: |
+        Each run is a choice of three increasing indices, so the count is $\binom{n}{3} = n(n-1)(n-2)/6$ — 1140 for $n = 20$.
+        Still $O(n^3)$ work if you run the loops, but $O(1)$ with the formula.
+    harder:
+      difficulty: 4
+      goal: |
+        `count_pairs(n)` again (the two-loop version) — but now it must handle **n = 1 000 000 000** within
+        half a second. Simulating the loops won't finish; find the count directly.
+      config:
+        entry: { python: count_pairs, javascript: countPairs }
+        starter:
+          python: |
+            def count_pairs(n):
+                return 0
+          javascript: |
+            function countPairs(n) {
+              return 0;
+            }
+        tests:
+          - { args: [0], expected: 0 }
+          - { args: [5], expected: 10 }
+          - { args: [100], expected: 4950 }
+          - { args: [100000], expected: 4999950000, hidden: true }
+        comparator: float
+        perf: { generator: dependentLoopCount, params: { n: 1000000000 }, timeLimitMs: 500 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail — get the small cases right first." }
+        - { if: "not perfPassed", say: "Correct, but too slow for n = 10⁹: the loops run about 5 × 10¹⁷ times. Use the formula.", misconception: loops-add-not-multiply }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "What closed-form expression counts the pairs?"
+        buildsOn: "From Q4: the count is n(n − 1)/2."
+        partial: "Return `n * (n - 1) // 2` (Python) or `n * (n - 1) / 2` (JavaScript)."
+      solution:
+        python: |
+          def count_pairs(n):
+              return n * (n - 1) // 2
+        javascript: |
+          function countPairs(n) {
+            return (n * (n - 1)) / 2;
+          }
+      explanation: |
+        The formula $n(n-1)/2$ answers in $O(1)$ time. Simulating the loops is $O(n^2)$ — about $5 \times 10^{17}$
+        steps for $n = 10^9$, which would take years.
+
+summary:
+  keyTakeaways:
+    - "Count how many times the loop body runs; then simplify to Big-O."
+    - "Stepping by a constant is still $O(n)$; doubling or halving gives $O(\\log n)$."
+    - "Nested loops multiply, sequential loops add — and dependent nested loops are still $O(n^2)$."
+    - "Check boundaries: `range` excludes its stop value; doubling loops include `i = 1`."
+  next: dsa.u1.l3

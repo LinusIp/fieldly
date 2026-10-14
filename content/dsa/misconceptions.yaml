@@ -1,0 +1,260 @@
+# Misconceptions for Data Structures & Algorithms.
+
+# ── dsa.u1.l1: algorithm analysis ──
+- id: pairs-ordered
+  short: "That counts each pair twice (i, j and j, i) — or compares items with themselves."
+  explain: |
+    Among $n$ items there are $n(n-1)/2$ unordered pairs. $n^2$ counts ordered pairs *and* the $n$
+    self-pairs.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: linear-guess
+  short: "One pass can't compare every pair — nested loops do much more work."
+  explain: |
+    Comparing every pair needs about $n^2/2$ comparisons, not $n$.
+  lessons: [dsa.u1.l1]
+
+- id: pairs-include-self
+  short: "That includes comparing each item with itself."
+  explain: |
+    If the inner loop starts after the outer index, an item is never compared with itself:
+    $(n-1) + (n-2) + \dots + 0 = n(n-1)/2$.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: lower-order-dominates
+  short: "For large n the highest power wins; lower-order terms don't matter."
+  explain: |
+    At $n = 1000$, $n^2 = 10^6$ while $n = 10^3$. Big-O keeps only the dominant term.
+  lessons: [dsa.u1.l1]
+
+- id: big-o-keeps-terms
+  short: "Big-O keeps only the fastest-growing term."
+  explain: |
+    $O(n^2 + n)$ is just $O(n^2)$: the $n$ term becomes irrelevant for large $n$.
+  lessons: [dsa.u1.l1]
+
+- id: big-o-keeps-constants
+  short: "Constant factors are dropped: O(n²/2) is the same class as O(n²)."
+  explain: |
+    Big-O describes growth up to a constant factor, because constants depend on the machine and
+    the implementation. $O(2n) = O(n)$; $O(n^2/2) = O(n^2)$.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: early-exit-lowers-worst-case
+  short: "An early return helps only on lucky inputs — the worst case never triggers it."
+  explain: |
+    The worst case is the input that makes the algorithm do the most work, e.g. no duplicates at all.
+  lessons: [dsa.u1.l1]
+
+- id: loops-add-not-multiply
+  short: "Nested loops multiply; only loops one after the other add."
+  explain: |
+    A loop of $n$ inside a loop of $n$ runs its body $n \times n$ times. Two separate loops run $n + n$.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: big-o-means-worst-case
+  short: "Big-O is a bound on a function — best, worst and average cases each have their own."
+  explain: |
+    "Worst case $O(n^2)$, best case $O(1)$" is a perfectly sensible statement. Worst case is just the one usually quoted.
+  lessons: [dsa.u1.l1]
+
+- id: early-exit-ignored
+  short: "`return` leaves the function at once — both loops stop."
+  explain: |
+    When the first comparison succeeds, nothing else runs: that's $O(1)$.
+  lessons: [dsa.u1.l1]
+
+- id: best-worst-swap
+  short: "No duplicates is the *worst* case — every pair must be checked."
+  explain: |
+    The best case is the input that lets the algorithm stop soonest.
+  lessons: [dsa.u1.l1]
+
+- id: linear-scaling-assumed
+  short: "That's how a linear algorithm scales; this one is quadratic."
+  explain: |
+    For $O(n^2)$, multiplying $n$ by $k$ multiplies the work by $k^2$.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: cubic-scaling
+  short: "That's cubic (n³) scaling."
+  explain: |
+    Match the scaling to the Big-O class: $n^2$ means ×$k^2$ for ×$k$ input.
+  lessons: [dsa.u1.l1]
+
+- id: constant-time-assumed
+  short: "More input means more work for this algorithm."
+  explain: |
+    Only $O(1)$ algorithms take the same time regardless of $n$.
+  lessons: [dsa.u1.l1]
+
+- id: exponential-scaling
+  short: "That's exponential growth (2¹⁰); n² grows much more gently."
+  explain: |
+    $(10n)^2 = 100 n^2$ — a factor of 100, not $2^{10} = 1024$.
+  lessons: [dsa.u1.l1]
+
+- id: additive-scaling
+  short: "Running time grows by a factor, not by adding a fixed amount."
+  explain: |
+    If the work is $cn^2$, solve $c(kn)^2 = 100 \cdot cn^2$ for $k$.
+  lessons: [dsa.u1.l1]
+
+- id: set-lookup-linear
+  short: "A set is a hash table: `x in seen` takes O(1) on average, not a scan."
+  explain: |
+    Lists check membership by scanning ($O(n)$); sets and dicts hash the key and look in one bucket ($O(1)$ average).
+  lessons: [dsa.u1.l1, dsa.u3.l1]
+
+- id: set-is-sorted
+  short: "Python sets are hash tables, not sorted structures."
+  explain: |
+    Sets store items by hash, in no particular order; no sorting or tree is involved.
+  lessons: [dsa.u1.l1]
+
+- id: space-ignored
+  short: "A single variable can still hold a collection that grows with n."
+  explain: |
+    Count the memory the data structure holds, not the number of variable names.
+  lessons: [dsa.u1.l1, dsa.u1.l3]
+
+- id: ratio-n
+  short: "Check the exact counts: the ratio isn't simply n."
+  explain: |
+    Divide the two counts exactly, e.g. $\frac{n(n-1)/2}{n} = \frac{n-1}{2}$.
+  lessons: [dsa.u1.l1]
+
+- id: ratio-constant-assumed
+  short: "The gap between different growth rates isn't constant — it widens with n."
+  explain: |
+    $O(n^2)$ vs $O(n)$ differ by a factor that itself grows like $n$.
+  lessons: [dsa.u1.l1]
+
+- id: ratio-as-difference
+  short: "'How many times' asks for a ratio — divide, don't subtract."
+  explain: |
+    "$a$ is $k$ times $b$" means $a / b = k$.
+  lessons: [dsa.u1.l1]
+
+- id: boundary-off-by-one
+  short: "Check the boundary: 'more than' excludes the equality case."
+  explain: |
+    If $(n-1)/2 > 1000$, then $n = 2001$ gives exactly 1000, which is not more than 1000.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: quadratic-root-confusion
+  short: "The ratio here is linear in n — no square root needed."
+  explain: |
+    Solve the inequality you actually have: $(n-1)/2 > 1000$.
+  lessons: [dsa.u1.l1]
+
+- id: exponential-vs-polynomial
+  short: "Exponentials eventually beat every polynomial."
+  explain: |
+    $2^n$ doubles with each extra item; $n^2$ grows by about $2n$. By $n = 20$, $2^n$ is over a million while $n^2$ is 400.
+  lessons: [dsa.u1.l1, dsa.u1.l4]
+
+- id: nlogn-vs-n2
+  short: "n log n is far below n²: log n grows much more slowly than n."
+  explain: |
+    $n \log n = n \times \log n$ and $n^2 = n \times n$; since $\log n \ll n$, $n \log n \ll n^2$.
+  lessons: [dsa.u1.l1]
+
+- id: log-bigger-than-linear
+  short: "log n grows much more slowly than n."
+  explain: |
+    $\log_2$ of a million is about 20. Logarithms are the slowest-growing functions in common use.
+  lessons: [dsa.u1.l1, dsa.u1.l2]
+
+- id: guess-not-halving
+  short: "To halve the possibilities every time, guess the middle."
+  explain: |
+    A guess off-centre can leave more than half the numbers in the worst case. Guessing
+    $\lfloor(\text{lo} + \text{hi})/2\rfloor$ guarantees halving: $\lceil\log_2(n+1)\rceil$ guesses at most.
+  lessons: [dsa.u1.l1]
+
+# ── dsa.u1.l2: analysing loops ──
+- id: range-end-included
+  short: "range(start, stop, …) stops *before* stop — the stop value is excluded."
+  explain: |
+    `range(0, 12, 3)` gives 0, 3, 6, 9. A `while i < n` loop likewise never runs with `i == n`.
+  lessons: [dsa.u1.l2]
+
+- id: range-starts-at-step
+  short: "The first value is the start (0 or 1), not the first step."
+  explain: |
+    The loop body runs once with the starting value before anything is added or multiplied.
+  lessons: [dsa.u1.l2]
+
+- id: step-ignored
+  short: "The loop jumps by its step, so it runs fewer times than n."
+  explain: |
+    `range(0, n, k)` runs about $n/k$ times.
+  lessons: [dsa.u1.l2]
+
+- id: step-multiplies
+  short: "A bigger step means *fewer* iterations, not more."
+  explain: |
+    Stepping by $k$ divides the count by $k$: $\lceil n/k \rceil$.
+  lessons: [dsa.u1.l2]
+
+- id: floor-instead-of-ceil
+  short: "Don't forget the iteration at the start value — round up, not down."
+  explain: |
+    Values $0, k, 2k, \dots$ below $n$: there are $\lceil n/k \rceil$ of them.
+  lessons: [dsa.u1.l2]
+
+- id: doubling-as-linear
+  short: "Doubling (or halving) reaches n in about log₂ n steps, not n/2."
+  explain: |
+    1, 2, 4, …, 512 is only 10 values. Multiplying by 2 each pass makes the loop logarithmic.
+  lessons: [dsa.u1.l2]
+
+- id: nested-loops-always-n2
+  short: "Nested loops are n² only if both run about n times — check each loop's own count."
+  explain: |
+    Multiply the actual iteration counts: $n$ outer × $\log n$ inner is $n \log n$; shrinking inner
+    loops need a sum.
+  lessons: [dsa.u1.l2]
+
+- id: outer-loop-ignored
+  short: "The inner loop runs again for every pass of the outer loop."
+  explain: |
+    Multiply the inner count by the number of outer iterations.
+  lessons: [dsa.u1.l2]
+
+- id: shrinking-inner-ignored
+  short: "Most outer passes have a large inner loop — the small ones don't make it cheap."
+  explain: |
+    Sum the inner counts over all outer passes; the larger half dominates.
+  lessons: [dsa.u1.l2]
+
+- id: inner-loop-ignored
+  short: "Every loop level contributes — don't stop counting one level early."
+  explain: |
+    Each nested loop multiplies (or, if dependent, sums) the work of the levels above it.
+  lessons: [dsa.u1.l2]
+
+- id: shrinking-inner-is-log
+  short: "An inner loop that shrinks by one each time averages n/2 — that's linear, not log."
+  explain: |
+    Logarithmic loops halve or double. $(n-1) + (n-2) + \dots$ is still about $n^2/2$.
+  lessons: [dsa.u1.l2]
+
+- id: triangular-is-linear
+  short: "The average inner length is n/2, which grows with n."
+  explain: |
+    $n$ outer passes × an average of $n/2$ inner passes is quadratic.
+  lessons: [dsa.u1.l2]
+
+- id: sequential-multiplies
+  short: "Loops one after another add their counts; only nested loops multiply."
+  explain: |
+    Run A then B: cost A + cost B. Run B inside A: cost A × cost B.
+  lessons: [dsa.u1.l2]
+
+- id: lower-order-dropped-in-count
+  short: "Big-O may drop the smaller loop, but an exact count must include it."
+  explain: |
+    Exact counts add every loop; only the Big-O simplification keeps just the dominant term.
+  lessons: [dsa.u1.l2]

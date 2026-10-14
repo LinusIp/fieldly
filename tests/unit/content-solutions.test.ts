@@ -8,7 +8,10 @@ import { applyDerived, enumerateParamValues } from '../../src/engine/params';
 import { renderTemplate } from '../../src/engine/template';
 
 const result = validateContent(join(import.meta.dirname, '..', '..', 'content'), { runCode: false });
-const lessons = Object.values(result.subjects).flatMap((s) => Object.values(s.lessons));
+const lessons = Object.values(result.subjects)
+  .flatMap((s) => Object.values(s.lessons))
+  // code-runner solutions only pass once their tests run; scripts/code-check.ts proves that.
+  .filter((l) => l.challenge.type !== 'code-runner');
 
 /**
  * "Show solution" renders `solutionState`, which (for the circuit builder) is an automatic grid
@@ -29,10 +32,13 @@ describe('challenge solutions as displayed', () => {
       for (const vk of ['easier', 'standard', 'harder'] as const) {
         const v = ch.variants[vk];
         for (const scope of scopes) {
-          const config = logic.resolveConfig(
+          const resolved = logic.resolveConfig(
             logic.configSchema.parse(v.config),
             makeResolveCtx(scope, evalNumber, renderTemplate),
           );
+          const config = logic.withSolution
+            ? logic.withSolution(resolved, logic.solutionSchema.parse(v.solution))
+            : resolved;
           const state = logic.solutionState(logic.solutionSchema.parse(v.solution), config);
           expect(
             (state as { netlist?: unknown }).netlist,

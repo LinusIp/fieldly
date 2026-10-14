@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { track } from '../analytics';
 import { Markdown } from '../components/Markdown';
 import { Button, CheckIcon, CrossIcon, Loading } from '../components/ui';
@@ -35,6 +35,7 @@ export interface ChallengeHostProps {
   buildsOnLabels: string[];
   reducedMotion: boolean;
   debug: boolean;
+  codeLang: 'python' | 'javascript';
   setSaved(fn: (s: ChallengeSaved) => ChallengeSaved): void;
   onSolved(score: number, difficulty: number): void;
   onMisconception(id: string): void;
@@ -69,18 +70,26 @@ function HostInner(p: ChallengeHostProps & { mod: AnyModule }) {
   const { mod, challenge, scope, saved, setSaved } = p;
   const vk = saved.variant as VariantKey;
   const variant = challenge.variants[vk];
-  const config = useMemo(
-    () =>
-      mod.resolveConfig(
-        mod.configSchema.parse(variant.config),
-        makeResolveCtx(scope, evalNumber, renderTemplate),
-      ),
-    [mod, variant, scope],
-  );
+  const config = useMemo(() => {
+    const c = mod.resolveConfig(
+      mod.configSchema.parse(variant.config),
+      makeResolveCtx(scope, evalNumber, renderTemplate),
+    );
+    return mod.withSolution ? mod.withSolution(c, mod.solutionSchema.parse(variant.solution)) : c;
+  }, [mod, variant, scope]);
   const state = saved.state ?? mod.initialState(config);
   const done = saved.solved || !!saved.usedSolution;
   const solution = useMemo(() => mod.solutionSchema.parse(variant.solution), [mod, variant]);
   const [announce, setAnnounce] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const solvedState = useCallback(
+    (current: unknown) => {
+      const solved = mod.solutionState(solution, config);
+      return mod.mergeSolution ? mod.mergeSolution(current ?? mod.initialState(config), solved) : solved;
+    },
+    [mod, solution, config],
+  );
 
   const hints: RenderedHints = {
     nudge: renderTemplate(variant.hints.nudge, scope),
@@ -93,12 +102,24 @@ function HostInner(p: ChallengeHostProps & { mod: AnyModule }) {
     const w = window as unknown as { __fieldlyDebug?: Record<string, unknown> };
     w.__fieldlyDebug = {
       ...(w.__fieldlyDebug ?? {}),
-      loadSolution: () => setSaved((s) => ({ ...s, state: mod.solutionState(solution, config) })),
+      loadSolution: () => setSaved((s) => ({ ...s, state: solvedState(s.state) })),
     };
-  }, [p.debug, mod, solution, config, setSaved]);
+  }, [p.debug, solvedState, setSaved]);
 
-  const check = () => {
-    if (done) return;
+  const check = async () => {
+    if (done || busy) return;
+    let state = saved.state ?? mod.initialState(config);
+    if (mod.beforeCheck) {
+      setBusy(true);
+      setAnnounce('Running…');
+      try {
+        state = await mod.beforeCheck(state, config, { codeLang: p.codeLang });
+        const st = state;
+        setSaved((s) => ({ ...s, state: st }));
+      } finally {
+        setBusy(false);
+      }
+    }
     const builtIn = mod.builtInFeedback?.(state, config) ?? null;
     const full: Scope = { ...scope, ...mod.checkScope(state, config), near };
     const safeBool = (expr: string) => {
@@ -153,7 +174,7 @@ function HostInner(p: ChallengeHostProps & { mod: AnyModule }) {
       ...s,
       usedSolution: true,
       score: 0,
-      state: mod.solutionState(solution, config),
+      state: solvedState(s.state),
       feedback: undefined,
     }));
     p.onSolved(0, variant.difficulty);
@@ -193,6 +214,7 @@ function HostInner(p: ChallengeHostProps & { mod: AnyModule }) {
             disabled={done}
             showingSolution={!!saved.usedSolution}
             reducedMotion={p.reducedMotion}
+            codeLang={p.codeLang}
             onStateChange={(st: unknown) => setSaved((s) => ({ ...s, state: st }))}
           />
           <div className="sr-only" aria-live="polite">
@@ -231,8 +253,8 @@ function HostInner(p: ChallengeHostProps & { mod: AnyModule }) {
         <div className="flex flex-wrap items-center gap-3">
           {!done ? (
             <>
-              <Button onClick={check} data-testid="challenge-check">
-                Check
+              <Button onClick={() => void check()} disabled={busy} data-testid="challenge-check">
+                {busy ? 'Running…' : 'Check'}
               </Button>
               <span className="text-sm text-muted">
                 {saved.checks} check{saved.checks === 1 ? '' : 's'} so far

@@ -27,7 +27,7 @@ import { evalBoolean, evalNumber, evaluate, type Scope } from '../src/engine/exp
 import { buildOptions } from '../src/engine/options';
 import { applyDerived, enumerateParamValues, mulberry32 } from '../src/engine/params';
 import { renderTemplate } from '../src/engine/template';
-import { runCodeChecks } from './code-check';
+import { flushCodeChecks, runCodeChecks } from './code-check';
 
 export interface Issue {
   file: string;
@@ -337,6 +337,12 @@ export function validateContent(contentDir: string, opts: { runCode?: boolean } 
         c.warn(join(dir, 'misconceptions.yaml'), `misconception "${m}" is defined but never used`);
   }
 
+  // Python reference solutions run in one batch at the end.
+  if (opts.runCode !== false) {
+    const note = flushCodeChecks();
+    if (note) c.warn(contentDir, note);
+  }
+
   return { errors: c.errors, warnings: c.warnings, index, subjects };
 }
 
@@ -605,7 +611,8 @@ function validateLesson(
       if (!logic || parsedConfigs[vk] === undefined || parsedSolutions[vk] === undefined) continue;
       try {
         const ctxR = makeResolveCtx(scope, evalNumber, renderTemplate);
-        const config = logic.resolveConfig(parsedConfigs[vk], ctxR);
+        const resolved = logic.resolveConfig(parsedConfigs[vk], ctxR);
+        const config = logic.withSolution ? logic.withSolution(resolved, parsedSolutions[vk]) : resolved;
         const solScope = logic.solutionScope(parsedSolutions[vk], config);
         const full = { ...scope, ...solScope };
         const ok = evalBoolean(v.check.expr, full);
@@ -633,10 +640,10 @@ function validateLesson(
       const pc = parsedConfigs[vk];
       const ps = parsedSolutions[vk];
       if (pc === undefined || ps === undefined) continue;
-      for (const issue of runCodeChecks(pc, ps)) {
+      runCodeChecks(pc, ps, (issue) => {
         if (issue.level === 'error') err(issue.message, `challenge.${vk}`);
         else warn(issue.message, `challenge.${vk}`);
-      }
+      });
     }
   }
 }

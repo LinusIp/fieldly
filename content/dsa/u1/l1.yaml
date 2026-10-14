@@ -1,0 +1,694 @@
+id: dsa.u1.l1
+title: "Algorithm analysis"
+version: 1
+concepts: [big-o, growth-rates]
+estimatedMinutes: 20
+
+# Scenario: checking a list of n student IDs for duplicates. A run of the pairwise version on n
+# IDs takes T seconds.
+params:
+  sets:
+    - { n: 100, T: 2 }
+    - { n: 200, T: 3 }
+    - { n: 300, T: 5 }
+derived:
+  pairs: "n * (n - 1) / 2"
+
+intro: |
+  How fast is an algorithm? Timing it on one computer tells you little. Instead, **count the
+  basic steps** it takes as a function of the input size $n$, and ask how that count **grows**.
+
+  **Big-O** describes that growth, ignoring constant factors and smaller terms:
+  $3n^2 + 5n + 2$ is $O(n^2)$, because for large $n$ the $n^2$ term dominates and constant
+  factors depend on the machine anyway. Formally, $f(n) = O(g(n))$ means $f$ grows **no faster
+  than** $g$, up to a constant factor. $\Omega$ is the matching lower bound, and $\Theta$ means both
+  at once (a tight bound).
+
+  Common growth rates, slowest first:
+
+  $$\log n \;<\; n \;<\; n \log n \;<\; n^2 \;<\; 2^n$$
+
+  The practical meaning is **scaling**. If an $O(n^2)$ algorithm takes 1 s on $n$ items, it
+  takes about 4 s on $2n$ and 100 s on $10n$. An $O(n)$ algorithm would take 2 s and 10 s.
+
+  We usually quote the **worst case** — but Big-O is a statement about a function, and an
+  algorithm can have different worst-, best- and average-case functions.
+
+workedExample: |
+  A loop prints every element of a list, then a second loop prints every element again.
+
+  - Steps: $n + n = 2n$
+  - Drop the constant factor: $O(n)$
+  - With 40 elements: 80 prints. With 400: 800 prints — ten times the input, ten times the work.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: growth-rates
+    clueFor: [s3, s5]
+    establishes: "Pairwise check of {{n}} IDs: up to n(n − 1)/2 = {{pairs}} comparisons."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          A program compares **every pair** of $n$ student IDs once to look for duplicates.
+          How many pairs are there?
+        options:
+          - { text: '$\dfrac{n(n-1)}{2}$', correct: true }
+          - { text: '$n^2$', misconception: pairs-ordered }
+          - { text: '$n$', misconception: linear-guess }
+          - { text: '$\dfrac{n(n+1)}{2}$', misconception: pairs-include-self }
+        hints:
+          nudge: "The first ID is compared with how many others? The second with how many *new* ones?"
+          partial: "$(n-1) + (n-2) + \\dots + 1$"
+        explanation: |
+          **Answer:** $n(n-1)/2$
+
+          **Why:** The first ID meets $n - 1$ others, the second $n - 2$ new ones, and so on:
+          $(n-1) + (n-2) + \dots + 1 = n(n-1)/2$.
+
+          **Common mistakes:**
+          - $n^2$ — that counts each pair twice and also compares each ID with itself.
+          - $n$ — one pass can't compare every pair.
+          - $n(n+1)/2$ — that includes comparing each ID with itself.
+
+          **Connects to:** Q3 asks how this count grows when $n$ grows.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          ```python
+          def has_duplicate(ids):
+              n = len(ids)
+              for i in range(n):
+                  for j in range(i + 1, n):
+                      if ids[i] == ids[j]:
+                          return True
+              return False
+          ```
+          With {{n}} IDs and **no** duplicates, how many times does `ids[i] == ids[j]` run?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "n^2", misconception: pairs-ordered }
+          - { expr: "n", misconception: linear-guess }
+          - { expr: "n * (n + 1) / 2", misconception: pairs-include-self }
+        hints:
+          nudge: "For a given `i`, how many values does `j` take?"
+          partial: "When `i = 0`, `j` runs {{n-1}} times; when `i = 1`, {{n-2}} times; … down to 0."
+        explanation: |
+          **Answer:** {{pairs}}
+
+          **Why:** For each `i`, `j` runs $n - 1 - i$ times, so the total is
+          $(n-1) + (n-2) + \dots + 0 = n(n-1)/2 = {{n}} \times {{n-1}}/2 = {{pairs}}$.
+
+          **Common mistakes:**
+          - {{n^2}} — `j` starts at `i + 1`, not 0.
+          - {{n}} — that's one pass, but there are two nested loops.
+          - {{n*(n+1)/2}} — `j` never equals `i`, so no ID is compared with itself.
+
+          **Connects to:** Q3 — how this count grows with $n$.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A careless version compares every **ordered** pair: `for i in range(n): for j in range(n): if i != j and ids[i] == ids[j]: …`.
+          With {{n}} IDs and no duplicates, how many times does `ids[i] == ids[j]` run?
+        answer: { expr: "n * (n - 1)" }
+        distractors:
+          - { expr: "n * (n - 1) / 2", misconception: pairs-ordered }
+          - { expr: "n^2", misconception: pairs-include-self }
+          - { expr: "2 * n", misconception: linear-guess }
+        hints:
+          nudge: "The `i != j` test runs every time; when does the `==` comparison run?"
+          partial: "`ids[i] == ids[j]` runs for each $(i, j)$ with $i \\ne j$: $n$ choices for $i$, then $n - 1$ for $j$."
+        explanation: |
+          **Answer:** {{n*(n-1)}}
+
+          **Why:** Thanks to short-circuit `and`, the equality runs only when `i != j`: $n(n-1) = {{n}} \times {{n-1}} = {{n*(n-1)}}$ times —
+          twice the {{pairs}} of the careful version, because each pair is checked in both orders.
+
+          **Common mistakes:**
+          - {{pairs}} — that's unordered pairs; here (i, j) and (j, i) are both checked.
+          - {{n^2}} — the {{n}} cases with `i == j` skip the comparison.
+          - {{2*n}} — two nested loops of length $n$ do far more than $2n$ checks.
+
+          **Connects to:** Q3 — how the work grows with $n$.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: big-o
+    clueFor: [s3]
+    establishes: "has_duplicate is O(n²) in the worst case (and O(1) at best)."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          The comparison count is $\tfrac12 n^2 - \tfrac12 n$. Which term decides how it grows for large $n$?
+        options:
+          - { text: '$\tfrac12 n^2$, so the growth is $O(n^2)$', correct: true }
+          - { text: '$-\tfrac12 n$, so the growth is $O(n)$', misconception: lower-order-dominates }
+          - { text: 'Both together, so the growth is $O(n^2 - n)$', misconception: big-o-keeps-terms }
+          - { text: 'The ½, so the growth is $O(\tfrac12)$', misconception: big-o-keeps-constants }
+        hints:
+          nudge: "Try $n = 1000$: which term is bigger?"
+          partial: "$\\tfrac12 n^2 = 500\\,000$ while $\\tfrac12 n = 500$."
+        explanation: |
+          **Answer:** $\tfrac12 n^2$, so $O(n^2)$.
+
+          **Why:** For large $n$ the $n^2$ term dwarfs the $n$ term, and Big-O drops constant
+          factors like ½. So the count is $O(n^2)$.
+
+          **Common mistakes:**
+          - $O(n)$ — the linear term is negligible next to $n^2$.
+          - $O(n^2 - n)$ — Big-O keeps only the dominant term.
+          - $O(\tfrac12)$ — constants are dropped; they don't become the answer.
+
+          **Connects to:** Q3 uses $O(n^2)$ to predict running times.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          What is the worst-case running time of `has_duplicate`, in Big-O?
+        options:
+          - { text: '$O(n^2)$', correct: true }
+          - { text: '$O(n^2/2)$, which is a smaller class than $O(n^2)$', misconception: big-o-keeps-constants }
+          - { text: '$O(n)$, because the loop can stop early', misconception: early-exit-lowers-worst-case }
+          - { text: '$O(2n)$, because there are two loops', misconception: loops-add-not-multiply }
+        hints:
+          nudge: "The loops are nested. What happens to Big-O when you drop constant factors?"
+          partial: "The count is $\\tfrac12 n^2 - \\tfrac12 n$."
+        explanation: |
+          **Answer:** $O(n^2)$
+
+          **Why:** In the worst case (no duplicates) it makes $n(n-1)/2 = \tfrac12 n^2 - \tfrac12 n$
+          comparisons. Keep the dominant term and drop the constant: $O(n^2)$.
+
+          **Common mistakes:**
+          - $O(n^2/2)$ — that is the same class as $O(n^2)$; constants don't matter.
+          - $O(n)$ — the early `return True` helps only when there *is* a duplicate; the worst case has none.
+          - $O(2n)$ — nested loops multiply; sequential loops add.
+
+          **Connects to:** Q3 uses this to predict how running time scales.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          What is the **best-case** running time of `has_duplicate`, and when does it happen?
+        options:
+          - { text: '$O(1)$ — when the first two IDs are equal', correct: true }
+          - { text: '$O(n^2)$ — Big-O always describes the worst case', misconception: big-o-means-worst-case }
+          - { text: '$O(n)$ — the outer loop always runs fully', misconception: early-exit-ignored }
+          - { text: '$O(n^2)$ — when there are no duplicates', misconception: best-worst-swap }
+        hints:
+          nudge: "Which input lets the function return as soon as possible?"
+          partial: "If `ids[0] == ids[1]`, the very first comparison returns True."
+        explanation: |
+          **Answer:** $O(1)$, when the first two IDs match.
+
+          **Why:** The first comparison `ids[0] == ids[1]` succeeds and the function returns
+          immediately. The worst case, with no duplicates, is $O(n^2)$. Big-O can bound any case;
+          worst case is just the one we usually quote.
+
+          **Common mistakes:**
+          - "Big-O is always the worst case" — it bounds a function; best, worst and average cases are different functions.
+          - $O(n)$ — `return True` exits both loops at once.
+          - "No duplicates" — that's the *worst* case.
+
+          **Connects to:** Q3 — predicting worst-case running times.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: growth-rates
+    uses: [s1, s2]
+    clueFor: [s6]
+    establishes: "O(n²) scaling: 10× the IDs means about 100× the time ({{T}} s → {{100*T}} s)."
+    standaloneContext: "A pairwise duplicate check makes about n²/2 comparisons, so it is O(n²). On {{n}} IDs it takes {{T}} s."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          The pairwise check takes {{T}} s on {{n}} IDs. About how long on **twice** as many, {{2*n}} IDs?
+        answer: { expr: "4 * T", unit: "s" }
+        distractors:
+          - { expr: "2 * T", unit: "s", misconception: linear-scaling-assumed }
+          - { expr: "8 * T", unit: "s", misconception: cubic-scaling }
+          - { expr: "T", unit: "s", misconception: constant-time-assumed }
+        hints:
+          nudge: "The work grows like $n^2$. What happens to $n^2$ when $n$ doubles?"
+          partial: "$(2n)^2 = 4n^2$"
+        explanation: |
+          **Answer:** {{4*T}} s
+
+          **Why:** The work is proportional to $n^2$, and $(2n)^2 = 4n^2$, so about four times as long:
+          $4 \times {{T}} = {{4*T}}$ s.
+
+          **Common mistakes:**
+          - {{2*T}} s — that would be a linear algorithm.
+          - {{8*T}} s — that's $O(n^3)$ scaling.
+          - {{T}} s — more data means more pairs to compare.
+
+          **Connects to:** Q6 ranks growth rates.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          The pairwise check takes {{T}} s on {{n}} IDs. About how long will it take on {{10*n}} IDs?
+        answer: { expr: "100 * T", unit: "s" }
+        distractors:
+          - { expr: "10 * T", unit: "s", misconception: linear-scaling-assumed }
+          - { expr: "1000 * T", unit: "s", misconception: cubic-scaling }
+          - { expr: "1024 * T", unit: "s", misconception: exponential-scaling }
+        hints:
+          nudge: "Use the Big-O class from Q2 to see how the work scales."
+          buildsOn: "Q1: about n²/2 comparisons. Q2: so it is O(n²)."
+          partial: "Ten times the input: $(10n)^2 = 100n^2$."
+        explanation: |
+          **Answer:** {{100*T}} s
+
+          **Why:** The comparisons grow like $n^2$ (Q1, Q2). Ten times the IDs gives $10^2 = 100$
+          times the comparisons: $100 \times {{T}} = {{100*T}}$ s.
+
+          **Common mistakes:**
+          - {{10*T}} s — linear scaling; this algorithm is quadratic.
+          - {{1000*T}} s — that's cubic scaling.
+          - {{1024*T}} s — $2^{10}$ is exponential growth; $n^2$ isn't that bad.
+
+          **Connects to:** Q6 compares growth rates directly.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          The pairwise check takes {{T}} s on {{n}} IDs. Roughly how many IDs can it handle in {{100*T}} s?
+        answer: { expr: "10 * n" }
+        distractors:
+          - { expr: "100 * n", misconception: linear-scaling-assumed }
+          - { expr: "n * 100^(1/3)", misconception: cubic-scaling }
+          - { expr: "n + 100", misconception: additive-scaling }
+        hints:
+          nudge: "100 times the time allows 100 times the comparisons. What input size gives that?"
+          buildsOn: "Q1: about n²/2 comparisons. Q2: so it is O(n²)."
+          partial: "$(kn)^2 = 100 n^2$, so $k = \\sqrt{100}$."
+        explanation: |
+          **Answer:** {{10*n}} IDs
+
+          **Why:** Time grows like $n^2$. To make $n^2$ 100 times bigger, $n$ grows by $\sqrt{100} = 10$:
+          {{10*n}} IDs. A quadratic algorithm needs 100× the time for just 10× the data.
+
+          **Common mistakes:**
+          - {{100*n}} — that would be true for a linear algorithm.
+          - {{n*100^(1/3)}} — that's for $O(n^3)$.
+          - {{n+100}} — growth is multiplicative, not additive.
+
+          **Connects to:** Q6 ranks growth rates.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: big-o
+    clueFor: [s5]
+    establishes: "With a set: one pass, n membership checks — O(n) average time, O(n) extra space."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          ```python
+          def has_duplicate_fast(ids):
+              seen = set()
+              for x in ids:
+                  if x in seen:
+                      return True
+                  seen.add(x)
+              return False
+          ```
+          With {{n}} IDs and no duplicates, how many times does `x in seen` run?
+        answer: { expr: "n" }
+        distractors:
+          - { expr: "n * (n - 1) / 2", misconception: set-lookup-linear }
+          - { expr: "1", misconception: early-exit-lowers-worst-case }
+          - { expr: "n^2", misconception: pairs-ordered }
+        hints:
+          nudge: "How many times does the `for` loop run?"
+          partial: "One membership check per ID."
+        explanation: |
+          **Answer:** {{n}}
+
+          **Why:** The loop runs once per ID and does one `in` check each time: {{n}} checks. A set
+          answers `x in seen` in $O(1)$ on average by hashing, not by scanning.
+
+          **Common mistakes:**
+          - {{pairs}} — that would be true if `in` scanned the set like a list.
+          - 1 — the early return only happens when there *is* a duplicate.
+          - {{n^2}} — there's only one loop.
+
+          **Connects to:** Q5 compares this with the pairwise check.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          ```python
+          def has_duplicate_fast(ids):
+              seen = set()
+              for x in ids:
+                  if x in seen:
+                      return True
+                  seen.add(x)
+              return False
+          ```
+          What is its average-case running time?
+        options:
+          - { text: '$O(n)$', correct: true }
+          - { text: '$O(n^2)$ — `x in seen` scans the whole set', misconception: set-lookup-linear }
+          - { text: '$O(1)$ — it can return early', misconception: early-exit-lowers-worst-case }
+          - { text: '$O(n \log n)$ — the set keeps its items sorted', misconception: set-is-sorted }
+        hints:
+          nudge: "How long does `x in seen` take for a Python set (a hash table)?"
+          partial: "Average $O(1)$ per check, done once for each of the $n$ IDs."
+        explanation: |
+          **Answer:** $O(n)$
+
+          **Why:** One pass over the $n$ IDs, and each `in` and `add` on a hash set takes $O(1)$ on
+          average, so the total is $O(n)$ — versus $O(n^2)$ for the pairwise check.
+
+          **Common mistakes:**
+          - $O(n^2)$ — a list would be scanned; a set is hashed.
+          - $O(1)$ — with no duplicates every ID is visited.
+          - $O(n \log n)$ — Python sets are hash tables, not sorted trees.
+
+          **Connects to:** Q5 compares the two approaches.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          `has_duplicate_fast` builds a set `seen` as it goes. How much **extra memory** does it use
+          in the worst case?
+        options:
+          - { text: '$O(n)$ — the set can end up holding every ID', correct: true }
+          - { text: '$O(1)$ — it only uses one variable', misconception: space-ignored }
+          - { text: '$O(n^2)$ — it remembers every pair', misconception: set-lookup-linear }
+          - { text: '$O(\log n)$ — sets compress their contents', misconception: set-is-sorted }
+        hints:
+          nudge: "In the worst case (no duplicates), what's in `seen` at the end?"
+          partial: "Every one of the $n$ IDs has been added."
+        explanation: |
+          **Answer:** $O(n)$ extra space.
+
+          **Why:** With no duplicates, all $n$ IDs end up in `seen`. The fast version trades memory
+          ($O(n)$) for time ($O(n)$ instead of $O(n^2)$); the pairwise version used $O(1)$ extra space.
+
+          **Common mistakes:**
+          - $O(1)$ — `seen` is one variable, but it holds up to $n$ items.
+          - $O(n^2)$ — it stores IDs, not pairs.
+          - $O(\log n)$ — a set stores every element it's given.
+
+          **Connects to:** Q5 compares the two approaches' running times.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: growth-rates
+    uses: [s1, s4]
+    clueFor: [s6]
+    establishes: "At n = {{n}}: {{pairs}} comparisons versus {{n}} set checks — {{(n-1)/2}}× fewer."
+    standaloneContext: "On {{n}} IDs, the pairwise duplicate check makes {{pairs}} comparisons; the set-based check makes {{n}} membership checks."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          On {{n}} IDs the pairwise check makes {{pairs}} comparisons and the set version makes {{n}}
+          checks. How many times fewer steps does the set version take?
+        answer: { expr: "pairs / n", unit: "×" }
+        distractors:
+          - { expr: "n", unit: "×", misconception: ratio-n }
+          - { expr: "2", unit: "×", misconception: ratio-constant-assumed }
+          - { expr: "pairs - n", unit: "×", misconception: ratio-as-difference }
+        hints:
+          nudge: "'How many times fewer' means divide."
+          partial: "{{pairs}} ÷ {{n}}"
+        explanation: |
+          **Answer:** {{pairs/n}} ×
+
+          **Why:** ${{pairs}} / {{n}} = {{pairs/n}}$, which is $(n - 1)/2$: the advantage itself grows with $n$.
+
+          **Common mistakes:**
+          - {{n}} — that's $n^2 / n$, ignoring the ½ and the $-1$.
+          - 2 — the gap isn't a fixed factor; it grows with $n$.
+          - {{pairs-n}} — that's a difference, not a ratio.
+
+          **Connects to:** Q6 — ranking growth rates.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          For {{n}} IDs with no duplicates, how many times fewer comparisons does the set version make
+          than the pairwise version?
+        answer: { expr: "pairs / n", unit: "×" }
+        distractors:
+          - { expr: "n", unit: "×", misconception: ratio-n }
+          - { expr: "2", unit: "×", misconception: ratio-constant-assumed }
+          - { expr: "(n + 1) / 2", unit: "×", misconception: pairs-include-self }
+        hints:
+          nudge: "Find each count, then divide."
+          buildsOn: "Q1: {{pairs}} pairwise comparisons. Q4: {{n}} set checks."
+          partial: "$\\dfrac{n(n-1)/2}{n} = \\dfrac{n-1}{2}$"
+        explanation: |
+          **Answer:** {{pairs/n}} ×
+
+          **Why:** Pairwise: {{pairs}} (Q1). Set: {{n}} (Q4). Ratio: $\frac{n(n-1)/2}{n} = \frac{n-1}{2} = {{pairs/n}}$.
+          Double $n$ and the advantage doubles too — that's what $O(n^2)$ vs $O(n)$ means.
+
+          **Common mistakes:**
+          - {{n}} — that drops the ½ and the $-1$.
+          - 2 — the ratio isn't constant; it grows with $n$.
+          - {{(n+1)/2}} — the pairwise count is $n(n-1)/2$, not $n(n+1)/2$.
+
+          **Connects to:** Q6 — ranking growth rates.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The ratio of pairwise comparisons to set checks is $(n-1)/2$. What is the smallest $n$ at which
+          the set version makes **more than 1000 times** fewer comparisons?
+        answer: { expr: "2002" }
+        distractors:
+          - { expr: "1000", misconception: ratio-n }
+          - { expr: "2001", misconception: boundary-off-by-one }
+          - { expr: "sqrt(2000)", misconception: quadratic-root-confusion }
+        hints:
+          nudge: "Solve $(n - 1)/2 > 1000$ for $n$."
+          buildsOn: "Q1: n(n − 1)/2 pairwise comparisons. Q4: n set checks."
+          partial: "$n - 1 > 2000$"
+        explanation: |
+          **Answer:** 2002
+
+          **Why:** $(n-1)/2 > 1000 \Rightarrow n > 2001$, and the smallest whole number above 2001 is 2002.
+          (At $n = 2001$ the ratio is exactly 1000 — not *more than*.)
+
+          **Common mistakes:**
+          - 1000 — the ratio is $(n-1)/2$, not $n$.
+          - 2001 — gives exactly 1000; we need more than 1000.
+          - {{sqrt(2000)}} — the ratio is linear in $n$, so no square root.
+
+          **Connects to:** Q6 — ranking growth rates.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: big-o
+    uses: [s3, s5]
+    establishes: "Growth rates, slowest first: log n < n < n log n < n² < 2ⁿ."
+    standaloneContext: "A quadratic algorithm takes about 100× longer on 10× the input; a linear one about 10× longer."
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: "Which of these grows **fastest** as $n$ gets large?"
+        options:
+          - { text: '$2^n$', correct: true }
+          - { text: '$n^2$', misconception: exponential-vs-polynomial }
+          - { text: '$n \log n$', misconception: nlogn-vs-n2 }
+          - { text: '$\log n$', misconception: log-bigger-than-linear }
+        hints:
+          nudge: "Try $n = 30$ in each."
+          partial: "$2^{30} \\approx 10^9$, while $30^2 = 900$."
+        explanation: |
+          **Answer:** $2^n$
+
+          **Why:** Exponentials eventually beat every polynomial: at $n = 30$, $2^{30} \approx 10^9$
+          but $30^2 = 900$.
+
+          **Common mistakes:**
+          - $n^2$ — polynomial, eventually far below $2^n$.
+          - $n \log n$ — grows more slowly than $n^2$.
+          - $\log n$ — the slowest of all here.
+
+          **Connects to:** the challenge — a game where the work grows like $\log n$.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: "Order these from **slowest-growing** to **fastest-growing**."
+        options:
+          - { text: '$\log n,\ n,\ n\log n,\ n^2,\ 2^n$', correct: true }
+          - { text: '$\log n,\ n,\ n^2,\ n\log n,\ 2^n$', misconception: nlogn-vs-n2 }
+          - { text: '$n,\ \log n,\ n\log n,\ n^2,\ 2^n$', misconception: log-bigger-than-linear }
+          - { text: '$\log n,\ n,\ n\log n,\ 2^n,\ n^2$', misconception: exponential-vs-polynomial }
+        hints:
+          nudge: "Compare neighbours: is $n \\log n$ bigger than $n$? Than $n^2$?"
+          buildsOn: "Q3: 10× the data means 100× the time for $n^2$. Q5: the gap between $n^2$ and $n$ grows with $n$."
+          partial: "$n \\log n = n \\times \\log n$ sits between $n \\times 1$ and $n \\times n$."
+        explanation: |
+          **Answer:** $\log n < n < n \log n < n^2 < 2^n$
+
+          **Why:** Multiplying $n$ by $\log n$ (which grows, but slowly) puts $n \log n$ just above $n$
+          and far below $n^2$. Q3 and Q5 showed how fast the gap between $n$ and $n^2$ widens;
+          $2^n$ doubles with every extra item.
+
+          **Common mistakes:**
+          - $n^2$ before $n \log n$ — $\log n$ is much smaller than $n$, so $n \log n \ll n^2$.
+          - $\log n$ after $n$ — $\log_2$ of a million is only about 20.
+          - $2^n$ before $n^2$ — exponentials overtake every polynomial.
+
+          **Connects to:** the challenge — discover an $O(\log n)$ strategy.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          At $n = {{n}}$, by what factor does $n^2$ exceed $n \log_2 n$?
+        answer: { expr: "n / log2(n)", unit: "×" }
+        distractors:
+          - { expr: "n", unit: "×", misconception: ratio-n }
+          - { expr: "log2(n)", unit: "×", misconception: log-bigger-than-linear }
+          - { expr: "n / 2", unit: "×", misconception: ratio-constant-assumed }
+        hints:
+          nudge: "Divide one by the other; $n$ cancels once."
+          buildsOn: "Q3 and Q5: the quadratic algorithm falls further behind as $n$ grows."
+          partial: "$\\dfrac{n^2}{n \\log_2 n} = \\dfrac{n}{\\log_2 n}$"
+        explanation: |
+          **Answer:** {{n/log2(n)}} ×
+
+          **Why:** $\frac{n^2}{n\log_2 n} = \frac{n}{\log_2 n} = {{n}}/{{log2(n)}} = {{n/log2(n)}}$. That's why
+          $O(n \log n)$ sorting beats $O(n^2)$ sorting by a wider margin as $n$ grows.
+
+          **Common mistakes:**
+          - {{n}} — the $\log n$ factor doesn't cancel.
+          - {{log2(n)}} — that's upside down.
+          - {{n/2}} — $\log_2 {{n}}$ is about {{log2(n)}}, not 2.
+
+          **Connects to:** the challenge — an $O(\log n)$ strategy.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: big-o
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "An algorithm makes $5n^2 + 20n + 7$ steps. What is its Big-O?"
+        options:
+          - { text: '$O(n^2)$', correct: true }
+          - { text: '$O(5n^2)$', misconception: big-o-keeps-constants }
+          - { text: '$O(n^2 + n)$', misconception: big-o-keeps-terms }
+          - { text: '$O(n)$', misconception: lower-order-dominates }
+        hints:
+          nudge: "Which term matters for very large $n$? Do constant factors matter?"
+          partial: "Keep the fastest-growing term and drop its coefficient."
+        explanation: |
+          **Answer:** $O(n^2)$
+
+          **Why:** For large $n$, $5n^2$ dominates $20n + 7$. Big-O also ignores constant factors,
+          so $5n^2$ becomes $n^2$.
+
+          **Common mistakes:**
+          - $O(5n^2)$ — the same class as $O(n^2)$; constants are dropped.
+          - $O(n^2 + n)$ — lower-order terms are dropped.
+          - $O(n)$ — the $n^2$ term wins.
+
+          **Connects to:** Q2 — the class of the pairwise duplicate check.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u1.l1.ch
+  type: algorithm-stepper
+  title: "Guess my number"
+  concept: growth-rates
+  uses: [s6]
+  params:
+    sets:
+      - { N: 100, S: 37 }
+      - { N: 64, S: 50 }
+      - { N: 100, S: 81 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: "I'm thinking of a number from 1 to 16. After each guess I'll say higher or lower. Find it with **at most 3 wasted guesses** — guesses that don't halve the range."
+      config:
+        algorithm: guess-number
+        input: { n: 16, secret: "mod(S, 16) + 1" }
+      check: { expr: "done and mistakes <= 3" }
+      feedback:
+        - { if: "not done", say: "Keep going until you find the number." }
+        - { if: "mistakes > 3", say: "Too many guesses that leave more than half the range. Always guess the middle of what's left.", misconception: guess-not-halving }
+        - { if: "true", say: "Find the number with fewer wasted guesses." }
+      hints:
+        nudge: "Which guess rules out the most numbers, whatever the answer is?"
+        buildsOn: "Q6: log n grows slowest of all — halving gets there fast."
+        partial: "Guess the middle of the range that's still possible."
+      solution: { followTrace: true }
+      explanation: |
+        Guessing the middle halves the range each time: 16 → 8 → 4 → 2 → 1, so at most 5 guesses.
+        That's binary search, and its cost grows like $\log_2 n$.
+    standard:
+      difficulty: 3
+      goal: "Now the number is between 1 and {{N}}. Find it with **at most 1 wasted guess**."
+      config:
+        algorithm: guess-number
+        input: { n: "N", secret: "S" }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep going until you find the number." }
+        - { if: "mistakes > 1", say: "Each guess away from the middle can leave more than half the numbers. Guess the middle.", misconception: guess-not-halving }
+        - { if: "true", say: "Find the number with fewer wasted guesses." }
+      hints:
+        nudge: "How many numbers can one guess rule out?"
+        buildsOn: "Q6: log n grows slowest of all."
+        partial: "Guess ⌊(low + high)/2⌋ each time."
+      solution: { followTrace: true }
+      explanation: |
+        Halving {{N}} numbers needs at most $\lceil \log_2({{N}} + 1) \rceil = {{ceil(log2(N+1))}}$ guesses. A
+        linear search could need {{N}}.
+    harder:
+      difficulty: 4
+      goal: "Between 1 and {{2*N}}: find the number with **no wasted guesses at all**."
+      config:
+        algorithm: guess-number
+        input: { n: "2*N", secret: "2*S - 1" }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep going until you find the number." }
+        - { if: "mistakes > 0", say: "One of your guesses wasn't the middle of the remaining range.", misconception: guess-not-halving }
+        - { if: "true", say: "Every guess must be the middle of the range." }
+      hints:
+        nudge: "Keep track of the lowest and highest numbers still possible."
+        buildsOn: "Q6: log n grows slowest of all."
+        partial: "Guess ⌊(low + high)/2⌋. After 'higher', low = guess + 1; after 'lower', high = guess − 1."
+      solution: { followTrace: true }
+      explanation: |
+        Doubling the range from {{N}} to {{2*N}} adds just **one** guess: $\lceil\log_2({{2*N}}+1)\rceil = {{ceil(log2(2*N+1))}}$.
+        That's $O(\log n)$ growth.
+
+summary:
+  keyTakeaways:
+    - "Count basic steps as a function of $n$; Big-O keeps the dominant term and drops constants."
+    - "Nested loops over pairs give about $n^2/2$ steps: $O(n^2)$. One pass with a hash set gives $O(n)$."
+    - "Scaling: 10× the input means about 10× the time for $O(n)$ and 100× for $O(n^2)$."
+    - "Growth order: $\\log n < n < n\\log n < n^2 < 2^n$. Big-O can describe best, worst or average cases."
+  next: dsa.u1.l2

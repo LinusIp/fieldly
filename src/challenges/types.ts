@@ -24,12 +24,16 @@ export interface ChallengeLogic<Raw = unknown, Config = unknown, State = unknown
   configSchema: ZodType<Raw>;
   solutionSchema: ZodType<Solution>;
   resolveConfig(raw: Raw, ctx: ResolveCtx): Config;
+  /** Optional: give the resolved config access to the solution (e.g. the correct Parsons order). */
+  withSolution?(config: Config, solution: Solution): Config;
   initialState(config: Config): State;
   checkScope(state: State, config: Config): CheckScope;
   builtInFeedback?(state: State, config: Config): string | null;
   solutionScope(solution: Solution, config: Config): CheckScope;
   /** State that displays the solution (used by "Show solution" and the debug hook). */
   solutionState(solution: Solution, config: Config): State;
+  /** Optional: combine the current state with the solution state (e.g. keep the chosen language). */
+  mergeSolution?(current: State, solved: State): State;
   describeState(state: State, config: Config): string;
 }
 
@@ -41,6 +45,8 @@ export interface ChallengeComponentProps<Config, State> {
   reducedMotion: boolean;
   /** When true the component renders `state` (the solution) read-only. */
   showingSolution?: boolean;
+  /** The student's preferred code language (settings). */
+  codeLang?: 'python' | 'javascript';
 }
 
 export interface ChallengeModule<
@@ -50,6 +56,8 @@ export interface ChallengeModule<
   Solution = unknown,
 > extends ChallengeLogic<Raw, Config, State, Solution> {
   Component: FC<ChallengeComponentProps<Config, State>>;
+  /** Optional async work before a check (e.g. running the student's code); returns the new state. */
+  beforeCheck?(state: State, config: Config, ctx: { codeLang: 'python' | 'javascript' }): Promise<State>;
 }
 
 /** Build a ResolveCtx over a scope. */

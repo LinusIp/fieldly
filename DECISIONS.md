@@ -38,3 +38,10 @@ One line each: date — decision — reason.
 - 2026-10-14 — Review answers update concept/subject ratings and question history like lesson answers — the student's ability is the same whichever mode they answer in.
 - 2026-10-14 — Concept ratings and misconception counts are keyed by id only, not subject-prefixed — §12's shape; ids are slugs chosen to be unique across subjects.
 - 2026-10-14 — Export/import/reset live on the profile page; reset needs the word RESET typed, import shows a summary before replacing — §10.1 and §12.
+- 2026-10-14 — Pyodide is pinned to 314.0.7 and loaded from cdn.jsdelivr.net inside a module Web Worker, only when Python code first runs — §4/§5 (pinned, CDN, lazy).
+- 2026-10-14 — The code-runner "Check" always re-runs the tests first (an async `beforeCheck` hook on challenge modules) — results must belong to the code being checked.
+- 2026-10-14 — code-runner `solutionScope` reports a full pass; `scripts/code-check.ts` separately runs every reference solution (JS in node:vm, Python via python3/python, falling back to Pyodide in Node) against all tests and the performance case — `solutionScope` must be synchronous and browser-safe.
+- 2026-10-14 — Python reference solutions are batched into one subprocess per validation run — keeps `content:check` fast.
+- 2026-10-14 — Challenge modules may define `withSolution` (Parsons needs the correct order to score a state) and `mergeSolution` (code-runner shows the solution in the student's current language).
+- 2026-10-14 — The algorithm stepper's "solution" is `{ followTrace: true }`: the reference trace is generated from the input — §9.2 says the solution is the generated trace.
+- 2026-10-14 — The stepper accepts exactly one correct action per step (e.g. ⌊(lo + hi)/2⌋ in binary search) — a single reference trace keeps the explanation of every wrong move precise.

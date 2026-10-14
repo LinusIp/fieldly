@@ -1,4 +1,7 @@
+import { stepperLogic } from './algorithm-stepper/logic';
 import { circuitLogic } from './circuit-builder/logic';
+import { codeRunnerLogic } from './code-runner/logic';
+import { parsonsLogic } from './parsons/logic';
 import { transientLogic } from './transient-plotter/logic';
 import type { ChallengeLogic } from './types';
 
@@ -10,4 +13,7 @@ import type { ChallengeLogic } from './types';
 export const challengeLogic: Record<string, ChallengeLogic<any, any, any, any>> = {
   [circuitLogic.type]: circuitLogic,
   [transientLogic.type]: transientLogic,
+  [codeRunnerLogic.type]: codeRunnerLogic,
+  [parsonsLogic.type]: parsonsLogic,
+  [stepperLogic.type]: stepperLogic,
 };

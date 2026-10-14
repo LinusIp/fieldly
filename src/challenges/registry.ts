@@ -7,6 +7,9 @@ type AnyModule = ChallengeModule<any, any, any, any>;
 export const challengeRegistry: Record<string, () => Promise<AnyModule>> = {
   'circuit-builder': () => import('./circuit-builder').then((m) => m.default),
   'transient-plotter': () => import('./transient-plotter').then((m) => m.default),
+  'code-runner': () => import('./code-runner').then((m) => m.default),
+  parsons: () => import('./parsons').then((m) => m.default),
+  'algorithm-stepper': () => import('./algorithm-stepper').then((m) => m.default),
 };
 
 const cache = new Map<string, Promise<AnyModule>>();
