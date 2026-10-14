@@ -1,0 +1,734 @@
+id: dsa.u2.l7
+title: "Prefix sums"
+version: 1
+concepts: [prefix-sums]
+estimatedMinutes: 25
+
+# Scenario: a shop's daily sales over n days; analysts send q questions of the form "total sales from day l to day r".
+params:
+  sets:
+    - { n: 1000, q: 500 }
+    - { n: 2000, q: 1000 }
+    - { n: 5000, q: 200 }
+
+intro: |
+  **Range sums.** Many questions ask for the total of `a[l … r]`. Adding the values each time costs
+  $r - l + 1$ steps — up to $n$ per question, $O(nq)$ for $q$ questions.
+
+  A **prefix-sum array** answers each in $O(1)$ after $O(n)$ setup:
+
+  $$P[0] = 0, \qquad P[i + 1] = P[i] + a[i],$$
+
+  so $P[i]$ is the sum of the first $i$ values, `a[0 … i − 1]`. Then
+
+  $$\text{sum}(a[l \dots r]) = P[r + 1] - P[l].$$
+
+  The extra leading $0$ makes ranges that start at index 0 work without a special case.
+
+  The reverse trick, a **difference array**, handles "add $v$ to every value in `a[l … r]`" in $O(1)$:
+  `D[l] += v`, `D[r + 1] −= v`; a prefix sum over `D` at the end rebuilds the values.
+
+  Prefix sums need an **invertible** operation (sums, counts, XOR) and data that doesn't change between questions.
+
+workedExample: |
+  $a = [3, 1, 4, 1, 5]$:
+
+  - $P = [0, 3, 4, 8, 9, 14]$ — each entry adds the next value.
+  - Sum of $a[1 \dots 3] = 1 + 4 + 1$: $P[4] - P[1] = 9 - 3 = 6$ ✓.
+  - Sum of $a[0 \dots 4]$: $P[5] - P[0] = 14$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: prefix-sums
+    clueFor: [s4]
+    establishes: "Adding up each question from scratch costs up to n = {{n}} steps; {{q}} questions cost up to {{n*q}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: "Summing sales from day 3 to day 7 (inclusive) one value at a time reads how many values?"
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "4", misconception: range-length-off-by-one }
+          - { expr: "7", misconception: range-from-zero }
+          - { expr: "1", misconception: range-sum-free }
+        hints:
+          nudge: "Days 3, 4, 5, 6, 7."
+          partial: "r − l + 1"
+        explanation: |
+          **Answer:** 5
+
+          **Why:** An inclusive range from 3 to 7 has $7 - 3 + 1 = 5$ days.
+
+          **Common mistakes:**
+          - 4 — inclusive ranges count both ends.
+          - 7 — the range starts at day 3, not day 0.
+          - 1 — even prefix sums need two reads per question (Q4); the plain loop reads every day.
+
+          **Connects to:** Q4 — the cost of many questions.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          Sales cover {{n}} days and analysts ask {{q}} questions, each possibly spanning all {{n}} days. Worst case, how many values does the
+          plain loop read in total?
+        answer: { expr: "n*q" }
+        distractors:
+          - { expr: "n + q", misconception: range-sum-free }
+          - { expr: "n^2", misconception: range-n-squared }
+          - { expr: "q", misconception: range-sum-free-q }
+        hints:
+          nudge: "Each question can read all {{n}} days."
+          partial: "{{q}} × {{n}}"
+        explanation: |
+          **Answer:** {{n*q}}
+
+          **Why:** Each of the {{q}} questions reads up to {{n}} values: $O(nq)$.
+
+          **Common mistakes:**
+          - {{n+q}} — that's the prefix-sum cost (Q4).
+          - {{n^2}} — the count depends on the number of questions, {{q}}, not on $n$ twice.
+          - {{q}} — each question reads many values, not one.
+
+          **Connects to:** Q4 — prefix sums.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          The {{q}} questions are random ranges $[l, r]$. On average a random range covers about a third of the days. About how many values
+          does the plain loop read in total?
+        answer: { expr: "n*q/3" }
+        distractors:
+          - { expr: "n*q", misconception: range-always-full }
+          - { expr: "n*q/2", misconception: range-half }
+          - { expr: "n + q", misconception: range-sum-free }
+        hints:
+          nudge: "Questions × average length."
+          partial: "{{q}} × {{n}}/3"
+        explanation: |
+          **Answer:** about {{n*q/3}}
+
+          **Why:** ${{q}} \times \frac{ {{n}} }{3} \approx {{n*q/3}}$. Still $O(nq)$ — the constant doesn't change the growth.
+
+          **Common mistakes:**
+          - {{n*q}} — that's the worst case, when every range is the whole array.
+          - {{n*q/2}} — a random range averages a third of the array, not half.
+          - {{n+q}} — that's prefix sums.
+
+          **Connects to:** Q4 — prefix sums.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: prefix-sums
+    clueFor: [s3]
+    establishes: "P[i] = sum of the first i values; P[0] = 0 and P has n + 1 entries."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          $a = [2, 5, 1, 3]$, $P[0] = 0$, $P[i + 1] = P[i] + a[i]$. What is $P[3]$?
+        answer: { expr: "8" }
+        distractors:
+          - { expr: "11", misconception: prefix-includes-index }
+          - { expr: "1", misconception: prefix-is-value }
+          - { expr: "6", misconception: prefix-arithmetic }
+        hints:
+          nudge: "P[3] is the sum of the first three values."
+          partial: "2 + 5 + 1"
+        explanation: |
+          **Answer:** 8
+
+          **Why:** $P = [0, 2, 7, 8, 11]$; $P[3] = 2 + 5 + 1 = 8$.
+
+          **Common mistakes:**
+          - 11 — that's $P[4]$, which includes $a[3]$.
+          - 1 — that's $a[2]$ alone.
+          - 6 — recheck the running total.
+
+          **Connects to:** Q3 — range sums.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          The sales array has {{n}} days. How many entries does the prefix array $P$ (with $P[0] = 0$) have?
+        answer: { expr: "n + 1" }
+        distractors:
+          - { expr: "n", misconception: prefix-no-zero }
+          - { expr: "n - 1", misconception: range-length-off-by-one }
+          - { expr: "2*n", misconception: prefix-doubles }
+        hints:
+          nudge: "P[i] covers the first i values, for i = 0 … n."
+          partial: "0 … {{n}} is {{n+1}} indices."
+        explanation: |
+          **Answer:** {{n+1}}
+
+          **Why:** $P[0] = 0$ (no values) up to $P[{{n}}]$ (all {{n}}): {{n+1}} entries.
+
+          **Common mistakes:**
+          - {{n}} — the leading 0 is the extra entry.
+          - {{n-1}} — prefixes include the empty one and the full one.
+          - {{2*n}} — one entry per prefix length.
+
+          **Connects to:** Q3 — range sums.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Why does $P$ start with an extra $0$ rather than $P[0] = a[0]$?
+        options:
+          - { text: "So that sum(a[0 … r]) = P[r + 1] − P[0] works without a special case for l = 0", correct: true }
+          - { text: "Python lists must start with 0", misconception: prefix-zero-language }
+          - { text: "To make the array one longer for safety", misconception: prefix-padding }
+          - { text: "It doesn't matter; both versions give identical formulas", misconception: prefix-no-zero }
+        hints:
+          nudge: "Without the 0, what is the sum of a[0 … r] in terms of P?"
+          partial: "With P[i] = a[0] + … + a[i], the formula needs P[l − 1], which doesn't exist for l = 0."
+        explanation: |
+          **Answer:** to avoid a special case at $l = 0$.
+
+          **Why:** With the shifted definition, every range is $P[r + 1] - P[l]$; $P[0] = 0$ stands for "nothing before index 0".
+
+          **Common mistakes:**
+          - "Python lists" — nothing in the language requires it.
+          - "Safety" — it has a precise purpose.
+          - "Doesn't matter" — the inclusive version needs $P[r] - P[l - 1]$ plus an `if l == 0`.
+
+          **Connects to:** Q3 — range sums.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: prefix-sums
+    uses: [s2]
+    clueFor: [s5]
+    establishes: "sum(a[l … r]) = P[r + 1] − P[l]."
+    standaloneContext: "P[0] = 0 and P[i + 1] = P[i] + a[i], so P[i] is the sum of a[0 … i − 1]."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          $a = [3, 1, 4, 1, 5]$ has $P = [0, 3, 4, 8, 9, 14]$. Use $P$ to find $a[2] + a[3] + a[4]$.
+        answer: { expr: "10" }
+        distractors:
+          - { expr: "11", misconception: range-formula-off }
+          - { expr: "6", misconception: range-formula-low }
+          - { expr: "14", misconception: range-from-zero }
+        hints:
+          nudge: "Everything up to index 4, minus everything before index 2."
+          partial: "P[5] − P[2]"
+        explanation: |
+          **Answer:** 10
+
+          **Why:** $P[5] - P[2] = 14 - 4 = 10 = 4 + 1 + 5$.
+
+          **Common mistakes:**
+          - 11 — $P[5] - P[1]$ starts one too early.
+          - 6 — $P[4] - P[1]$ shifts the whole range.
+          - 14 — that's the total from index 0.
+
+          **Connects to:** Q5 — difference arrays.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: "Which expression gives the sum of `a[l … r]` (inclusive)?"
+        options:
+          - { text: "$P[r + 1] - P[l]$", correct: true }
+          - { text: "$P[r] - P[l]$", misconception: range-formula-low }
+          - { text: "$P[r + 1] - P[l - 1]$", misconception: range-formula-off }
+          - { text: "$P[r] - P[l - 1]$", misconception: prefix-includes-index }
+        hints:
+          nudge: "P[i] covers a[0 … i − 1]. Which P covers a[0 … r]?"
+          buildsOn: "Q2: P[i] is the sum of the first i values."
+          partial: "Everything through r, minus everything before l."
+        explanation: |
+          **Answer:** $P[r + 1] - P[l]$.
+
+          **Why:** $P[r + 1]$ covers `a[0 … r]`; subtracting $P[l]$ (`a[0 … l − 1]`) leaves `a[l … r]`.
+
+          **Common mistakes:**
+          - $P[r] - P[l]$ — misses `a[r]`.
+          - $P[r + 1] - P[l - 1]$ — includes `a[l − 1]` too.
+          - $P[r] - P[l - 1]$ — that's the formula for an *inclusive* prefix array, and it breaks at $l = 0$.
+
+          **Connects to:** Q5 — difference arrays.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          Average daily sales over days $l$ to $r$ (inclusive) in $O(1)$:
+        options:
+          - { text: "$(P[r + 1] - P[l]) / (r - l + 1)$", correct: true }
+          - { text: "$(P[r + 1] - P[l]) / (r - l)$", misconception: range-length-off-by-one }
+          - { text: "$P[r + 1] / (r + 1) - P[l] / l$", misconception: average-subtract }
+          - { text: "Not possible in $O(1)$; an average needs every value", misconception: range-sum-free }
+        hints:
+          nudge: "Average = sum ÷ number of days."
+          buildsOn: "Q2: P[i] covers the first i values."
+          partial: "Days l … r: r − l + 1 of them."
+        explanation: |
+          **Answer:** $(P[r + 1] - P[l]) / (r - l + 1)$.
+
+          **Why:** The range sum is $O(1)$ with $P$; divide by the inclusive count.
+
+          **Common mistakes:**
+          - $r - l$ — inclusive ranges count both ends.
+          - Subtracting averages — averages of different lengths don't subtract.
+          - "Not possible" — the sum is $O(1)$, so the average is too.
+
+          **Connects to:** Q5 — difference arrays.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: prefix-sums
+    uses: [s1, s3]
+    clueFor: [s6]
+    establishes: "Prefix sums cost n + q = {{n+q}} steps instead of up to {{n*q}}."
+    standaloneContext: "Building P takes one addition per value; each range sum is then P[r + 1] − P[l]."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          After $P$ is built, how many array reads does one range-sum question take?
+        answer: { expr: "2" }
+        distractors:
+          - { expr: "1", misconception: prefix-one-read }
+          - { expr: "n", misconception: range-sum-free }
+          - { expr: "0", misconception: prefix-precomputes-all }
+        hints:
+          nudge: "Look at the formula P[r + 1] − P[l]."
+          partial: "Two entries of P."
+        explanation: |
+          **Answer:** 2
+
+          **Why:** $P[r + 1]$ and $P[l]$, then one subtraction — the same cost for any range.
+
+          **Common mistakes:**
+          - 1 — a range needs both ends.
+          - {{n}} — that's the plain loop over a full range.
+          - 0 — $P$ doesn't store every range's answer, only prefixes.
+
+          **Connects to:** Q6 — when prefix sums fail.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          {{n}} days, {{q}} questions. Building $P$ costs one addition per day; each question costs one subtraction. Total operations?
+        answer: { expr: "n + q" }
+        distractors:
+          - { expr: "n*q", misconception: prefix-rebuild }
+          - { expr: "n", misconception: prefix-precomputes-all }
+          - { expr: "2*n*q", misconception: range-n-squared }
+        hints:
+          nudge: "Build once, then answer each question."
+          buildsOn: "Q1: the plain loop needs up to {{n*q}}. Q3: one subtraction per question."
+          partial: "{{n}} + {{q}}"
+        explanation: |
+          **Answer:** {{n+q}}
+
+          **Why:** Build once ({{n}}), then {{q}} subtractions (Q3): $O(n + q)$, versus up to {{n*q}} (Q1).
+
+          **Common mistakes:**
+          - {{n*q}} — $P$ is built once, not per question.
+          - {{n}} — each question still costs a subtraction.
+          - {{2*n*q}} — no step multiplies $n$ by $q$.
+
+          **Connects to:** Q6 — when prefix sums fail.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          Building $P$ for {{n}} days costs {{n}} additions. When is the plain loop the better choice?
+        options:
+          - { text: "With very few questions (about one) or very short ranges: building P costs n, which a few short loops can beat", correct: true }
+          - { text: "Never — prefix sums are always cheaper", misconception: prefix-always-better }
+          - { text: "When q > n", misconception: prefix-q-greater }
+          - { text: "When the values are negative", misconception: prefix-needs-positive }
+        hints:
+          nudge: "Compare n + q with the total length of all ranges."
+          buildsOn: "Q1: the loop costs the total range length. Q3: P makes each question O(1) after O(n) setup."
+          partial: "If all ranges together are shorter than n, the setup isn't worth it."
+        explanation: |
+          **Answer:** few questions or short ranges.
+
+          **Why:** Prefix sums cost $n + q$; the loop costs the total length of the ranges (Q1). With one short range the loop wins; with many
+          questions (here {{q}}) $P$ wins by a mile.
+
+          **Common mistakes:**
+          - "Never" — setup isn't free.
+          - $q > n$ — more questions make $P$ *more* worthwhile.
+          - Negative values — subtraction works for any numbers.
+
+          **Connects to:** Q6 — when prefix sums fail.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: prefix-sums
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Difference array: add v to a[l … r] with D[l] += v, D[r + 1] −= v; the prefix sum of D rebuilds a."
+    standaloneContext: "A prefix sum turns 'changes' into 'totals so far': P[i + 1] = P[i] + a[i]."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          Start with $D = [0, 0, 0, 0, 0, 0]$ for 5 days (one extra slot). Add 10 to days 1 … 3: `D[1] += 10`, `D[4] −= 10`. After a running
+          sum over the first 5 entries, what is day 3's value?
+        answer: { expr: "10" }
+        distractors:
+          - { expr: "0", misconception: diff-end-included }
+          - { expr: "30", misconception: diff-adds-per-day }
+          - { expr: "-10", misconception: diff-sign }
+        hints:
+          nudge: "The running sum becomes 10 at day 1 and stays until day 4."
+          partial: "Running sums: 0, 10, 10, 10, 0."
+        explanation: |
+          **Answer:** 10
+
+          **Why:** Running sums of $[0, 10, 0, 0, -10]$ are $0, 10, 10, 10, 0$: days 1–3 get 10.
+
+          **Common mistakes:**
+          - 0 — the −10 sits at index 4, *after* day 3.
+          - 30 — each day gets 10 once, not cumulatively.
+          - −10 — the subtraction ends the range; it doesn't apply inside it.
+
+          **Connects to:** Q6 — choosing the tool.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          A promotion adds $v$ to every day from $l$ to $r$. Using a difference array $D$ of length {{n+1}}, which two updates record it?
+        options:
+          - { text: "`D[l] += v` and `D[r + 1] −= v`", correct: true }
+          - { text: "`D[l] += v` and `D[r] −= v`", misconception: diff-end-included }
+          - { text: "`D[l − 1] += v` and `D[r] −= v`", misconception: range-formula-off }
+          - { text: "`D[i] += v` for every i from l to r", misconception: diff-adds-per-day }
+        hints:
+          nudge: "Where should the extra v start, and where should it stop?"
+          buildsOn: "Q3: prefix sums turn changes into running totals."
+          partial: "Start at l; cancel right after r."
+        explanation: |
+          **Answer:** `D[l] += v`, `D[r + 1] −= v`.
+
+          **Why:** The running sum (Q3's prefix idea) picks up $v$ at $l$ and drops it right after $r$ — two updates for any range length.
+          That's why $D$ has {{n+1}} entries: $r + 1$ can be {{n}}.
+
+          **Common mistakes:**
+          - `D[r] −= v` — day $r$ would miss the bonus.
+          - `D[l − 1]` — shifts the range left.
+          - Every $i$ — that's the $O(r - l + 1)$ loop the trick avoids.
+
+          **Connects to:** Q6 — choosing the tool.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          {{q}} promotions, each over a range of up to {{n}} days, then one final report of every day's total. Cost with a difference array?
+        answer: { expr: "2*q + n" }
+        distractors:
+          - { expr: "n*q", misconception: diff-adds-per-day }
+          - { expr: "q", misconception: prefix-precomputes-all }
+          - { expr: "2*n*q", misconception: diff-two-per-day }
+        hints:
+          nudge: "Each promotion: two updates. The report: one pass."
+          buildsOn: "Q3: one prefix pass rebuilds the values."
+          partial: "2 × {{q}} + {{n}}"
+        explanation: |
+          **Answer:** {{2*q+n}}
+
+          **Why:** Two updates per promotion, then one running-sum pass (Q3) of {{n}}: ${{2*q}} + {{n}} = {{2*q+n}}$, versus up to {{n*q}}
+          adding day by day.
+
+          **Common mistakes:**
+          - {{n*q}} — that's updating every day of every range.
+          - {{q}} — the final pass costs {{n}}.
+          - {{2*n*q}} — two updates per promotion, not per day.
+
+          **Connects to:** Q6 — choosing the tool.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: prefix-sums
+    uses: [s4, s5]
+    establishes: "Prefix sums need an invertible operation and static data."
+    standaloneContext: |
+      Prefix sums answer range sums in O(1) after O(n) setup; difference arrays apply range additions in O(1) each.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: "Which question can a prefix array answer in $O(1)$?"
+        options:
+          - { text: "How many orders were placed between day l and day r", correct: true }
+          - { text: "The largest sale between day l and day r", misconception: prefix-max }
+          - { text: "The median sale between day l and day r", misconception: prefix-median }
+          - { text: "Whether the sales between l and r are sorted", misconception: prefix-sorted }
+        hints:
+          nudge: "Which of these can be 'subtracted'?"
+          partial: "Counts add up and subtract cleanly."
+        explanation: |
+          **Answer:** the count of orders.
+
+          **Why:** Counts are sums, so $P[r + 1] - P[l]$ works. Max, median and sortedness can't be recovered by subtracting prefixes.
+
+          **Common mistakes:**
+          - Largest sale — max has no inverse (like sliding-window maxima).
+          - Median — needs the values themselves.
+          - Sorted — needs to inspect neighbouring pairs.
+
+          **Connects to:** the challenge.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          After $P$ is built for {{n}} days, a correction changes the sales of day 0. How many entries of $P$ must be updated?
+        answer: { expr: "n" }
+        distractors:
+          - { expr: "1", misconception: prefix-update-one }
+          - { expr: "2", misconception: diff-end-included }
+          - { expr: "n + 1", misconception: prefix-no-zero }
+        hints:
+          nudge: "Which prefixes include day 0?"
+          buildsOn: "Q4: P is built once for fast questions. Q5: a difference array handles range *updates*."
+          partial: "P[1] … P[{{n}}]."
+        explanation: |
+          **Answer:** {{n}}
+
+          **Why:** Every prefix from $P[1]$ to $P[{{n}}]$ includes day 0 — {{n}} entries; only $P[0]$ is untouched. Prefix sums suit
+          static data (Q4); frequent updates call for a Fenwick or segment tree.
+
+          **Common mistakes:**
+          - 1 — every later prefix includes day 0.
+          - 2 — that's a difference-array update (Q5), a different structure.
+          - {{n+1}} — $P[0] = 0$ doesn't include any day.
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A dashboard needs both: frequent "add $v$ to days $l … r$" **and** frequent "total of days $l … r$", interleaved. What's true?
+        options:
+          - { text: "Neither array alone works: each is O(1) for one operation but O(n) for the other — a tree structure handles both in O(log n)", correct: true }
+          - { text: "A prefix array handles both in O(1)", misconception: prefix-update-one }
+          - { text: "A difference array handles both in O(1)", misconception: diff-answers-sums }
+          - { text: "Keep both arrays; each operation stays O(1)", misconception: prefix-both-arrays }
+        hints:
+          nudge: "What does a range update cost on P? What does a range sum cost on D?"
+          buildsOn: "Q4: P makes sums O(1). Q5: D makes range updates O(1)."
+          partial: "Each trick moves the O(n) cost to the other operation."
+        explanation: |
+          **Answer:** neither alone works.
+
+          **Why:** Updating $P$ after a range add touches $O(n)$ prefixes; summing from $D$ needs a running sum, also $O(n)$. Keeping both doesn't
+          help — they'd have to stay in sync. Fenwick and segment trees (beyond this course) do both in $O(\log n)$.
+
+          **Common mistakes:**
+          - Prefix array — range updates rewrite many prefixes.
+          - Difference array — sums need a pass over $D$.
+          - Both arrays — every update would still rebuild $P$.
+
+          **Connects to:** the challenge.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: prefix-sums
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: |
+          $P = [0, 4, 6, 13]$ for $a = [4, 2, 7]$. $P[3] - P[1] = 9$. Which values does that cover?
+        options:
+          - { text: "$a[1] + a[2] = 2 + 7$", correct: true }
+          - { text: "$a[1] + a[2] + a[3]$", misconception: prefix-includes-index }
+          - { text: "$a[0] + a[1]$", misconception: range-formula-low }
+          - { text: "$a[2] + a[3]$", misconception: range-formula-off }
+        hints:
+          nudge: "P[3] covers a[0 … 2]; P[1] covers a[0]."
+          partial: "Remove a[0] from a[0 … 2]."
+        explanation: |
+          **Answer:** $a[1] + a[2]$.
+
+          **Why:** $P[3] = a[0] + a[1] + a[2]$ and $P[1] = a[0]$; the difference is $a[1] + a[2] = 9$.
+
+          **Common mistakes:**
+          - $a[3]$ — there is no $a[3]$; $P[3]$ stops at index 2.
+          - $a[0] + a[1]$ — $a[0]$ is subtracted away.
+          - $a[2] + a[3]$ — shifted one place right.
+
+          **Connects to:** Q3 — the range formula.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l7.ch
+  type: code-runner
+  title: "Answer range questions"
+  concept: prefix-sums
+  uses: [s3, s5]
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        Write `range_sums(a, queries)` (JavaScript: `rangeSums`). Each query is `[l, r]` (inclusive); return the list of sums of `a[l … r]`.
+      config:
+        entry: { python: range_sums, javascript: rangeSums }
+        starter:
+          python: |
+            def range_sums(a, queries):
+                return []
+          javascript: |
+            function rangeSums(a, queries) {
+              return [];
+            }
+        tests:
+          - { args: [[3, 1, 4, 1, 5], [[1, 3], [0, 4]]], expected: [6, 14] }
+          - { args: [[2, 5, 1, 3], [[0, 0], [3, 3], [0, 2]]], expected: [2, 3, 8] }
+          - { args: [[-4, 6, -1], [[0, 1], [1, 2]]], expected: [2, 5] }
+          - { args: [[7], []], expected: [] }
+          - { args: [[1, 2, 3, 4, 5, 6], [[2, 5], [0, 5], [4, 4]]], expected: [18, 21, 5], hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None pass yet. Return one sum per query, in order." }
+        - { if: "passed < total", say: "Some tests fail — ranges are inclusive at both ends.", misconception: range-formula-low }
+        - { if: "true", say: "Run the tests and read the failures." }
+      hints:
+        nudge: "Any correct method works here — even summing each range."
+        buildsOn: "From Q3: sum(a[l … r]) = P[r + 1] − P[l]."
+        partial: "Build P with a leading 0, then one subtraction per query."
+      solution:
+        python: |
+          def range_sums(a, queries):
+              p = [0]
+              for v in a:
+                  p.append(p[-1] + v)
+              return [p[r + 1] - p[l] for l, r in queries]
+        javascript: |
+          function rangeSums(a, queries) {
+            const p = [0];
+            for (const v of a) p.push(p[p.length - 1] + v);
+            return queries.map(([l, r]) => p[r + 1] - p[l]);
+          }
+      explanation: |
+        One pass builds $P$; each query is a single subtraction.
+    standard:
+      difficulty: 3
+      goal: |
+        Same `range_sums(a, queries)`, but a hidden test has **100 000** values and **100 000** queries — within 1 s.
+      config:
+        entry: { python: range_sums, javascript: rangeSums }
+        starter:
+          python: |
+            def range_sums(a, queries):
+                return []
+          javascript: |
+            function rangeSums(a, queries) {
+              return [];
+            }
+        tests:
+          - { args: [[3, 1, 4, 1, 5], [[1, 3], [0, 4]]], expected: [6, 14] }
+          - { args: [[-4, 6, -1], [[0, 1], [1, 2], [0, 2]]], expected: [2, 5, 1] }
+          - { args: [[10, 20, 30], [[2, 2], [0, 0]]], expected: [30, 10], hidden: true }
+        comparator: exact
+        perf: { generator: rangeSums, params: { n: 100000, q: 100000 }, timeLimitMs: 1000 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail — check P[r + 1] − P[l].", misconception: range-formula-low }
+        - { if: "not perfPassed", say: "Correct but too slow: summing each range is about 3 × 10⁹ additions here. Build P once.", misconception: prefix-rebuild }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Do the expensive work once, before the queries."
+        buildsOn: "From Q4: n + q operations instead of up to n·q."
+        partial: "P has len(a) + 1 entries."
+      solution:
+        python: |
+          def range_sums(a, queries):
+              p = [0]
+              for v in a:
+                  p.append(p[-1] + v)
+              return [p[r + 1] - p[l] for l, r in queries]
+        javascript: |
+          function rangeSums(a, queries) {
+            const p = [0];
+            for (const v of a) p.push(p[p.length - 1] + v);
+            return queries.map(([l, r]) => p[r + 1] - p[l]);
+          }
+      explanation: |
+        About 200 000 operations instead of roughly $3 \times 10^9$: $O(n + q)$ versus $O(nq)$.
+    harder:
+      difficulty: 4
+      goal: |
+        Write `apply_updates(n, updates)` (JavaScript: `applyUpdates`): start from `n` zeros; each update `[l, r, v]` adds `v` to every
+        position `l … r` (inclusive). Return the final list. A hidden test has **100 000** positions and **100 000** updates — within 1 s.
+      config:
+        entry: { python: apply_updates, javascript: applyUpdates }
+        starter:
+          python: |
+            def apply_updates(n, updates):
+                return [0] * n
+          javascript: |
+            function applyUpdates(n, updates) {
+              return new Array(n).fill(0);
+            }
+        tests:
+          - { args: [5, [[1, 3, 10]]], expected: [0, 10, 10, 10, 0] }
+          - { args: [4, [[0, 3, 1], [2, 3, -2]]], expected: [1, 1, -1, -1] }
+          - { args: [3, []], expected: [0, 0, 0] }
+          - { args: [6, [[0, 0, 5], [5, 5, 7], [2, 4, 1]]], expected: [5, 0, 1, 1, 1, 7], hidden: true }
+        comparator: exact
+        perf: { generator: rangeAdds, params: { n: 100000, q: 100000 }, timeLimitMs: 1000 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail — the cancelling update goes at r + 1, and only if r + 1 < n (or give D an extra slot).", misconception: diff-end-included }
+        - { if: "not perfPassed", say: "Correct but too slow: updating every position of every range is about 3 × 10⁹ additions. Use a difference array.", misconception: diff-adds-per-day }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Record where each update starts and stops; add up at the end."
+        buildsOn: "From Q5: D[l] += v, D[r + 1] −= v, then a running sum."
+        partial: "Give D length n + 1 so r + 1 = n is safe; return the running sums of D[0 … n − 1]."
+      solution:
+        python: |
+          def apply_updates(n, updates):
+              d = [0] * (n + 1)
+              for l, r, v in updates:
+                  d[l] += v
+                  d[r + 1] -= v
+              out, run = [], 0
+              for i in range(n):
+                  run += d[i]
+                  out.append(run)
+              return out
+        javascript: |
+          function applyUpdates(n, updates) {
+            const d = new Array(n + 1).fill(0);
+            for (const [l, r, v] of updates) {
+              d[l] += v;
+              d[r + 1] -= v;
+            }
+            const out = [];
+            let run = 0;
+            for (let i = 0; i < n; i++) out.push((run += d[i]));
+            return out;
+          }
+      explanation: |
+        Two writes per update plus one final pass: $O(n + q)$. The running sum is the prefix sum of the changes.
+
+summary:
+  keyTakeaways:
+    - "P[0] = 0, P[i + 1] = P[i] + a[i]; then sum(a[l … r]) = P[r + 1] − P[l]."
+    - "Build once in O(n), answer each question in O(1): O(n + q) instead of O(nq)."
+    - "Difference array: D[l] += v, D[r + 1] −= v; a running sum rebuilds the values."
+    - "Prefix sums need invertible operations (sum, count, XOR) and data that doesn't change between questions."
+  next: dsa.u3.l1

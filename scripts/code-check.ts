@@ -166,6 +166,8 @@ export function flushCodeChecks(): string | null {
     const r = spawnSync(py, ['-c', script], {
       input: JSON.stringify(jobs.map(({ code, entry, argsList }) => ({ code, entry, argsList }))),
       encoding: 'utf8',
+      // Without this, Windows Python decodes stdin in the ANSI code page and mangles non-ASCII test strings.
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
       timeout: 300_000,
       maxBuffer: 256 * 1024 * 1024,
     });

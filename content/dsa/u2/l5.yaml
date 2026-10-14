@@ -1,0 +1,770 @@
+id: dsa.u2.l5
+title: "Two pointers"
+version: 1
+concepts: [two-pointers]
+estimatedMinutes: 25
+
+# Scenario: a gift card of a fixed value and a shop's n prices, sorted ascending; find two items that cost exactly the card value.
+params:
+  sets:
+    - { n: 100 }
+    - { n: 200 }
+    - { n: 300 }
+
+intro: |
+  **Pair sum.** Given a **sorted** array and a target, find two elements that add up to the target.
+
+  Brute force tries every pair: $\binom{n}{2} = \frac{n(n-1)}{2}$ sums, $O(n^2)$.
+
+  **Two pointers** start at both ends: `lo = 0`, `hi = n − 1`. Each step computes `a[lo] + a[hi]`:
+
+  - equal to the target → done;
+  - **too small** → `lo += 1` (the only way to grow the sum);
+  - **too large** → `hi -= 1` (the only way to shrink it).
+
+  Each step moves one pointer inward, so the loop runs at most $n - 1$ times: $O(n)$ time, $O(1)$ extra space.
+
+  **Why nothing is missed:** if `a[lo] + a[hi]` is too small, `a[hi]` is the biggest value still in play, so
+  `a[lo]` can't reach the target with *any* remaining partner — discarding it is safe. The same argument,
+  mirrored, discards `a[hi]` when the sum is too large.
+
+  The same idea — pointers that each only move one way — also reverses arrays in place and merges sorted lists.
+
+workedExample: |
+  Prices $[2, 3, 5, 8, 9, 12]$, target $13$:
+
+  - $2 + 12 = 14 > 13$ → `hi` moves to 9. $2 + 9 = 11 < 13$ → `lo` moves to 3.
+  - $3 + 9 = 12 < 13$ → `lo` moves to 5. $5 + 9 = 14 > 13$ → `hi` moves to 8. $5 + 8 = 13$ ✓.
+  - Five sums instead of up to $\binom{6}{2} = 15$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: two-pointers
+    clueFor: [s4]
+    establishes: "Brute force over {{n}} prices checks up to n(n − 1)/2 = {{n*(n-1)/2}} pairs."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: "A shop has 5 prices. How many different **pairs** of items are there?"
+        answer: { expr: "10" }
+        distractors:
+          - { expr: "25", misconception: pairs-n-squared }
+          - { expr: "20", misconception: pairs-ordered }
+          - { expr: "5", misconception: pairs-linear }
+        hints:
+          nudge: "Each item pairs with each of the others — but {A, B} is the same pair as {B, A}."
+          partial: "5 × 4 / 2"
+        explanation: |
+          **Answer:** 10
+
+          **Why:** $\binom{5}{2} = \frac{5 \times 4}{2} = 10$.
+
+          **Common mistakes:**
+          - 25 — that includes pairing an item with itself.
+          - 20 — that counts every pair twice (A+B and B+A).
+          - 5 — there are many more pairs than items.
+
+          **Connects to:** Q4 — how many sums two pointers needs.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          The shop has {{n}} prices. Brute force checks every pair against the gift-card value. How many sums does it compute in the
+          worst case?
+        answer: { expr: "n*(n-1)/2" }
+        distractors:
+          - { expr: "n^2", misconception: pairs-n-squared }
+          - { expr: "n*(n-1)", misconception: pairs-ordered }
+          - { expr: "n - 1", misconception: pairs-linear }
+        hints:
+          nudge: "How many unordered pairs can you make from {{n}} items?"
+          partial: "{{n}} × {{n-1}} / 2"
+        explanation: |
+          **Answer:** {{n*(n-1)/2}}
+
+          **Why:** $\binom{ {{n}} }{2} = \frac{ {{n}} \times {{n-1}} }{2} = {{n*(n-1)/2}}$ — that's $O(n^2)$.
+
+          **Common mistakes:**
+          - {{n^2}} — an item can't pair with itself.
+          - {{n*(n-1)}} — each pair is only checked once (`j` starts at `i + 1`).
+          - {{n-1}} — that's what two pointers needs (Q4), not brute force.
+
+          **Connects to:** Q4 — the two-pointer count.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          Brute force on {{n}} prices takes 1 ms. Roughly how long does it take on {{10*n}} prices?
+        options:
+          - { text: "About 100 ms", correct: true }
+          - { text: "About 10 ms", misconception: pairs-linear }
+          - { text: "About 20 ms", misconception: pairs-growth-guess }
+          - { text: "About 1000 ms", misconception: pairs-cubic }
+        hints:
+          nudge: "Pairs grow like n²."
+          partial: "10× the items → about 10² = 100× the pairs."
+        explanation: |
+          **Answer:** about 100 ms.
+
+          **Why:** The pair count $\frac{n(n-1)}{2}$ grows like $n^2$: ten times the items means about a hundred times the work.
+
+          **Common mistakes:**
+          - 10 ms — that's linear growth.
+          - 20 ms — the growth isn't "a bit more than linear"; it's quadratic.
+          - 1000 ms — that's cubic, $10^3$.
+
+          **Connects to:** Q4 — two pointers grows linearly.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: two-pointers
+    clueFor: [s3, s5]
+    establishes: "Sum too small → lo moves right; sum too large → hi moves left."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Sorted prices, `lo` at the cheapest, `hi` at the most expensive. Their sum is **less** than the gift card. Which pointer moves?
+        options:
+          - { text: "`lo` moves right, to a bigger price", correct: true }
+          - { text: "`hi` moves left, to a smaller price", misconception: tp-wrong-pointer }
+          - { text: "Both move inward", misconception: tp-move-both }
+          - { text: "Restart with `lo` at index 1", misconception: tp-restart }
+        hints:
+          nudge: "Which move makes the sum bigger?"
+          partial: "The array is sorted ascending."
+        explanation: |
+          **Answer:** `lo` moves right.
+
+          **Why:** Only a bigger left value can raise the sum; moving `hi` left would make it smaller still.
+
+          **Common mistakes:**
+          - `hi` left — the sum goes down.
+          - Both — you might skip the answer.
+          - Restarting — no need to look back.
+
+          **Connects to:** Q3 — a full trace.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          The {{n}} prices are sorted. At some step `a[lo] + a[hi]` is **greater** than the gift-card value. What does the algorithm do?
+        options:
+          - { text: "`hi -= 1`", correct: true }
+          - { text: "`lo += 1`", misconception: tp-wrong-pointer }
+          - { text: "`lo += 1` and `hi -= 1`", misconception: tp-move-both }
+          - { text: "Stop: no pair exists", misconception: tp-gives-up }
+        hints:
+          nudge: "You need a smaller sum."
+          partial: "The only pointer that can shrink the sum is the one at the big end."
+        explanation: |
+          **Answer:** `hi -= 1`.
+
+          **Why:** Moving `hi` left picks a smaller value, lowering the sum. Moving `lo` right would raise it.
+
+          **Common mistakes:**
+          - `lo += 1` — the sum would grow.
+          - Both — the pair (`lo`, `hi − 1`) would never be checked.
+          - Stop — the scan ends only when the pointers meet.
+
+          **Connects to:** Q3 — a full trace.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          `a[lo] + a[hi]` is too small, so the algorithm discards `a[lo]` for good. Why can't `a[lo]` be part of the answer?
+        options:
+          - { text: "`a[hi]` is the largest value still in play, so `a[lo]` plus any remaining partner is too small", correct: true }
+          - { text: "Because the smallest element is never part of an answer", misconception: tp-smallest-never }
+          - { text: "Because `lo < hi`", misconception: tp-index-reason }
+          - { text: "It could be — two pointers is a heuristic that occasionally misses pairs", misconception: tp-heuristic }
+        hints:
+          nudge: "What's the best partner `a[lo]` could still get?"
+          partial: "Everything right of `hi` was already discarded; everything left of it is ≤ `a[hi]`."
+        explanation: |
+          **Answer:** its best possible partner, `a[hi]`, already falls short.
+
+          **Why:** Every value between `lo` and `hi` is $\le$ `a[hi]`, so `a[lo]` plus any of them is $\le$ `a[lo] + a[hi]` < target.
+          Discarding `a[lo]` can't lose a solution — that's why two pointers is exact, not a guess.
+
+          **Common mistakes:**
+          - "Smallest never" — `[1, 9]` with target 10 uses the smallest.
+          - "`lo < hi`" — the indices don't justify anything; the sorted values do.
+          - "Heuristic" — the argument above is a proof.
+
+          **Connects to:** Q5 — what the proof requires.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: two-pointers
+    uses: [s2]
+    clueFor: [s4]
+    establishes: "On [1, 3, 4, 6, 8, 11] with target 10, two pointers computes 5 sums and finds 4 + 6."
+    standaloneContext: "Two pointers on a sorted array: sum too small → lo += 1; too large → hi −= 1; stop on a match or when lo meets hi."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          Prices $[2, 5, 7, 9]$, target $12$. Two pointers starts with $2 + 9$. How many sums does it compute, including the matching one?
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "6", misconception: tp-quadratic }
+          - { expr: "4", misconception: tp-counts-elements }
+          - { expr: "2", misconception: tp-skips-first }
+        hints:
+          nudge: "2 + 9 = 11 is too small. Then?"
+          partial: "11 → lo moves; 5 + 9 = 14 → hi moves; 5 + 7 = …"
+        explanation: |
+          **Answer:** 3
+
+          **Why:** $2 + 9 = 11 < 12$ → `lo`; $5 + 9 = 14 > 12$ → `hi`; $5 + 7 = 12$ ✓.
+
+          **Common mistakes:**
+          - 6 — that's every pair (brute force).
+          - 4 — the count of sums isn't the number of elements.
+          - 2 — the first sum, $2 + 9$, counts too.
+
+          **Connects to:** Q4 — the worst case.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          Prices $[1, 3, 4, 6, 8, 11]$, target $10$. How many sums does two pointers compute, including the matching one?
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "15", misconception: tp-quadratic }
+          - { expr: "6", misconception: tp-counts-elements }
+          - { expr: "4", misconception: tp-skips-first }
+        hints:
+          nudge: "Start with 1 + 11 = 12 > 10."
+          buildsOn: "Q2: too small → lo right; too large → hi left."
+          partial: "12 → hi; 1 + 8 = 9 → lo; 3 + 8 = 11 → hi; 3 + 6 = 9 → lo; 4 + 6 = …"
+        explanation: |
+          **Answer:** 5
+
+          **Why:** $1+11=12$ (hi), $1+8=9$ (lo), $3+8=11$ (hi), $3+6=9$ (lo), $4+6=10$ ✓ — five sums.
+
+          **Common mistakes:**
+          - 15 — that's every pair.
+          - 6 — the count of elements, not of sums.
+          - 4 — the matching sum counts too.
+
+          **Connects to:** Q4 — the worst case.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          Prices $[1, 3, 4, 6, 8, 11]$, target $13$. What does two pointers do?
+        options:
+          - { text: "After 5 sums the pointers meet: no pair sums to 13", correct: true }
+          - { text: "It finds 6 + 8", misconception: tp-arithmetic }
+          - { text: "It must fall back to checking all pairs", misconception: tp-heuristic }
+          - { text: "It loops forever", misconception: tp-no-termination }
+        hints:
+          nudge: "Trace it: 1 + 11 = 12."
+          buildsOn: "Q2: each step moves exactly one pointer inward."
+          partial: "12 → lo; 14 → hi; 11 → lo; 12 → lo; 14 → hi … and now lo = hi."
+        explanation: |
+          **Answer:** the pointers meet after 5 sums; no pair exists.
+
+          **Why:** $12$ (lo), $14$ (hi), $11$ (lo), $12$ (lo), $6 + 8 = 14$ (hi) → `lo == hi`, stop. Because each discard is safe (Q2), meeting
+          proves no pair sums to 13.
+
+          **Common mistakes:**
+          - 6 + 8 — that's 14.
+          - "Fall back" — meeting is a proof of absence.
+          - "Forever" — every step moves a pointer inward.
+
+          **Connects to:** Q4 — the worst case.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: two-pointers
+    uses: [s1, s3]
+    clueFor: [s6]
+    establishes: "Two pointers computes at most n − 1 = {{n-1}} sums — O(n) instead of O(n²)."
+    standaloneContext: "Two pointers moves exactly one of lo, hi inward per sum and stops when they meet."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: "With 6 sorted prices, at most how many sums can two pointers compute?"
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "15", misconception: tp-quadratic }
+          - { expr: "6", misconception: tp-counts-elements }
+          - { expr: "3", misconception: tp-move-both }
+        hints:
+          nudge: "The gap hi − lo starts at 5 and shrinks by one per sum."
+          partial: "It stops when the gap is 0."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** The gap starts at $6 - 1 = 5$, and each sum shrinks it by one.
+
+          **Common mistakes:**
+          - 15 — that's brute force.
+          - 6 — the pointers stop before they cross.
+          - 3 — only one pointer moves per step.
+
+          **Connects to:** Q6 — more two-pointer patterns.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          With {{n}} sorted prices, at most how many sums does two pointers compute?
+        answer: { expr: "n - 1" }
+        distractors:
+          - { expr: "n*(n-1)/2", misconception: tp-quadratic }
+          - { expr: "n", misconception: tp-counts-elements }
+          - { expr: "n/2", misconception: tp-move-both }
+        hints:
+          nudge: "How does `hi − lo` change with each sum?"
+          buildsOn: "Q1: brute force needs {{n*(n-1)/2}}. Q3: one pointer moves per sum."
+          partial: "The gap starts at {{n-1}}."
+        explanation: |
+          **Answer:** {{n-1}}
+
+          **Why:** `hi − lo` starts at {{n-1}} and drops by one per sum — at most {{n-1}} sums, $O(n)$. Brute force needs up to
+          {{n*(n-1)/2}} (Q1).
+
+          **Common mistakes:**
+          - {{n*(n-1)/2}} — that's brute force.
+          - {{n}} — the loop stops when `lo == hi`.
+          - {{n/2}} — only one pointer moves per step.
+
+          **Connects to:** Q6 — other patterns.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          In the worst case, how many times **fewer** sums does two pointers compute than brute force, for {{n}} prices?
+        answer: { expr: "n/2" }
+        distractors:
+          - { expr: "n", misconception: pairs-n-squared }
+          - { expr: "n - 1", misconception: tp-quadratic }
+          - { expr: "2", misconception: pairs-linear }
+        hints:
+          nudge: "Divide the brute-force count by the two-pointer count."
+          buildsOn: "Q1: {{n*(n-1)/2}} pairs. Q3: one sum per pointer move."
+          partial: "n(n − 1)/2 ÷ (n − 1)"
+        explanation: |
+          **Answer:** {{n/2}}
+
+          **Why:** $\frac{n(n-1)/2}{n-1} = \frac{n}{2} = {{n/2}}$ — and the ratio itself grows with $n$, which is what "$O(n)$ vs $O(n^2)$" means.
+
+          **Common mistakes:**
+          - {{n}} — compares against $n^2$ rather than $\binom{n}{2}$.
+          - {{n-1}} — that's the two-pointer count itself.
+          - 2 — the speed-up isn't a constant.
+
+          **Connects to:** Q6 — other patterns.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: two-pointers
+    uses: [s2, s4]
+    clueFor: [s6]
+    establishes: "The scan needs sorted input; unsorted data costs O(n log n) to sort first."
+    standaloneContext: "Two pointers discards a[lo] when a[lo] + a[hi] is too small because a[hi] is the largest remaining value; it runs in O(n)."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: "What must be true of the array for the two-pointer pair sum to work?"
+        options:
+          - { text: "It must be sorted", correct: true }
+          - { text: "It must have no duplicates", misconception: tp-needs-distinct }
+          - { text: "Its length must be even", misconception: tp-move-both }
+          - { text: "All values must be positive", misconception: tp-needs-positive }
+        hints:
+          nudge: "The 'too small → move lo' rule relies on something."
+          partial: "Moving right must mean 'bigger'."
+        explanation: |
+          **Answer:** sorted.
+
+          **Why:** The discard argument needs `a[hi]` to be the largest value still in play — only true for sorted data.
+
+          **Common mistakes:**
+          - Duplicates — they're fine.
+          - Even length — only one pointer moves per step.
+          - Positive — negative values work too.
+
+          **Connects to:** Q6 — more patterns.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The {{n}} prices arrive **unsorted**. You sort them ($O(n \log n)$), then run two pointers ($O(n)$). What is the total?
+        options:
+          - { text: "$O(n \\log n)$", correct: true }
+          - { text: "$O(n)$", misconception: sort-free }
+          - { text: "$O(n^2)$", misconception: tp-quadratic }
+          - { text: "$O(n^2 \\log n)$", misconception: costs-multiply }
+        hints:
+          nudge: "Sequential steps add; the biggest term wins."
+          buildsOn: "Q2: the scan needs sorted order. Q4: the scan is O(n)."
+          partial: "n log n + n"
+        explanation: |
+          **Answer:** $O(n \log n)$.
+
+          **Why:** The scan (Q4) only works on sorted data (Q2). Sorting then scanning costs $n \log n + n$, and $n \log n$ dominates.
+
+          **Common mistakes:**
+          - $O(n)$ — sorting isn't free.
+          - $O(n^2)$ — no step is quadratic.
+          - $O(n^2 \log n)$ — sequential steps add; they don't multiply.
+
+          **Connects to:** Q6 — more patterns.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The prices are unsorted and you must report the pair's **original** positions. You sort, then scan. What else is needed?
+        options:
+          - { text: "Sort (value, original index) pairs, so each value remembers where it came from", correct: true }
+          - { text: "Nothing: sorting doesn't change indices", misconception: sort-keeps-indices }
+          - { text: "Report the indices in the sorted array", misconception: sorted-indices-reported }
+          - { text: "Nothing: two pointers can't work on data that was unsorted", misconception: tp-impossible-unsorted }
+        hints:
+          nudge: "After sorting, index 0 holds the smallest value — not the first one you were given."
+          buildsOn: "Q2: the scan needs sorted order. Q4: the scan stays O(n)."
+          partial: "Carry the index along with each value."
+        explanation: |
+          **Answer:** sort (value, index) pairs.
+
+          **Why:** Sorting moves values, so sorted positions aren't the original ones. Sorting `sorted((v, i) for i, v in enumerate(a))`
+          keeps the original index with each value; the scan (Q2, Q4) is unchanged.
+
+          **Common mistakes:**
+          - "Doesn't change indices" — it moves every value.
+          - Sorted indices — they refer to the new order.
+          - "Can't work" — it works once the data is sorted.
+
+          **Connects to:** Q6 — more patterns.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: two-pointers
+    uses: [s4, s5]
+    establishes: "Pointers that only move one way give linear scans: reversing, merging, counting pairs."
+    standaloneContext: |
+      Two pointers keeps two indices that each move in only one direction; every step moves at least one, so the scan is O(n).
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          Reverse an array in place: `lo = 0`, `hi = n − 1`; swap `a[lo]` and `a[hi]`, then move both inward until they meet. How many
+          swaps for 7 elements?
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "7", misconception: tp-counts-elements }
+          - { expr: "6", misconception: tp-quadratic }
+          - { expr: "4", misconception: reverse-swaps-middle }
+        hints:
+          nudge: "Each swap fixes two elements."
+          partial: "The middle element stays put."
+        explanation: |
+          **Answer:** 3
+
+          **Why:** Swaps (0,6), (1,5), (2,4); index 3 is the middle and stays. $\lfloor 7/2 \rfloor = 3$.
+
+          **Common mistakes:**
+          - 7 — each swap handles two elements.
+          - 6 — that's $n - 1$, the pair-sum bound; here both pointers move.
+          - 4 — swapping the middle with itself does nothing.
+
+          **Connects to:** the challenge — write the pair sum.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          Merging two sorted lists of {{n}} items each: one pointer per list; copy the smaller front item and advance that pointer. At most how
+          many comparisons?
+        answer: { expr: "2*n - 1" }
+        distractors:
+          - { expr: "n^2", misconception: tp-quadratic }
+          - { expr: "n", misconception: merge-one-list }
+          - { expr: "2*n", misconception: merge-last-compare }
+        hints:
+          nudge: "Each comparison outputs one item."
+          buildsOn: "Q4: each step advances a pointer, so the work is linear."
+          partial: "Once one list runs out, the rest is copied without comparing."
+        explanation: |
+          **Answer:** {{2*n-1}}
+
+          **Why:** Each comparison places one of the {{2*n}} items. When one list is empty, the remaining items are copied without comparing,
+          so at least the last item needs none: at most {{2*n-1}}.
+
+          **Common mistakes:**
+          - {{n^2}} — no item is compared against everything.
+          - {{n}} — both lists' items must be placed.
+          - {{2*n}} — the last item needs no comparison.
+
+          **Connects to:** the challenge — write the pair sum.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          **Count** pairs with sum ≤ target in a sorted array. At some step `a[lo] + a[hi] ≤ target`. How many valid pairs use index `lo` as
+          the smaller index?
+        options:
+          - { text: "`hi − lo`: pairs (lo, lo+1) … (lo, hi) all fit, since those partners are ≤ `a[hi]`", correct: true }
+          - { text: "1: just (lo, hi)", misconception: tp-one-pair }
+          - { text: "`hi`", misconception: tp-count-from-zero }
+          - { text: "`n − lo − 1`: every later element", misconception: tp-count-all-later }
+        hints:
+          nudge: "If `a[hi]` works as a partner for `a[lo]`, what about the values between them?"
+          buildsOn: "Q5: sorted order means every partner between lo and hi is ≤ `a[hi]`."
+          partial: "Count the indices lo+1 … hi."
+        explanation: |
+          **Answer:** `hi − lo`.
+
+          **Why:** Every index between `lo + 1` and `hi` holds a value ≤ `a[hi]` (sorted, Q5), so each pair sums to ≤ target. Add
+          `hi − lo`, then `lo += 1` — still $O(n)$ overall.
+
+          **Common mistakes:**
+          - 1 — that misses the smaller partners.
+          - `hi` — pairs start after `lo`, not at 0.
+          - $n - lo - 1$ — partners beyond `hi` were already too big.
+
+          **Connects to:** the challenge — write the pair sum.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: two-pointers
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: |
+          Sorted $[1, 4, 6, 9]$, target $12$, `lo` on 1 and `hi` on 9: the sum is 10. Which value would you swap in to make the sum **bigger**?
+        options:
+          - { text: "Replace 1 with 4 (move `lo` right)", correct: true }
+          - { text: "Replace 9 with 6 (move `hi` left)", misconception: tp-wrong-pointer }
+          - { text: "Replace both", misconception: tp-move-both }
+          - { text: "There's no way to make it bigger", misconception: tp-gives-up }
+        hints:
+          nudge: "The array grows left to right."
+          partial: "Which change raises the sum?"
+        explanation: |
+          **Answer:** move `lo` right, to 4.
+
+          **Why:** $4 + 9 = 13 > 10$. Moving `hi` left gives $1 + 6 = 7$, smaller.
+
+          **Common mistakes:**
+          - Move `hi` — that lowers the sum.
+          - Both — that can skip the answer.
+          - "No way" — `lo` can still move right.
+
+          **Connects to:** Q2 — the pointer rules.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l5.ch
+  type: code-runner
+  title: "Pair sum"
+  concept: two-pointers
+  uses: [s2, s4]
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        Write `pair_sum(prices, target)` (JavaScript: `pairSum`). `prices` is sorted ascending and exactly one pair sums to `target`.
+        Return its indices `[i, j]` with `i < j`.
+      config:
+        entry: { python: pair_sum, javascript: pairSum }
+        starter:
+          python: |
+            def pair_sum(prices, target):
+                # prices sorted ascending; return [i, j], i < j
+                return []
+          javascript: |
+            function pairSum(prices, target) {
+              // prices sorted ascending; return [i, j], i < j
+              return [];
+            }
+        tests:
+          - { args: [[2, 5, 7, 9], 12], expected: [1, 2] }
+          - { args: [[1, 3, 4, 6, 8, 11], 10], expected: [2, 3] }
+          - { args: [[1, 2], 3], expected: [0, 1] }
+          - { args: [[-4, -1, 0, 3, 10], 2], expected: [1, 3] }
+          - { args: [[5, 10, 20, 40, 80], 120], expected: [3, 4], hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None pass yet. Return a list of two indices, smaller first." }
+        - { if: "passed < total", say: "Some tests fail — check negative values and pairs at the very ends.", misconception: tp-wrong-pointer }
+        - { if: "true", say: "Run the tests and read the failures." }
+      hints:
+        nudge: "Any correct method works here — even checking every pair."
+        buildsOn: "From Q2: too small → lo += 1; too large → hi -= 1."
+        partial: "`lo, hi = 0, len(prices) - 1`; loop while `lo < hi`."
+      solution:
+        python: |
+          def pair_sum(prices, target):
+              lo, hi = 0, len(prices) - 1
+              while lo < hi:
+                  s = prices[lo] + prices[hi]
+                  if s == target:
+                      return [lo, hi]
+                  if s < target:
+                      lo += 1
+                  else:
+                      hi -= 1
+              return []
+        javascript: |
+          function pairSum(prices, target) {
+            let lo = 0, hi = prices.length - 1;
+            while (lo < hi) {
+              const s = prices[lo] + prices[hi];
+              if (s === target) return [lo, hi];
+              if (s < target) lo++;
+              else hi--;
+            }
+            return [];
+          }
+      explanation: |
+        Two pointers finds the pair in at most $n - 1$ sums. Brute force passes these small tests too — the next level won't let it.
+    standard:
+      difficulty: 3
+      goal: |
+        Same `pair_sum(prices, target)`, but one hidden test has **200 000** prices and must finish within 1 s. Brute force won't.
+      config:
+        entry: { python: pair_sum, javascript: pairSum }
+        starter:
+          python: |
+            def pair_sum(prices, target):
+                return []
+          javascript: |
+            function pairSum(prices, target) {
+              return [];
+            }
+        tests:
+          - { args: [[2, 5, 7, 9], 12], expected: [1, 2] }
+          - { args: [[1, 3, 4, 6, 8, 11], 10], expected: [2, 3] }
+          - { args: [[-4, -1, 0, 3, 10], 2], expected: [1, 3] }
+          - { args: [[1, 2, 4, 8, 16, 32, 64], 24], expected: [3, 4], hidden: true }
+        comparator: exact
+        perf: { generator: sortedTwoSum, params: { n: 200000 }, timeLimitMs: 1000 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail. Too small → move lo right; too large → move hi left.", misconception: tp-wrong-pointer }
+        - { if: "not perfPassed", say: "Correct, but too slow on 200 000 prices: checking all pairs is about 2 × 10¹⁰ sums. Use two pointers.", misconception: tp-quadratic }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Start at both ends."
+        buildsOn: "From Q4: at most n − 1 sums."
+        partial: "Each step: compare the sum with the target and move exactly one pointer."
+      solution:
+        python: |
+          def pair_sum(prices, target):
+              lo, hi = 0, len(prices) - 1
+              while lo < hi:
+                  s = prices[lo] + prices[hi]
+                  if s == target:
+                      return [lo, hi]
+                  if s < target:
+                      lo += 1
+                  else:
+                      hi -= 1
+              return []
+        javascript: |
+          function pairSum(prices, target) {
+            let lo = 0, hi = prices.length - 1;
+            while (lo < hi) {
+              const s = prices[lo] + prices[hi];
+              if (s === target) return [lo, hi];
+              if (s < target) lo++;
+              else hi--;
+            }
+            return [];
+          }
+      explanation: |
+        At most 199 999 sums instead of about $2 \times 10^{10}$: $O(n)$ versus $O(n^2)$.
+    harder:
+      difficulty: 4
+      goal: |
+        Now prices may **repeat**, and there may be **no** pair: return `[]` then. If several pairs work, return the one with the
+        **smallest** `i` (and for that `i`, the smallest `j`). 200 000 prices within 1 s.
+      config:
+        entry: { python: pair_sum, javascript: pairSum }
+        starter:
+          python: |
+            def pair_sum(prices, target):
+                return []
+          javascript: |
+            function pairSum(prices, target) {
+              return [];
+            }
+        tests:
+          - { args: [[2, 2, 3], 4], expected: [0, 1] }
+          - { args: [[1, 3, 4, 6, 8, 11], 13], expected: [] }
+          - { args: [[1, 2, 3, 4, 5], 6], expected: [0, 4] }
+          - { args: [[], 5], expected: [] }
+          - { args: [[3, 3, 3, 3], 6], expected: [0, 1], hidden: true }
+          - { args: [[1, 1, 2, 2, 5, 5], 7], expected: [2, 4], hidden: true }
+        comparator: exact
+        perf: { generator: sortedTwoSum, params: { n: 200000 }, timeLimitMs: 1000 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail. With repeats, the first match from the ends may not have the smallest j — or the smallest i.", misconception: tp-one-pair }
+        - { if: "not perfPassed", say: "Too slow on 200 000 prices. Keep the scan O(n).", misconception: tp-quadratic }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Two pointers finds the smallest `i` that has *some* partner. Which partner index does it land on?"
+        buildsOn: "From Q2: discards are safe, so the first match has the smallest possible `i`."
+        partial: "When you match at (lo, hi), the smallest j has the same value: move left while prices[hi − 1] == prices[hi] and hi − 1 > lo."
+      solution:
+        python: |
+          def pair_sum(prices, target):
+              lo, hi = 0, len(prices) - 1
+              while lo < hi:
+                  s = prices[lo] + prices[hi]
+                  if s == target:
+                      while hi - 1 > lo and prices[hi - 1] == prices[hi]:
+                          hi -= 1
+                      return [lo, hi]
+                  if s < target:
+                      lo += 1
+                  else:
+                      hi -= 1
+              return []
+        javascript: |
+          function pairSum(prices, target) {
+            let lo = 0, hi = prices.length - 1;
+            while (lo < hi) {
+              const s = prices[lo] + prices[hi];
+              if (s === target) {
+                while (hi - 1 > lo && prices[hi - 1] === prices[hi]) hi--;
+                return [lo, hi];
+              }
+              if (s < target) lo++;
+              else hi--;
+            }
+            return [];
+          }
+      explanation: |
+        The first match has the smallest possible `i`: every discarded `lo` had no partner (Q2). Its partner value is fixed
+        (`target − a[lo]`), so the smallest `j` is the leftmost copy of that value after `lo` — a short walk left from `hi`.
+
+summary:
+  keyTakeaways:
+    - "Brute-force pair search checks n(n − 1)/2 pairs: O(n²)."
+    - "On sorted data, two pointers moves lo right when the sum is too small and hi left when it's too large: at most n − 1 sums."
+    - "It never misses a pair: a discarded value's best possible partner already failed."
+    - "Unsorted input costs O(n log n) to sort first; keep original indices with the values if you need them."
+  next: dsa.u2.l6

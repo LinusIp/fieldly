@@ -17,51 +17,49 @@ function randInt(rng: () => number, lo: number, hi: number): number {
 }
 
 export const generators: Record<string, Generator> = {
-  /** Strictly increasing array of n ints and a target that is the sum of exactly one pair. */
+  /**
+   * Strictly increasing array of n ints and a target that is the sum of exactly one pair, placed
+   * in the middle half so brute force is slow whichever end it starts from. Uniqueness by
+   * construction: every value is a multiple of 4 except arr[i] ≡ 1 and arr[j] ≡ 2 (mod 4), so only
+   * that pair sums to 3 (mod 4).
+   */
   sortedTwoSum({ n }, seed) {
     const rng = mulberry32(seed);
     const arr: number[] = [];
-    let x = randInt(rng, -1000, 0);
-    for (let i = 0; i < n; i++) {
-      x += randInt(rng, 1, 3);
+    let x = 4 * randInt(rng, -2000, 0);
+    for (let k = 0; k < n; k++) {
+      x += 4 * randInt(rng, 1, 3);
       arr.push(x);
     }
-    // Choose a pair; make the target unique by checking with two pointers.
-    for (let attempt = 0; attempt < 1000; attempt++) {
-      const i = randInt(rng, 0, n - 2);
-      const j = randInt(rng, i + 1, n - 1);
-      const target = arr[i] + arr[j];
-      let count = 0;
-      let lo = 0;
-      let hi = n - 1;
-      while (lo < hi) {
-        const s = arr[lo] + arr[hi];
-        if (s === target) {
-          count++;
-          lo++;
-          hi--;
-        } else if (s < target) lo++;
-        else hi--;
-      }
-      if (count === 1) return { args: [arr, target], expected: [i, j] };
-    }
-    // Fallback: the two largest elements form a unique maximum sum.
-    return { args: [arr, arr[n - 1] + arr[n - 2]], expected: [n - 2, n - 1] };
+    const i = randInt(rng, Math.floor(n / 4), Math.floor(n / 2) - 1);
+    const j = randInt(rng, Math.floor(n / 2), Math.floor((3 * n) / 4));
+    arr[i] += 1;
+    arr[j] += 2;
+    return { args: [arr, arr[i] + arr[j]], expected: [i, j] };
   },
 
-  /** Random lowercase string of length n; expected = length of the longest substring without repeats. */
-  longestUniqueSubstring({ n, alphabet = 26 }, seed) {
+  /**
+   * String of length n over a pool of `pool` distinct characters, mostly cycling through the pool
+   * (so windows of distinct characters are long) with a random character every ~`breakEvery`
+   * positions. Expected = length of the longest substring without repeats. Long windows make
+   * "extend from every start" brute force O(n · pool).
+   */
+  longestUniqueSubstring({ n, pool = 2000, breakEvery = 500 }, seed) {
     const rng = mulberry32(seed);
     let s = '';
-    for (let i = 0; i < n; i++) s += String.fromCharCode(97 + randInt(rng, 0, alphabet - 1));
+    let c = 0;
+    for (let k = 0; k < n; k++) {
+      c = rng() < 1 / breakEvery ? randInt(rng, 0, pool - 1) : (c + 1) % pool;
+      s += String.fromCharCode(0x4e00 + c);
+    }
     const last = new Map<string, number>();
     let best = 0;
     let start = 0;
-    for (let i = 0; i < s.length; i++) {
-      const p = last.get(s[i]);
+    for (let k = 0; k < s.length; k++) {
+      const p = last.get(s[k]);
       if (p !== undefined && p >= start) start = p + 1;
-      last.set(s[i], i);
-      best = Math.max(best, i - start + 1);
+      last.set(s[k], k);
+      best = Math.max(best, k - start + 1);
     }
     return { args: [s], expected: best };
   },
@@ -81,6 +79,25 @@ export const generators: Record<string, Generator> = {
       expected.push(prefix[r + 1] - prefix[l]);
     }
     return { args: [arr, queries], expected };
+  },
+
+  /** n and q updates [l, r, v] (add v to a[l..r], inclusive) on an all-zero array; expected = the final array. */
+  rangeAdds({ n, q }, seed) {
+    const rng = mulberry32(seed);
+    const diff = new Array<number>(n + 1).fill(0);
+    const updates: [number, number, number][] = [];
+    for (let k = 0; k < q; k++) {
+      const l = randInt(rng, 0, n - 1);
+      const r = randInt(rng, l, n - 1);
+      const v = randInt(rng, -100, 100);
+      updates.push([l, r, v]);
+      diff[l] += v;
+      diff[r + 1] -= v;
+    }
+    const expected: number[] = [];
+    let run = 0;
+    for (let i = 0; i < n; i++) expected.push((run += diff[i]));
+    return { args: [n, updates], expected };
   },
 
   /** count_pairs(n) for the dependent nested loop: n(n − 1)/2, with n large. */

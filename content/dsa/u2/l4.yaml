@@ -1,0 +1,642 @@
+id: dsa.u2.l4
+title: "Queues & deques"
+version: 1
+concepts: [queues]
+estimatedMinutes: 20
+
+# Scenario: a print queue stored in a circular buffer of capacity C, currently with head index h and size s.
+params:
+  sets:
+    - { C: 8, h: 6, s: 3 }
+    - { C: 10, h: 7, s: 5 }
+    - { C: 6, h: 3, s: 4 }
+
+intro: |
+  A **queue** serves items in arrival order: **enqueue** adds at the back, **dequeue** removes from
+  the front — first in, first out (**FIFO**). Print jobs, network packets and breadth-first search
+  all use queues.
+
+  A Python list makes a poor queue: `pop(0)` shifts every remaining element, $O(n)$. Two good options:
+
+  - `collections.deque`, a **double-ended queue** with $O(1)$ `append`, `appendleft`, `pop` and `popleft`.
+  - A **circular buffer**: a fixed array of capacity $C$ plus two numbers, `head` (index of the
+    front) and `size`. The back is at $(\text{head} + \text{size}) \bmod C$. Dequeue reads
+    `slots[head]` and moves `head` forward; enqueue writes at the back. Indices **wrap around** with
+    $\bmod C$, so nothing ever shifts.
+
+  When `size == C` the buffer is full: either refuse the item, or grow into a bigger array.
+
+workedExample: |
+  Capacity 5, head 3, size 3: the items are in slots 3, 4 and 0 (wrapping).
+
+  - Next enqueue goes to $(3 + 3) \bmod 5 = 1$.
+  - Dequeue reads slot 3; head becomes $(3 + 1) \bmod 5 = 4$, size 2.
+  - Free slots: $5 - 2 = 3$.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: queues
+    clueFor: [s6]
+    establishes: "FIFO: the earliest enqueued job is printed first."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: "Print jobs A, B, C are enqueued in that order. Which is printed first?"
+        options:
+          - { text: "A", correct: true }
+          - { text: "C", misconception: queue-as-stack }
+          - { text: "B", misconception: queue-middle }
+          - { text: "The shortest job", misconception: queue-priority }
+        hints:
+          nudge: "First in, …"
+          partial: "A queue serves in arrival order."
+        explanation: |
+          **Answer:** A
+
+          **Why:** FIFO: the first job to arrive is served first.
+
+          **Common mistakes:**
+          - C — last-in-first-out is a stack.
+          - B — queues serve from the front, not the middle.
+          - "Shortest" — that's a priority queue, not a plain queue.
+
+          **Connects to:** Q6 — when you need both ends.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          Starting empty: enqueue A, enqueue B, dequeue, enqueue C, enqueue D, dequeue. What does the **next** dequeue return?
+        options:
+          - { text: "C", correct: true }
+          - { text: "D", misconception: queue-as-stack }
+          - { text: "A", misconception: dequeue-not-removed }
+          - { text: "B", misconception: queue-miscount }
+        hints:
+          nudge: "Track the queue front-to-back after each step."
+          partial: "[A] → [A,B] → [B] → [B,C] → [B,C,D] → [C,D]."
+        explanation: |
+          **Answer:** C
+
+          **Why:** The dequeues remove A, then B; the queue is [C, D], so C comes next.
+
+          **Common mistakes:**
+          - D — the newest item is at the back.
+          - A — A was already dequeued.
+          - B — B was removed by the second dequeue.
+
+          **Connects to:** Q6 — when you need both ends.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A queue is built from **two stacks**: enqueue pushes onto `inbox`; dequeue pops from `outbox`, and if `outbox` is empty it
+          first moves every item from `inbox` to `outbox` (pop, push). After enqueue 1, 2, 3, what does the first dequeue return?
+        options:
+          - { text: "1", correct: true }
+          - { text: "3", misconception: queue-as-stack }
+          - { text: "2", misconception: queue-middle }
+          - { text: "It fails: stacks can't make a queue", misconception: queue-from-stacks }
+        hints:
+          nudge: "Moving everything from one stack to another reverses the order."
+          partial: "inbox [1,2,3] (3 on top) → outbox [3,2,1] (1 on top)."
+        explanation: |
+          **Answer:** 1
+
+          **Why:** Transferring reverses the order, so the oldest item ends up on top of `outbox`. Each item moves at most once, so dequeue is
+          amortized $O(1)$.
+
+          **Common mistakes:**
+          - 3 — that's what one stack alone would give.
+          - 2 — the transfer moves all items.
+          - "Fails" — two reversals restore FIFO order.
+
+          **Connects to:** Q6 — when you need both ends.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: queues
+    clueFor: [s3]
+    establishes: "Back of the buffer: (head + size) mod C = ({{h}} + {{s}}) mod {{C}} = {{mod(h + s, C)}}."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          A circular buffer of capacity 8 has head 2 and size 3 (slots 2, 3, 4). Where does the next enqueue write?
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "3", misconception: tail-from-zero }
+          - { expr: "4", misconception: tail-off-by-one }
+          - { expr: "0", misconception: dequeue-resets }
+        hints:
+          nudge: "The next free slot after the last item."
+          partial: "(2 + 3) mod 8"
+        explanation: |
+          **Answer:** 5
+
+          **Why:** Items fill slots 2, 3, 4, so the back is $(2 + 3) \bmod 8 = 5$.
+
+          **Common mistakes:**
+          - 3 — that's the size, not a slot.
+          - 4 — slot 4 holds the last item.
+          - 0 — the buffer doesn't restart from 0.
+
+          **Connects to:** Q3 — what dequeue changes.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          The print queue is a circular buffer with capacity {{C}}, head {{h}} and size {{s}}. At which index does the next enqueue write?
+        answer: { expr: "mod(h + s, C)" }
+        distractors:
+          - { expr: "h + s", misconception: no-wraparound }
+          - { expr: "mod(h + s - 1, C)", misconception: tail-off-by-one }
+          - { expr: "s", misconception: tail-from-zero }
+        hints:
+          nudge: "Count {{s}} slots on from the head — and remember the array wraps around."
+          partial: "({{h}} + {{s}}) mod {{C}}"
+        explanation: |
+          **Answer:** {{mod(h+s, C)}}
+
+          **Why:** The items occupy {{s}} slots starting at {{h}}, wrapping past index {{C-1}}; the next free slot is
+          $({{h}} + {{s}}) \bmod {{C}} = {{mod(h+s, C)}}$.
+
+          **Common mistakes:**
+          - {{h+s}} — there's no index {{h+s}} in a {{C}}-slot array; wrap with mod.
+          - {{mod(h+s-1, C)}} — that's where the last item is.
+          - {{s}} — positions are measured from the head, not from 0.
+
+          **Connects to:** Q3 — dequeue moves the head.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          The buffer (capacity {{C}}, head {{h}}, size {{s}}) is read front to back. Which index holds the **last** (most recently
+          enqueued) job?
+        answer: { expr: "mod(h + s - 1, C)" }
+        distractors:
+          - { expr: "mod(h + s, C)", misconception: tail-off-by-one }
+          - { expr: "h + s - 1", misconception: no-wraparound }
+          - { expr: "s - 1", misconception: tail-from-zero }
+        hints:
+          nudge: "The last item is one slot before the next free one."
+          partial: "({{h}} + {{s}} − 1) mod {{C}}"
+        explanation: |
+          **Answer:** {{mod(h+s-1, C)}}
+
+          **Why:** The jobs are at $h, h+1, \dots, h+s-1$, each taken mod {{C}}: the last is $({{h}} + {{s}} - 1) \bmod {{C}} = {{mod(h+s-1, C)}}$.
+
+          **Common mistakes:**
+          - {{mod(h+s, C)}} — that's the next free slot.
+          - {{h+s-1}} — wrap around with mod {{C}}.
+          - {{s-1}} — count from the head, not from 0.
+
+          **Connects to:** Q3 — dequeue moves the head.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: queues
+    uses: [s2]
+    clueFor: [s5]
+    establishes: "Dequeue reads slot {{h}}, then head = {{mod(h + 1, C)}}, size = {{s - 1}} — nothing shifts."
+    standaloneContext: "A circular buffer keeps head (front index) and size; the back is at (head + size) mod C."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          A circular buffer has head 2 and size 3. After one dequeue, what are head and size?
+        options:
+          - { text: "head 3, size 2", correct: true }
+          - { text: "head 2, size 2", misconception: head-not-moving }
+          - { text: "head 0, size 2", misconception: dequeue-resets }
+          - { text: "head 3, size 3", misconception: size-not-updated }
+        hints:
+          nudge: "The front item leaves; what's the new front?"
+          partial: "head moves one forward; one item fewer."
+        explanation: |
+          **Answer:** head 3, size 2.
+
+          **Why:** Dequeue reads slot 2, advances head to 3, and decrements size.
+
+          **Common mistakes:**
+          - head 2 — the front has moved on.
+          - head 0 — the buffer doesn't reset.
+          - size 3 — one item was removed.
+
+          **Connects to:** Q5 — how many more fit.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          The print queue (capacity {{C}}, head {{h}}, size {{s}}) dequeues one job. What is the new head?
+        answer: { expr: "mod(h + 1, C)" }
+        distractors:
+          - { expr: "h", misconception: head-not-moving }
+          - { expr: "h - 1", misconception: head-moves-back }
+          - { expr: "0", misconception: dequeue-resets }
+        hints:
+          nudge: "The job at the head leaves. Where is the next one?"
+          buildsOn: "Q2: positions are counted from the head and wrap with mod {{C}}."
+          partial: "({{h}} + 1) mod {{C}}"
+        explanation: |
+          **Answer:** {{mod(h+1, C)}}
+
+          **Why:** The front job at {{h}} is read and head moves one slot forward, wrapping: $({{h}} + 1) \bmod {{C}} = {{mod(h+1, C)}}$. Size
+          becomes {{s-1}}. No element moves — that's why dequeue is $O(1)$.
+
+          **Common mistakes:**
+          - {{h}} — the head must move past the removed job.
+          - {{h-1}} — the queue advances forward.
+          - 0 — head wraps only when it passes the end.
+
+          **Connects to:** Q5 — free space.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          The print queue (capacity {{C}}, head {{h}}, size {{s}}) dequeues **{{s - 1}}** jobs in a row. What is the head now?
+        answer: { expr: "mod(h + s - 1, C)" }
+        distractors:
+          - { expr: "h + s - 1", misconception: no-wraparound }
+          - { expr: "mod(h + s, C)", misconception: tail-off-by-one }
+          - { expr: "h", misconception: head-not-moving }
+        hints:
+          nudge: "Each dequeue moves head one step forward."
+          buildsOn: "Q2: indices wrap with mod {{C}}."
+          partial: "({{h}} + {{s-1}}) mod {{C}}"
+        explanation: |
+          **Answer:** {{mod(h+s-1, C)}}
+
+          **Why:** {{s-1}} dequeues move head {{s-1}} steps: $({{h}} + {{s-1}}) \bmod {{C}} = {{mod(h+s-1, C)}}$ — exactly where the last job sits.
+          One job remains.
+
+          **Common mistakes:**
+          - {{h+s-1}} — wrap with mod {{C}}.
+          - {{mod(h+s, C)}} — that's one step too far.
+          - {{h}} — dequeues move the head.
+
+          **Connects to:** Q5 — free space.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: queues
+    clueFor: [s5]
+    establishes: "list.pop(0) is O(n); deque.popleft() and circular-buffer dequeue are O(1)."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: "Which Python call removes the front of a queue in **O(1)**?"
+        options:
+          - { text: "`deque.popleft()`", correct: true }
+          - { text: "`list.pop(0)`", misconception: array-front-insert-O1 }
+          - { text: "`list.pop()`", misconception: queue-as-stack }
+          - { text: "`list.remove(x)`", misconception: queue-remove-by-value }
+        hints:
+          nudge: "Which structure is fast at both ends?"
+          partial: "deque = double-ended queue."
+        explanation: |
+          **Answer:** `deque.popleft()`.
+
+          **Why:** A deque removes from its left end in $O(1)$.
+
+          **Common mistakes:**
+          - `list.pop(0)` — shifts every element.
+          - `list.pop()` — fast, but removes the newest item (stack behaviour).
+          - `list.remove(x)` — searches by value and shifts.
+
+          **Connects to:** Q5 — capacity.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          A server queues {{C*1000}} requests in a Python list and serves them with `pop(0)`. Roughly how many element moves happen in total?
+        options:
+          - { text: "About {{(C*1000)^2/2}} — each pop(0) shifts all remaining items", correct: true }
+          - { text: "About {{C*1000}} — one per request", misconception: array-front-insert-O1 }
+          - { text: "None — pop(0) just moves a pointer", misconception: list-is-circular }
+          - { text: "About {{C*1000*log2(C*1000)}}", misconception: pop0-nlogn }
+        hints:
+          nudge: "How many items shift on each pop(0)?"
+          partial: "(n − 1) + (n − 2) + … + 0"
+        explanation: |
+          **Answer:** about {{(C*1000)^2/2}}.
+
+          **Why:** Each `pop(0)` shifts everything behind it: $(n-1) + (n-2) + \dots \approx n^2/2$. With a deque or circular buffer it's
+          $O(1)$ each, $O(n)$ in total.
+
+          **Common mistakes:**
+          - "One per request" — that's the deque cost.
+          - "Moves a pointer" — Python lists are not circular buffers.
+          - "n log n" — the sum is quadratic.
+
+          **Connects to:** Q5 — capacity limits.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          A circular buffer and `collections.deque` both give O(1) enqueue and dequeue. When is a fixed-capacity circular buffer the
+          better choice?
+        options:
+          - { text: "When memory must be bounded and preallocated, e.g. audio or network buffers that drop or block when full", correct: true }
+          - { text: "Never — deque is always better", misconception: buffer-pointless }
+          - { text: "When items must often be inserted in the middle", misconception: buffer-middle-insert }
+          - { text: "When the queue must stay sorted", misconception: queue-priority }
+        hints:
+          nudge: "What does 'fixed capacity' guarantee?"
+          partial: "No allocation at run time; a known maximum memory."
+        explanation: |
+          **Answer:** when memory must be bounded and preallocated.
+
+          **Why:** A circular buffer never allocates after creation and has a hard size limit — ideal for real-time streams. A deque grows as
+          needed.
+
+          **Common mistakes:**
+          - "Never" — bounded memory is sometimes a requirement.
+          - "Middle inserts" — a circular buffer would have to shift elements for those too.
+          - "Sorted" — both keep arrival order; sorted order needs a priority queue (heap).
+
+          **Connects to:** Q5 — capacity limits.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: queues
+    uses: [s3, s4]
+    clueFor: [s6]
+    establishes: "With capacity {{C}} and size {{s}}, {{C - s}} more jobs fit before the buffer is full."
+    standaloneContext: "A circular buffer of capacity C holds `size` items; enqueue writes at (head + size) mod C, dequeue advances head."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          A circular buffer has capacity {{C}} and size {{s}}. How many more items can be enqueued?
+        answer: { expr: "C - s" }
+        distractors:
+          - { expr: "C", misconception: capacity-ignores-size }
+          - { expr: "C - s - 1", misconception: one-slot-reserved }
+          - { expr: "C - h", misconception: space-to-end-only }
+        hints:
+          nudge: "Capacity minus items stored."
+          partial: "{{C}} − {{s}}"
+        explanation: |
+          **Answer:** {{C-s}}
+
+          **Why:** ${{C}} - {{s}} = {{C-s}}$ slots are free — wherever they are, wrapping lets every one be used.
+
+          **Common mistakes:**
+          - {{C}} — {{s}} slots are taken.
+          - {{C-s-1}} — this design tracks `size`, so no slot needs to be kept empty.
+          - {{C-h}} — free slots before the head count too, thanks to wrapping.
+
+          **Connects to:** Q6 — choosing between queue types.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          The print queue (capacity {{C}}, head {{h}}, size {{s}}) receives a burst of jobs with no dequeues. How many can it accept
+          before it is full?
+        answer: { expr: "C - s" }
+        distractors:
+          - { expr: "C - h", misconception: space-to-end-only }
+          - { expr: "C - s - 1", misconception: one-slot-reserved }
+          - { expr: "C", misconception: capacity-ignores-size }
+        hints:
+          nudge: "Does the space before the head count?"
+          buildsOn: "Q3: head and size describe the queue; indices wrap. Q4: nothing ever shifts."
+          partial: "Full means size == C."
+        explanation: |
+          **Answer:** {{C-s}}
+
+          **Why:** It's full when size reaches {{C}}: ${{C}} - {{s}} = {{C-s}}$ more jobs. Thanks to wrapping (Q3), the free slots in front of
+          the head are used too — without shifting anything (Q4).
+
+          **Common mistakes:**
+          - {{C-h}} — that's only the slots up to the end of the array.
+          - {{C-s-1}} — only needed in designs that use head/tail without a size counter.
+          - {{C}} — the {{s}} queued jobs take space.
+
+          **Connects to:** Q6 — choosing the right queue.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A variant stores only `head` and `tail` (no size). If full and empty both had `head == tail`, they'd look the same. The usual
+          fix keeps one slot always empty. With capacity {{C}}, how many items can that buffer hold at most?
+        answer: { expr: "C - 1" }
+        distractors:
+          - { expr: "C", misconception: capacity-ignores-size }
+          - { expr: "C - 2", misconception: one-slot-reserved }
+          - { expr: "C / 2", misconception: space-to-end-only }
+        hints:
+          nudge: "Full is now defined as (tail + 1) mod C == head."
+          buildsOn: "Q3: head moves forward on dequeue. Q4: no shifting."
+          partial: "One slot is sacrificed to tell full from empty."
+        explanation: |
+          **Answer:** {{C-1}}
+
+          **Why:** Keeping one slot empty makes "full" ($(\text{tail}+1) \bmod C = \text{head}$) different from "empty" ($\text{tail} = \text{head}$):
+          capacity {{C}} holds {{C-1}} items. Tracking `size` instead (as our queue does) uses every slot.
+
+          **Common mistakes:**
+          - {{C}} — then full and empty would be indistinguishable.
+          - {{C-2}} — only one slot is reserved.
+          - {{C/2}} — wrapping lets nearly all slots be used.
+
+          **Connects to:** Q6 — choosing the right queue.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: queues
+    uses: [s1, s5]
+    establishes: "Use a deque when you need O(1) at both ends — e.g. a bounded history that drops its oldest entries."
+    standaloneContext: |
+      Queues are FIFO; a fixed-capacity circular buffer can fill up. A deque supports O(1) operations at both ends.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: "Which task needs a **deque** (both ends), not just a queue?"
+        options:
+          - { text: "An undo history: add at one end, undo from that end, drop the oldest from the other end when too long", correct: true }
+          - { text: "Serving customers in arrival order", misconception: single-end-enough }
+          - { text: "Checking balanced brackets", misconception: brackets-need-deque }
+          - { text: "Looking up a value by index", misconception: deque-for-indexing }
+        hints:
+          nudge: "Which task removes from *both* ends?"
+          partial: "Undo pops the newest; trimming drops the oldest."
+        explanation: |
+          **Answer:** the bounded undo history.
+
+          **Why:** Undo takes the newest action (one end); trimming drops the oldest (other end). A deque does both in $O(1)$.
+
+          **Common mistakes:**
+          - Customers — a plain FIFO queue: add at the back, remove from the front.
+          - Brackets — a stack.
+          - Index lookup — an array.
+
+          **Connects to:** the challenge — run a circular buffer.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          `deque(maxlen={{C}})` drops its oldest item when a new one arrives while full. The print queue needs to **keep** every job and
+          serve them in order. Which is right?
+        options:
+          - { text: "An unbounded deque (or a growing circular buffer): FIFO without losing jobs", correct: true }
+          - { text: "deque(maxlen={{C}}): it's FIFO, so it's fine", misconception: maxlen-keeps-all }
+          - { text: "A list with append and pop(): fast at the end", misconception: queue-as-stack }
+          - { text: "A fixed buffer that overwrites the head when full", misconception: overwrite-ok }
+        hints:
+          nudge: "What happens to job {{C+1}} if {{C}} are waiting?"
+          buildsOn: "Q1: FIFO order. Q5: a buffer of capacity {{C}} fills after {{C - s}} more jobs."
+          partial: "maxlen silently discards the oldest."
+        explanation: |
+          **Answer:** an unbounded deque or a growing buffer.
+
+          **Why:** With `maxlen` (or a fixed buffer that overwrites), job {{C+1}} pushes out the oldest unprinted job (Q5's capacity limit).
+          FIFO order (Q1) needs every job kept.
+
+          **Common mistakes:**
+          - `maxlen` — great for "keep only the latest N", wrong for a work queue.
+          - `append` + `pop()` — that's LIFO.
+          - Overwriting — loses work.
+
+          **Connects to:** the challenge — run a circular buffer.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A circular buffer of capacity {{C}} is full ({{C}} items). The program **grows** it to capacity {{2*C}} by copying. Where must the
+          items go in the new array?
+        options:
+          - { text: "Copied in queue order (front to back) into slots 0 … {{C-1}}; head 0, size {{C}}", correct: true }
+          - { text: "Copied slot-for-slot to the same indices", misconception: no-wraparound }
+          - { text: "Copied in reverse order", misconception: grow-reverses }
+          - { text: "Only the items after the head are copied", misconception: space-to-end-only }
+        hints:
+          nudge: "In the old array the queue wraps past the end. Does slot order equal queue order?"
+          buildsOn: "Q1: FIFO order must be preserved. Q5: full means size == capacity."
+          partial: "Unwrap: read from head, mod {{C}}, and write sequentially."
+        explanation: |
+          **Answer:** copy in queue order into slots 0 … {{C-1}}, with head 0.
+
+          **Why:** The old queue may wrap (e.g. head {{h}}). Copying slot-for-slot would leave a gap in the middle of the bigger array and break
+          the wrap-around arithmetic. Unwrapping keeps FIFO order (Q1).
+
+          **Common mistakes:**
+          - Same indices — the wrap point changes with the capacity.
+          - Reverse — order must be kept.
+          - Only after the head — the wrapped part matters too.
+
+          **Connects to:** the challenge — run a circular buffer.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s2
+    concept: queues
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "In a circular buffer of capacity 5, what index comes after index 4?"
+        options:
+          - { text: "0", correct: true }
+          - { text: "5", misconception: no-wraparound }
+          - { text: "4 again", misconception: head-not-moving }
+          - { text: "It's full; there is no next index", misconception: space-to-end-only }
+        hints:
+          nudge: "Indices wrap around: (4 + 1) mod 5."
+          partial: "5 mod 5 = 0."
+        explanation: |
+          **Answer:** 0
+
+          **Why:** $(4 + 1) \bmod 5 = 0$: the buffer is treated as a ring.
+
+          **Common mistakes:**
+          - 5 — there are only slots 0–4.
+          - "4 again" — moving forward changes the index.
+          - "Full" — whether it's full depends on `size`, not on reaching the last index.
+
+          **Connects to:** Q2 — where the next enqueue goes.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l4.ch
+  type: algorithm-stepper
+  title: "Run a circular buffer"
+  concept: queues
+  uses: [s2, s3]
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Capacity 4. Perform each enqueue and dequeue by clicking the right slot. At most 2 mistakes."
+      config:
+        algorithm: circular-buffer
+        input: { capacity: 4, ops: ["e:5", "e:8", "d", "e:3", "e:9", "d"] }
+      check: { expr: "done and mistakes <= 2" }
+      feedback:
+        - { if: "not done", say: "Keep going through all the operations." }
+        - { if: "mistakes > 2", say: "Enqueue writes at (head + size) mod capacity; dequeue reads the head.", misconception: tail-off-by-one }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "Where is the back of the queue right now?"
+        buildsOn: "From Q2: the back is (head + size) mod C."
+        partial: "Dequeue always reads slot `head`."
+      solution: { followTrace: true }
+      explanation: |
+        Head and size move; items never shift. Every operation is $O(1)$.
+    standard:
+      difficulty: 3
+      goal: "Capacity 5, with wrap-around. At most 1 mistake."
+      config:
+        algorithm: circular-buffer
+        input: { capacity: 5, ops: ["e:1", "e:2", "e:3", "d", "d", "e:4", "e:5", "e:6", "d", "e:7"] }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 1", say: "After slot 4 comes slot 0 — wrap around.", misconception: no-wraparound }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "What comes after index 4 in a 5-slot buffer?"
+        buildsOn: "From Q3: dequeue moves head forward, wrapping."
+        partial: "(4 + 1) mod 5 = 0."
+      solution: { followTrace: true }
+      explanation: |
+        The back wraps from slot 4 to slot 0, reusing space freed by earlier dequeues — no shifting, no wasted slots.
+    harder:
+      difficulty: 4
+      goal: "Capacity 4, a long run of operations — **no mistakes**."
+      config:
+        algorithm: circular-buffer
+        input: { capacity: 4, ops: ["e:2", "e:4", "e:6", "e:8", "d", "d", "e:10", "e:12", "d", "d", "d", "e:14", "e:16", "d"] }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 0", say: "Track head and size after every step.", misconception: tail-off-by-one }
+        - { if: "true", say: "No mistakes allowed." }
+      hints:
+        nudge: "Write head and size down after each operation."
+        buildsOn: "From Q2 and Q3: back = (head + size) mod C; dequeue reads head."
+        partial: "The buffer fills completely at the start: size 4."
+      solution: { followTrace: true }
+      explanation: |
+        Fourteen operations, each touching one slot and two counters: constant time no matter how long the queue runs.
+
+summary:
+  keyTakeaways:
+    - "A queue is FIFO: enqueue at the back, dequeue from the front."
+    - "list.pop(0) shifts everything (O(n)); use collections.deque or a circular buffer for O(1)."
+    - "Circular buffer: back = (head + size) mod C; dequeue reads head and advances it; nothing shifts."
+    - "A deque gives O(1) at both ends; deque(maxlen=N) silently drops the oldest item when full."
+  next: dsa.u2.l5

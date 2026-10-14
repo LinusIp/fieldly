@@ -1,0 +1,754 @@
+id: dsa.u2.l6
+title: "Sliding window"
+version: 1
+concepts: [sliding-window]
+estimatedMinutes: 25
+
+# Scenario: a server logs requests per minute for n minutes; ops wants statistics over windows of k consecutive minutes.
+params:
+  sets:
+    - { n: 60, k: 5 }
+    - { n: 120, k: 10 }
+    - { n: 90, k: 15 }
+
+intro: |
+  A **window** is a run of consecutive elements, `a[i … j]`. Many problems ask for the best window:
+  the largest sum of $k$ consecutive values, the longest stretch without a repeat, the shortest run reaching a total.
+
+  Recomputing every window from scratch repeats work. A **sliding window** updates instead:
+
+  - **Fixed size $k$:** moving one step right adds the entering element and subtracts the leaving one —
+    `total += a[j] − a[j − k]`. $O(1)$ per step, $O(n)$ in all, instead of $O(nk)$.
+  - **Variable size:** the right end `j` advances every step; the left end `i` advances only while
+    the window breaks the rule (e.g. contains a repeat). Both ends only move forward, so the total
+    work is at most $2n$ steps: $O(n)$.
+
+  For "no repeats", keep a set (or a map from value to last position) of what's in the window.
+
+workedExample: |
+  Largest sum of 3 consecutive values in $[4, 2, 7, 1, 8, 3]$:
+
+  - First window $4 + 2 + 7 = 13$.
+  - Slide: $13 + 1 - 4 = 10$; $10 + 8 - 2 = 16$; $16 + 3 - 7 = 12$.
+  - Four windows, best **16** ($7, 1, 8$) — one addition and one subtraction per slide.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: sliding-window
+    clueFor: [s2, s3]
+    establishes: "{{n}} minutes hold n − k + 1 = {{n-k+1}} windows of {{k}} minutes."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: "An array has 6 values. How many windows of 3 consecutive values are there?"
+        answer: { expr: "4" }
+        distractors:
+          - { expr: "2", misconception: windows-disjoint }
+          - { expr: "3", misconception: windows-off-by-one }
+          - { expr: "6", misconception: windows-equal-n }
+        hints:
+          nudge: "A window can start at index 0, 1, … — where is the last start?"
+          partial: "Starts 0, 1, 2, 3."
+        explanation: |
+          **Answer:** 4
+
+          **Why:** Windows start at 0, 1, 2, 3 — the last start is $6 - 3 = 3$: $6 - 3 + 1 = 4$ windows.
+
+          **Common mistakes:**
+          - 2 — windows overlap; they don't tile the array.
+          - 3 — forgets the window starting at index 0 or the last one.
+          - 6 — windows near the end would run off the array.
+
+          **Connects to:** Q2 — the cost of checking them all.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          The log covers {{n}} minutes. How many windows of {{k}} consecutive minutes are there?
+        answer: { expr: "n - k + 1" }
+        distractors:
+          - { expr: "n / k", misconception: windows-disjoint }
+          - { expr: "n - k", misconception: windows-off-by-one }
+          - { expr: "n", misconception: windows-equal-n }
+        hints:
+          nudge: "Count the possible start minutes."
+          partial: "Starts 0 … {{n-k}}."
+        explanation: |
+          **Answer:** {{n-k+1}}
+
+          **Why:** A window can start at minutes $0, 1, \dots, {{n-k}}$: ${{n}} - {{k}} + 1 = {{n-k+1}}$ windows.
+
+          **Common mistakes:**
+          - {{n/k}} — windows overlap; that counts non-overlapping blocks.
+          - {{n-k}} — off by one: both end starts count.
+          - {{n}} — the last {{k-1}} starts would run past the end.
+
+          **Connects to:** Q2 — the cost of recomputing each.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          How many windows of **any** length from 1 to {{k}} fit in the {{n}}-minute log?
+        answer: { expr: "k*(n+1) - k*(k+1)/2" }
+        distractors:
+          - { expr: "k*(n - k + 1)", misconception: windows-same-count }
+          - { expr: "n*k", misconception: windows-equal-n }
+          - { expr: "n*(n+1)/2", misconception: windows-all-lengths }
+        hints:
+          nudge: "Length L has n − L + 1 windows. Sum over L = 1 … {{k}}."
+          partial: "Σ (n + 1 − L) = k(n + 1) − k(k + 1)/2"
+        explanation: |
+          **Answer:** {{k*(n+1) - k*(k+1)/2}}
+
+          **Why:** Length $L$ gives $n - L + 1$ windows, so the total is $\sum_{L=1}^{k}(n + 1 - L) = k(n+1) - \frac{k(k+1)}{2} =
+          {{k*(n+1) - k*(k+1)/2}}$.
+
+          **Common mistakes:**
+          - {{k*(n-k+1)}} — shorter windows have more starts.
+          - {{n*k}} — longer windows have fewer starts than $n$.
+          - {{n*(n+1)/2}} — that's every length up to {{n}}.
+
+          **Connects to:** Q2 — what recomputing costs.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: sliding-window
+    uses: [s1]
+    clueFor: [s4]
+    establishes: "Recomputing each {{k}}-minute sum costs {{k}} additions per window, about {{(n-k+1)*k}} in total — O(nk)."
+    standaloneContext: "With n values there are n − k + 1 windows of length k."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: "Summing one window of 5 values from scratch takes how many values read?"
+        answer: { expr: "5" }
+        distractors:
+          - { expr: "1", misconception: window-sum-free }
+          - { expr: "2", misconception: slide-cost-confused }
+          - { expr: "25", misconception: windows-equal-n }
+        hints:
+          nudge: "Each value in the window is added once."
+          partial: "5 values → 5 reads."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** A from-scratch sum touches every value in the window once.
+
+          **Common mistakes:**
+          - 1 — only a *slide* from the previous sum is that cheap.
+          - 2 — that's the update cost (one in, one out), not a fresh sum.
+          - 25 — each value is read once, not $k$ times.
+
+          **Connects to:** Q4 — the sliding update.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          For each of the {{n-k+1}} windows, you sum its {{k}} minutes from scratch. How many values are read in total?
+        answer: { expr: "(n - k + 1)*k" }
+        distractors:
+          - { expr: "n", misconception: window-sum-free }
+          - { expr: "n*n", misconception: windows-equal-n }
+          - { expr: "2*(n - k + 1)", misconception: slide-cost-confused }
+        hints:
+          nudge: "Windows × values per window."
+          buildsOn: "Q1: {{n-k+1}} windows."
+          partial: "{{n-k+1}} × {{k}}"
+        explanation: |
+          **Answer:** {{(n-k+1)*k}}
+
+          **Why:** ${{n-k+1}}$ windows (Q1) × {{k}} values each $= {{(n-k+1)*k}}$ — $O(nk)$. Neighbouring windows share {{k-1}} values, so
+          most of that work repeats.
+
+          **Common mistakes:**
+          - {{n}} — that's the sliding cost.
+          - {{n*n}} — each window has {{k}} values, not {{n}}.
+          - {{2*(n-k+1)}} — that's the cost when you *update* instead.
+
+          **Connects to:** Q4 — the sliding update.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Two adjacent {{k}}-minute windows overlap. How many minutes do they share?
+        answer: { expr: "k - 1" }
+        distractors:
+          - { expr: "k", misconception: windows-same-count }
+          - { expr: "0", misconception: windows-disjoint }
+          - { expr: "k - 2", misconception: windows-off-by-one }
+        hints:
+          nudge: "Window [i, i + k − 1] and window [i + 1, i + k]."
+          buildsOn: "Q1: windows start one minute apart."
+          partial: "Only one minute leaves and one enters."
+        explanation: |
+          **Answer:** {{k-1}}
+
+          **Why:** Sliding by one drops minute $i$ and adds minute $i + k$; the other {{k-1}} stay. Re-adding them is the waste a sliding window removes.
+
+          **Common mistakes:**
+          - {{k}} — then the windows would be identical.
+          - 0 — windows overlap; blocks don't.
+          - {{k-2}} — exactly one leaves and one enters.
+
+          **Connects to:** Q4 — the sliding update.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: sliding-window
+    uses: [s1]
+    clueFor: [s4]
+    establishes: "Slide: new total = old total + entering − leaving."
+    standaloneContext: "A window of length k starting at i covers a[i … i + k − 1]."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          Values $[3, 1, 4, 1, 5]$. The window $[3, 1, 4]$ sums to 8. What is the sum of the next window, $[1, 4, 1]$?
+        answer: { expr: "6" }
+        distractors:
+          - { expr: "9", misconception: slide-add-only }
+          - { expr: "5", misconception: slide-wrong-leaving }
+          - { expr: "7", misconception: slide-arithmetic }
+        hints:
+          nudge: "Which value left? Which entered?"
+          partial: "8 − 3 + 1"
+        explanation: |
+          **Answer:** 6
+
+          **Why:** 3 leaves and 1 enters: $8 - 3 + 1 = 6$.
+
+          **Common mistakes:**
+          - 9 — you must subtract the value that left.
+          - 5 — subtracts 4, which stays in the window.
+          - 7 — recheck the arithmetic: $8 - 3 + 1$.
+
+          **Connects to:** Q4 — sliding all the way.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          Window sum `total` covers `a[i … i + k − 1]`. Which update gives the sum of `a[i + 1 … i + k]`?
+        options:
+          - { text: "`total += a[i + k] − a[i]`", correct: true }
+          - { text: "`total += a[i + k]`", misconception: slide-add-only }
+          - { text: "`total += a[i + k] − a[i + 1]`", misconception: slide-wrong-leaving }
+          - { text: "`total += a[i + k − 1] − a[i]`", misconception: windows-off-by-one }
+        hints:
+          nudge: "Which index leaves, which enters?"
+          buildsOn: "Q1: the new window starts at i + 1 and has the same length."
+          partial: "Leaving: i. Entering: i + k."
+        explanation: |
+          **Answer:** `total += a[i + k] − a[i]`.
+
+          **Why:** The new window loses `a[i]` and gains `a[i + k]`; everything between stays.
+
+          **Common mistakes:**
+          - Only adding — the window would grow.
+          - Subtracting `a[i + 1]` — that element is still inside.
+          - `a[i + k − 1]` — that one was already in the window.
+
+          **Connects to:** Q4 — sliding all the way.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          Instead of sums, ops wants the **maximum** over each {{k}}-minute window. Why doesn't `best = best + entering − leaving` work?
+        options:
+          - { text: "Max can't be 'subtracted': if the leaving value was the max, you don't know the next largest", correct: true }
+          - { text: "It works; max is updated the same way as sum", misconception: max-like-sum }
+          - { text: "Because windows overlap", misconception: windows-disjoint }
+          - { text: "Because the max is always the entering value", misconception: max-entering }
+        hints:
+          nudge: "Window [9, 2, 3] has max 9. Slide: 9 leaves, 1 enters. What's the new max?"
+          buildsOn: "Q1: one value leaves and one enters."
+          partial: "You'd need to remember the runners-up — a monotonic deque does exactly that."
+        explanation: |
+          **Answer:** max can't be undone by subtraction.
+
+          **Why:** Sums are invertible: subtracting the leaving value restores the rest. A max isn't — when 9 leaves $[9, 2, 3]$, the new max (3)
+          isn't derivable from 9 alone. Sliding maxima use a deque of candidates (U2 L4) for $O(n)$.
+
+          **Common mistakes:**
+          - "Same as sum" — $\max$ has no inverse.
+          - "Overlap" — overlap is what makes sliding *possible*.
+          - "Entering value" — only if it's the largest.
+
+          **Connects to:** Q4 — sliding sums.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: sliding-window
+    uses: [s2, s3]
+    clueFor: [s6]
+    establishes: "Sliding: {{k}} additions for the first window, then 2 operations per slide — about {{k + 2*(n-k)}} instead of {{(n-k+1)*k}}."
+    standaloneContext: "Summing each of the n − k + 1 windows from scratch costs (n − k + 1)·k; one slide updates the total with one add and one subtract."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          Largest sum of 3 consecutive values in $[2, 6, 1, 5, 4]$. Use the sliding update. What's the largest?
+        answer: { expr: "12" }
+        distractors:
+          - { expr: "9", misconception: window-first-only }
+          - { expr: "18", misconception: window-whole-array }
+          - { expr: "10", misconception: window-last-only }
+        hints:
+          nudge: "First window 2 + 6 + 1 = 9."
+          partial: "9 → 9 + 5 − 2 = 12 → 12 + 4 − 6 = 10."
+        explanation: |
+          **Answer:** 12
+
+          **Why:** The windows sum to 9, 12 and 10; the best is $[6, 1, 5] = 12$.
+
+          **Common mistakes:**
+          - 9 — that's only the first window.
+          - 18 — that's the whole array.
+          - 10 — that's the last window, not the best.
+
+          **Connects to:** Q6 — variable-size windows.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          With the sliding update, about how many additions and subtractions does computing every {{k}}-minute sum take for {{n}} minutes?
+        answer: { expr: "k + 2*(n - k)" }
+        distractors:
+          - { expr: "(n - k + 1)*k", misconception: window-recompute }
+          - { expr: "n - k + 1", misconception: window-sum-free }
+          - { expr: "2*n*k", misconception: windows-equal-n }
+        hints:
+          nudge: "First window from scratch, then each slide costs two operations."
+          buildsOn: "Q2: from scratch costs {{(n-k+1)*k}}. Q3: a slide is + entering − leaving."
+          partial: "{{k}} + 2 × {{n-k}}"
+        explanation: |
+          **Answer:** {{k + 2*(n-k)}}
+
+          **Why:** {{k}} additions for the first window (Q3), then {{n-k}} slides at 2 operations each: ${{k}} + 2 \times {{n-k}} = {{k+2*(n-k)}}$ —
+          $O(n)$, versus {{(n-k+1)*k}} from scratch (Q2).
+
+          **Common mistakes:**
+          - {{(n-k+1)*k}} — that's recomputing every window.
+          - {{n-k+1}} — each slide costs two operations, and the first window {{k}}.
+          - {{2*n*k}} — sliding removes the factor $k$.
+
+          **Connects to:** Q6 — variable-size windows.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          The window grows to {{2*k}} minutes. How does the total work of the sliding method change, roughly?
+        options:
+          - { text: "Barely: it stays about 2n operations — the slide cost doesn't depend on k", correct: true }
+          - { text: "It doubles", misconception: window-recompute }
+          - { text: "It halves, because there are fewer windows", misconception: windows-disjoint }
+          - { text: "It quadruples", misconception: windows-equal-n }
+        hints:
+          nudge: "What does a single slide cost, whatever the window length?"
+          buildsOn: "Q2: from scratch scales with k. Q3: a slide is two operations."
+          partial: "Total ≈ k + 2(n − k) = 2n − k."
+        explanation: |
+          **Answer:** barely changes.
+
+          **Why:** $k + 2(n - k) = 2n - k$: a slide is always one add and one subtract (Q3), so the window length hardly matters — unlike
+          recomputing (Q2), which scales with $k$.
+
+          **Common mistakes:**
+          - Doubles — that's recomputing.
+          - Halves — there are only {{k}} fewer windows.
+          - Quadruples — no $k^2$ term exists.
+
+          **Connects to:** Q6 — variable-size windows.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: sliding-window
+    clueFor: [s6]
+    establishes: "Variable window: j always advances; i advances only past a repeat; both only move forward."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          Longest stretch without a repeated letter: `abcabd`. What's its length?
+        answer: { expr: "4" }
+        distractors:
+          - { expr: "3", misconception: window-first-only }
+          - { expr: "6", misconception: window-whole-array }
+          - { expr: "5", misconception: repeat-ignored }
+        hints:
+          nudge: "Try every start: `abc`, `bca`, `cab`, `cabd`…"
+          partial: "`cabd` has four different letters."
+        explanation: |
+          **Answer:** 4 (`cabd`).
+
+          **Why:** Starting at index 2: c, a, b, d — no repeats, and no longer stretch exists.
+
+          **Common mistakes:**
+          - 3 — `abc` is only the first stretch.
+          - 6 — `a` and `b` repeat.
+          - 5 — `bcabd` repeats `b`.
+
+          **Connects to:** Q6 — doing it in one pass.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          Sliding window on `abcabd`: `j` adds a letter each step; if that letter is already in the window, `i` moves right past its earlier
+          copy. When `j` reaches the second `a` (index 3), where does `i` move?
+        options:
+          - { text: "To index 1, just past the first `a`", correct: true }
+          - { text: "To index 3, restarting at `j`", misconception: window-restart }
+          - { text: "It stays at 0; repeats are fine until the end", misconception: repeat-ignored }
+          - { text: "To index 2", misconception: windows-off-by-one }
+        hints:
+          nudge: "Which letter is repeated, and where is its earlier copy?"
+          partial: "The first `a` is at index 0; the window must start after it."
+        explanation: |
+          **Answer:** index 1.
+
+          **Why:** The window `abc` gets another `a`; dropping the old `a` (index 0) is enough. The window `bca` keeps everything else.
+
+          **Common mistakes:**
+          - Restart at `j` — throws away `bc`, which is still repeat-free.
+          - Stays at 0 — the window must stay valid at every step.
+          - Index 2 — drops `b` without need.
+
+          **Connects to:** Q6 — the running time.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          The window keeps a map `last[ch]` = the last index of each letter. When `ch` repeats, the code sets `i = last[ch] + 1`. Why must it
+          be `i = max(i, last[ch] + 1)`?
+        options:
+          - { text: "`last[ch]` may point before `i` — a copy already outside the window — and `i` must never move back", correct: true }
+          - { text: "It mustn't; `last[ch] + 1` is always ≥ `i`", misconception: window-last-inside }
+          - { text: "To keep `i` from passing `j`", misconception: window-index-bound }
+          - { text: "Because `max` is faster than an `if`", misconception: max-speed }
+        hints:
+          nudge: "Try `abba`: at the final `a`, where is `last['a']`, and where is `i`?"
+          partial: "At the last `a`, i = 2 but last['a'] = 0."
+        explanation: |
+          **Answer:** `last[ch]` can be stale.
+
+          **Why:** In `abba`, the second `b` moves `i` to 2. At the final `a`, `last['a'] = 0` points outside the window; `i = 1` would move
+          the left end back and let `bb` in. Taking the max keeps `i` moving forward only.
+
+          **Common mistakes:**
+          - "Always ≥ i" — not for letters that already left the window.
+          - "Passing j" — `last[ch] < j`, so that can't happen anyway.
+          - Speed — it's about correctness.
+
+          **Connects to:** Q6 — the running time.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: sliding-window
+    uses: [s4, s5]
+    establishes: "Both ends move forward at most n times each: a variable window is O(n), not O(n²)."
+    standaloneContext: |
+      Fixed windows slide in O(1) per step. Variable windows advance j every step and advance i only when the window breaks the rule.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          In a variable-size window over {{n}} minutes, at most how many times can the left end `i` move in total?
+        answer: { expr: "n" }
+        distractors:
+          - { expr: "n^2", misconception: window-quadratic }
+          - { expr: "n*k", misconception: window-recompute }
+          - { expr: "1", misconception: window-restart }
+        hints:
+          nudge: "`i` only moves forward. How far can it go?"
+          partial: "From 0 to at most {{n}}."
+        explanation: |
+          **Answer:** {{n}}
+
+          **Why:** `i` never moves back and can't pass the end, so it moves at most {{n}} times over the whole run.
+
+          **Common mistakes:**
+          - {{n^2}} — `i` isn't reset for each `j`.
+          - {{n*k}} — no window length enters into it.
+          - 1 — `i` moves once per repeat dropped.
+
+          **Connects to:** the challenge — longest stretch without repeats.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          Longest stretch without a repeat over a string of {{n}} characters: `j` moves {{n}} times, `i` at most {{n}} times. What's the total
+          running time, with a hash set for membership?
+        options:
+          - { text: "$O(n)$: at most $2n$ pointer moves, each $O(1)$", correct: true }
+          - { text: "$O(n^2)$: there's a loop inside a loop", misconception: window-quadratic }
+          - { text: "$O(n \\log n)$", misconception: window-log }
+          - { text: "$O(nk)$ for the longest window length $k$", misconception: window-recompute }
+        hints:
+          nudge: "Count pointer moves over the *whole* run, not per step."
+          buildsOn: "Q4: sliding avoids recomputing. Q5: both ends only move forward."
+          partial: "{{n}} + {{n}} moves."
+        explanation: |
+          **Answer:** $O(n)$.
+
+          **Why:** The inner `while` moving `i` is nested, but `i` moves at most {{n}} times in total (Q5). With $O(1)$ set operations, the
+          whole run is at most $2n$ steps — the same amortized argument as the stack in U2 L3.
+
+          **Common mistakes:**
+          - $O(n^2)$ — a nested loop isn't automatically quadratic; count total moves.
+          - $O(n \log n)$ — nothing halves.
+          - $O(nk)$ — windows aren't rebuilt (Q4).
+
+          **Connects to:** the challenge.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          Brute force tries every start and extends until a repeat. If the answer is a window of length $L$, roughly how many characters does
+          brute force examine on a string of {{n}} characters?
+        options:
+          - { text: "Up to about $n \\cdot L$ — each start extends up to $L$ characters", correct: true }
+          - { text: "About $2n$, same as the sliding window", misconception: window-sum-free }
+          - { text: "Always $n^2$, whatever the string", misconception: window-quadratic }
+          - { text: "About $L^2$", misconception: windows-equal-n }
+        hints:
+          nudge: "From each start, how far can brute force extend before it hits a repeat?"
+          buildsOn: "Q5: the sliding window keeps the work it already did. Q4: brute force throws it away."
+          partial: "{{n}} starts × up to L characters."
+        explanation: |
+          **Answer:** up to about $n \cdot L$.
+
+          **Why:** Each of the {{n}} starts extends until a repeat — up to $L$ characters. With a long answer ($L$ in the thousands) that's
+          millions of steps, where the sliding window (Q5) needs about $2n$. Brute force rebuilds the window from each start, like recomputing sums (Q4).
+
+          **Common mistakes:**
+          - $2n$ — that's the sliding window.
+          - $n^2$ — only when $L$ is close to $n$.
+          - $L^2$ — every start is tried.
+
+          **Connects to:** the challenge — the performance test uses a long answer.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: sliding-window
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 1
+        prompt: |
+          Window $[5, 2, 8]$ slides one step right over $[5, 2, 8, 6]$. Which value **leaves** and which **enters**?
+        options:
+          - { text: "5 leaves, 6 enters", correct: true }
+          - { text: "8 leaves, 6 enters", misconception: slide-wrong-leaving }
+          - { text: "Nothing leaves; 6 enters", misconception: slide-add-only }
+          - { text: "5 leaves, nothing enters", misconception: windows-off-by-one }
+        hints:
+          nudge: "The window keeps its length; it shifts right by one."
+          partial: "New window: [2, 8, 6]."
+        explanation: |
+          **Answer:** 5 leaves, 6 enters.
+
+          **Why:** $[5, 2, 8] \to [2, 8, 6]$: the leftmost value drops off, the next value joins. Sum: $15 - 5 + 6 = 16$.
+
+          **Common mistakes:**
+          - 8 leaves — the window moves from the left.
+          - Nothing leaves — the window would grow.
+          - Nothing enters — the window would shrink.
+
+          **Connects to:** Q3 — the update rule.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l6.ch
+  type: code-runner
+  title: "Longest stretch without repeats"
+  concept: sliding-window
+  uses: [s3, s5]
+  variants:
+    easier:
+      difficulty: 2
+      goal: |
+        Write `max_window_sum(a, k)` (JavaScript: `maxWindowSum`): the largest sum of `k` consecutive values (1 ≤ k ≤ len(a)). Values may be
+        negative.
+      config:
+        entry: { python: max_window_sum, javascript: maxWindowSum }
+        starter:
+          python: |
+            def max_window_sum(a, k):
+                return 0
+          javascript: |
+            function maxWindowSum(a, k) {
+              return 0;
+            }
+        tests:
+          - { args: [[4, 2, 7, 1, 8, 3], 3], expected: 16 }
+          - { args: [[2, 6, 1, 5, 4], 3], expected: 12 }
+          - { args: [[-3, -1, -2], 2], expected: -3 }
+          - { args: [[5], 1], expected: 5 }
+          - { args: [[1, -1, 1, -1, 1], 5], expected: 1, hidden: true }
+          - { args: [[-5, -2, -9, -1], 1], expected: -1, hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail. With all-negative values the best sum is negative — don't start `best` at 0.", misconception: best-starts-zero }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Sum the first k values, then slide."
+        buildsOn: "From Q3: total += a[j] − a[j − k]."
+        partial: "Start `best` at the first window's sum, not at 0."
+      solution:
+        python: |
+          def max_window_sum(a, k):
+              total = sum(a[:k])
+              best = total
+              for j in range(k, len(a)):
+                  total += a[j] - a[j - k]
+                  best = max(best, total)
+              return best
+        javascript: |
+          function maxWindowSum(a, k) {
+            let total = 0;
+            for (let j = 0; j < k; j++) total += a[j];
+            let best = total;
+            for (let j = k; j < a.length; j++) {
+              total += a[j] - a[j - k];
+              best = Math.max(best, total);
+            }
+            return best;
+          }
+      explanation: |
+        One addition and one subtraction per slide: $O(n)$ for any $k$. Starting `best` at the first window handles negative values.
+    standard:
+      difficulty: 3
+      goal: |
+        Write `longest_unique(s)` (JavaScript: `longestUnique`): the length of the longest substring of `s` with no repeated character.
+      config:
+        entry: { python: longest_unique, javascript: longestUnique }
+        starter:
+          python: |
+            def longest_unique(s):
+                return 0
+          javascript: |
+            function longestUnique(s) {
+              return 0;
+            }
+        tests:
+          - { args: ["abcabd"], expected: 4 }
+          - { args: ["pwwkew"], expected: 3 }
+          - { args: [""], expected: 0 }
+          - { args: ["aaaa"], expected: 1 }
+          - { args: ["abba"], expected: 2, hidden: true }
+        comparator: exact
+      check: { expr: "passed == total" }
+      feedback:
+        - { if: "passed == 0", say: "None pass yet. Start with: the empty string has length 0." }
+        - { if: "passed < total", say: "Some tests fail — check `abba`: the left end must never move back.", misconception: window-last-inside }
+        - { if: "true", say: "Run the tests and read the failures." }
+      hints:
+        nudge: "Any correct method works here — even trying every start."
+        buildsOn: "From Q5: j adds a letter; i moves past the earlier copy."
+        partial: "Keep a set of the window's letters; while s[j] is in it, remove s[i] and move i."
+      solution:
+        python: |
+          def longest_unique(s):
+              seen = set()
+              best = i = 0
+              for j, ch in enumerate(s):
+                  while ch in seen:
+                      seen.remove(s[i])
+                      i += 1
+                  seen.add(ch)
+                  best = max(best, j - i + 1)
+              return best
+        javascript: |
+          function longestUnique(s) {
+            const seen = new Set();
+            let best = 0, i = 0;
+            for (let j = 0; j < s.length; j++) {
+              while (seen.has(s[j])) seen.delete(s[i++]);
+              seen.add(s[j]);
+              best = Math.max(best, j - i + 1);
+            }
+            return best;
+          }
+      explanation: |
+        The set holds exactly the window's letters. Each letter is added once and removed at most once: $O(n)$.
+    harder:
+      difficulty: 4
+      goal: |
+        Same `longest_unique(s)`, but a hidden test is a 30 000-character string whose answer is several thousand long — within 1 s.
+        Brute force from every start won't make it.
+      config:
+        entry: { python: longest_unique, javascript: longestUnique }
+        starter:
+          python: |
+            def longest_unique(s):
+                return 0
+          javascript: |
+            function longestUnique(s) {
+              return 0;
+            }
+        tests:
+          - { args: ["abcabd"], expected: 4 }
+          - { args: ["pwwkew"], expected: 3 }
+          - { args: ["abba"], expected: 2 }
+          - { args: ["dvdf"], expected: 3, hidden: true }
+          - { args: ["tmmzuxt"], expected: 5, hidden: true }
+        comparator: exact
+        perf: { generator: longestUniqueSubstring, params: { n: 30000, pool: 5000, breakEvery: 1500 }, timeLimitMs: 1000 }
+      check: { expr: "passed == total and perfPassed" }
+      feedback:
+        - { if: "passed < total", say: "Some tests fail. In `abba` and `tmmzuxt`, the left end must never move back.", misconception: window-last-inside }
+        - { if: "not perfPassed", say: "Correct but too slow: extending from every start costs about n × L. Slide the window instead.", misconception: window-quadratic }
+        - { if: "true", say: "Run the tests again." }
+      hints:
+        nudge: "Never restart from scratch — keep the window and fix it."
+        buildsOn: "From Q6: each end moves at most n times."
+        partial: "Map each letter to its last index; on a repeat, `i = max(i, last[ch] + 1)`."
+      solution:
+        python: |
+          def longest_unique(s):
+              last = {}
+              best = i = 0
+              for j, ch in enumerate(s):
+                  if ch in last and last[ch] >= i:
+                      i = last[ch] + 1
+                  last[ch] = j
+                  best = max(best, j - i + 1)
+              return best
+        javascript: |
+          function longestUnique(s) {
+            const last = new Map();
+            let best = 0, i = 0;
+            for (let j = 0; j < s.length; j++) {
+              const p = last.get(s[j]);
+              if (p !== undefined && p >= i) i = p + 1;
+              last.set(s[j], j);
+              best = Math.max(best, j - i + 1);
+            }
+            return best;
+          }
+      explanation: |
+        With `last`, the left end jumps straight past the repeat: one step per character, $O(n)$ — about 30 000 steps instead of
+        tens of millions.
+
+summary:
+  keyTakeaways:
+    - "n values hold n − k + 1 windows of length k; recomputing each costs O(nk)."
+    - "Fixed window: total += entering − leaving — O(1) per slide, O(n) overall."
+    - "Variable window: j always advances; i advances only to fix the rule — at most 2n moves, O(n)."
+    - "Use i = max(i, last[ch] + 1): stale positions must never move the left end back."
+  next: dsa.u2.l7

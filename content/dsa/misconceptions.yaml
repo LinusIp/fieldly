@@ -774,7 +774,7 @@
   short: "That's first-in-first-out — a queue. A stack returns the most recent item."
   explain: |
     Stacks are LIFO: push and pop happen at the same end, the top.
-  lessons: [dsa.u2.l3, dsa.u2.l4]
+  lessons: [dsa.u2.l3]
 
 - id: pop-returns-all
   short: "pop removes and returns one item — the top."
@@ -901,3 +901,685 @@
   explain: |
     Count pops over the entire algorithm: at most one per pushed item.
   lessons: [dsa.u2.l3]
+
+# ── dsa.u2.l4: queues & deques ──
+- id: queue-as-stack
+  short: "That's last-in-first-out — a stack. A queue serves the oldest item first."
+  explain: |
+    Queues are FIFO: items join at the back and leave from the front.
+  lessons: [dsa.u2.l4]
+
+- id: queue-middle
+  short: "A queue only ever serves from the front."
+  explain: |
+    Items in the middle wait their turn; nothing jumps ahead.
+  lessons: [dsa.u2.l4]
+
+- id: queue-priority
+  short: "A plain queue keeps arrival order, not size or priority order — that's a priority queue."
+  explain: |
+    Serving the smallest or most urgent item first needs a heap-based priority queue.
+  lessons: [dsa.u2.l4]
+
+- id: dequeue-not-removed
+  short: "A dequeued item has left the queue."
+  explain: |
+    After a dequeue, the next item in line becomes the front.
+  lessons: [dsa.u2.l4]
+
+- id: queue-miscount
+  short: "Track the queue step by step: enqueue adds at the back, dequeue removes the front."
+  explain: |
+    Write out the queue contents, front to back, after every operation.
+  lessons: [dsa.u2.l4]
+
+- id: queue-from-stacks
+  short: "Two stacks do make a queue: moving items from one to the other reverses their order."
+  explain: |
+    Reversing twice restores arrival order, and each item moves at most once — amortized O(1).
+  lessons: [dsa.u2.l4]
+
+- id: tail-from-zero
+  short: "Positions in a circular buffer are counted from the head, not from index 0."
+  explain: |
+    The i-th item (from 0) is at (head + i) mod C.
+  lessons: [dsa.u2.l4]
+
+- id: tail-off-by-one
+  short: "The last item is at (head + size − 1) mod C; the next free slot is (head + size) mod C."
+  explain: |
+    Enqueue writes one past the last item. Mixing the two is an off-by-one error.
+  lessons: [dsa.u2.l4]
+
+- id: dequeue-resets
+  short: "Indices never reset to 0 on their own — they only wrap when they pass the end."
+  explain: |
+    head and the back move forward one step at a time, mod C.
+  lessons: [dsa.u2.l4]
+
+- id: no-wraparound
+  short: "A circular buffer's indices wrap: take every index mod C."
+  explain: |
+    After index C − 1 comes index 0. An index of C or more doesn't exist.
+  lessons: [dsa.u2.l4]
+
+- id: head-not-moving
+  short: "Dequeue moves head forward to the next item."
+  explain: |
+    The removed slot is left behind; head = (head + 1) mod C.
+  lessons: [dsa.u2.l4]
+
+- id: size-not-updated
+  short: "Every dequeue decreases size by one; every enqueue increases it."
+  explain: |
+    size counts the items currently in the queue.
+  lessons: [dsa.u2.l4]
+
+- id: head-moves-back
+  short: "The queue advances forward: head goes to head + 1 (mod C)."
+  explain: |
+    Both head and the back only ever move forward around the ring.
+  lessons: [dsa.u2.l4]
+
+- id: queue-remove-by-value
+  short: "list.remove(x) searches for x and shifts the rest — O(n)."
+  explain: |
+    A queue removes by position (the front), which a deque does in O(1).
+  lessons: [dsa.u2.l4]
+
+- id: list-is-circular
+  short: "A Python list is not a circular buffer: pop(0) really shifts every element."
+  explain: |
+    Lists keep items in slots 0 … n − 1, so removing the first moves all the others down.
+  lessons: [dsa.u2.l4]
+
+- id: pop0-nlogn
+  short: "Each pop(0) shifts all remaining items: (n − 1) + (n − 2) + … ≈ n²/2 — quadratic."
+  explain: |
+    There's no halving anywhere, so no log factor: the costs form an arithmetic series.
+  lessons: [dsa.u2.l4]
+
+- id: buffer-pointless
+  short: "A fixed circular buffer guarantees bounded, preallocated memory — sometimes that's required."
+  explain: |
+    Real-time audio and network code can't afford allocation pauses or unbounded growth.
+  lessons: [dsa.u2.l4]
+
+- id: buffer-middle-insert
+  short: "A circular buffer also has to shift elements to insert in the middle."
+  explain: |
+    It's fast only at its two ends, like a deque.
+  lessons: [dsa.u2.l4]
+
+- id: capacity-ignores-size
+  short: "Free space is capacity minus the items already stored."
+  explain: |
+    Free slots = C − size.
+  lessons: [dsa.u2.l4]
+
+- id: one-slot-reserved
+  short: "How many slots are usable depends on the design: tracking size uses all C; head/tail-only uses C − 1."
+  explain: |
+    The empty slot is only needed when head == tail would otherwise mean both full and empty.
+  lessons: [dsa.u2.l4]
+
+- id: space-to-end-only
+  short: "Wrapping lets the free slots before the head be used too."
+  explain: |
+    The buffer is a ring: after the last index comes index 0.
+  lessons: [dsa.u2.l4]
+
+- id: maxlen-keeps-all
+  short: "deque(maxlen=N) silently drops the oldest item when a new one arrives while full."
+  explain: |
+    Good for "keep the latest N", wrong for a work queue where every item must be served.
+  lessons: [dsa.u2.l4]
+
+- id: overwrite-ok
+  short: "Overwriting the oldest item loses work that hasn't been served."
+  explain: |
+    A work queue must grow, block, or reject — never silently drop.
+  lessons: [dsa.u2.l4]
+
+- id: single-end-enough
+  short: "That task only removes from one end — a plain queue or stack is enough."
+  explain: |
+    A deque earns its place when you add or remove at *both* ends.
+  lessons: [dsa.u2.l4]
+
+- id: deque-for-indexing
+  short: "Lookup by index is an array's job; a deque's strength is its two ends."
+  explain: |
+    Python's deque is O(n) for d[i] in the middle.
+  lessons: [dsa.u2.l4]
+
+- id: grow-reverses
+  short: "Growing must keep FIFO order — the front stays the front."
+  explain: |
+    Copy from head onwards, in queue order, into the new array.
+  lessons: [dsa.u2.l4]
+
+- id: brackets-need-deque
+  short: "Bracket matching only pushes and pops at the top — a stack is enough."
+  explain: |
+    Openers go on top; each closer checks and pops the top. One end only.
+  lessons: [dsa.u2.l4]
+
+# ── dsa.u2.l5: two pointers ──
+- id: pairs-n-squared
+  short: "An item can't pair with itself, and {A, B} is the same pair as {B, A}: n(n − 1)/2 pairs."
+  explain: |
+    n² counts ordered pairs and self-pairs; halve n(n − 1) instead.
+  lessons: [dsa.u2.l5]
+
+- id: pairs-linear
+  short: "The number of pairs grows like n², not n."
+  explain: |
+    Each of the n items pairs with n − 1 others.
+  lessons: [dsa.u2.l5]
+
+- id: pairs-cubic
+  short: "Pairs grow like n² — 10× the items is about 100× the pairs, not 1000×."
+  explain: |
+    Cubic growth would come from triples, not pairs.
+  lessons: [dsa.u2.l5]
+
+- id: pairs-growth-guess
+  short: "Pair counts grow quadratically: 10× the items means about 100× the work."
+  explain: |
+    n(n − 1)/2 is roughly n²/2.
+  lessons: [dsa.u2.l5]
+
+- id: tp-wrong-pointer
+  short: "Too small → move lo right (bigger values); too large → move hi left (smaller values)."
+  explain: |
+    In a sorted array, moving right increases the value and moving left decreases it.
+  lessons: [dsa.u2.l5]
+
+- id: tp-move-both
+  short: "Only one pointer moves per step — moving both can skip the answer."
+  explain: |
+    If the sum is too small, a[hi] may still be part of the answer with a bigger a[lo].
+  lessons: [dsa.u2.l5]
+
+- id: tp-restart
+  short: "Two pointers never looks back: discarded values can't be in any answer."
+  explain: |
+    Restarting would make it quadratic again.
+  lessons: [dsa.u2.l5]
+
+- id: tp-gives-up
+  short: "The scan only stops on a match or when lo meets hi."
+  explain: |
+    A single bad sum just tells you which pointer to move.
+  lessons: [dsa.u2.l5]
+
+- id: tp-smallest-never
+  short: "The smallest element can be part of the answer — it just gets discarded once its best partner fails."
+  explain: |
+    [1, 9] with target 10 uses the smallest element.
+  lessons: [dsa.u2.l5]
+
+- id: tp-index-reason
+  short: "The argument rests on the sorted *values*, not on comparing indices."
+  explain: |
+    a[hi] is the largest value still in play; that's what makes the discard safe.
+  lessons: [dsa.u2.l5]
+
+- id: tp-heuristic
+  short: "Two pointers is exact: each discard is proven safe, so meeting proves there's no pair."
+  explain: |
+    A discarded value's best possible partner already failed.
+  lessons: [dsa.u2.l5]
+
+- id: tp-counts-elements
+  short: "Count the sums, not the elements: the pointers stop when they meet."
+  explain: |
+    With n elements there are at most n − 1 sums.
+  lessons: [dsa.u2.l5]
+
+- id: tp-skips-first
+  short: "Every sum computed counts — including the first and the matching one."
+  explain: |
+    Write down each sum as you trace.
+  lessons: [dsa.u2.l5]
+
+- id: tp-arithmetic
+  short: "Recheck the arithmetic at each step."
+  explain: |
+    Write each sum down before deciding which pointer moves.
+  lessons: [dsa.u2.l5]
+
+- id: tp-no-termination
+  short: "Every step moves a pointer inward, so the scan always ends."
+  explain: |
+    The gap hi − lo shrinks by one each step.
+  lessons: [dsa.u2.l5]
+
+- id: tp-quadratic
+  short: "Two pointers computes at most n − 1 sums — checking every pair is brute force."
+  explain: |
+    Each sum moves one pointer inward: O(n), not O(n²).
+  lessons: [dsa.u2.l5]
+
+- id: tp-needs-distinct
+  short: "Duplicates are fine — two pointers only needs sorted order."
+  explain: |
+    Equal values just mean equal sums; the rules still hold.
+  lessons: [dsa.u2.l5]
+
+- id: tp-needs-positive
+  short: "Negative values work too — only the order matters."
+  explain: |
+    Sorted ascending means moving right never decreases the value.
+  lessons: [dsa.u2.l5]
+
+- id: sort-free
+  short: "Sorting costs O(n log n) — it can't be skipped in the total."
+  explain: |
+    Sequential steps add: n log n + n = O(n log n).
+  lessons: [dsa.u2.l5]
+
+- id: costs-multiply
+  short: "Sequential steps add their costs; nested steps multiply."
+  explain: |
+    Sort, then scan: n log n + n.
+  lessons: [dsa.u2.l5]
+
+- id: sort-keeps-indices
+  short: "Sorting moves values, so sorted positions differ from the original ones."
+  explain: |
+    Sort (value, index) pairs to remember where each value came from.
+  lessons: [dsa.u2.l5]
+
+- id: tp-impossible-unsorted
+  short: "Once the data is sorted, the scan works — the original order doesn't matter."
+  explain: |
+    Sort first (keeping indices if needed), then scan.
+  lessons: [dsa.u2.l5]
+
+- id: reverse-swaps-middle
+  short: "With an odd length the middle element stays put — no swap needed."
+  explain: |
+    n elements need ⌊n/2⌋ swaps.
+  lessons: [dsa.u2.l5]
+
+- id: merge-one-list
+  short: "Every item from both lists must be placed."
+  explain: |
+    Each comparison places one item.
+  lessons: [dsa.u2.l5]
+
+- id: merge-last-compare
+  short: "When one list runs out, the rest is copied without comparing."
+  explain: |
+    So at least the last item needs no comparison: at most 2n − 1.
+  lessons: [dsa.u2.l5]
+
+- id: tp-one-pair
+  short: "When a[lo] + a[hi] fits, every partner between lo and hi fits too (they're smaller)."
+  explain: |
+    Count hi − lo pairs at once; with repeats, look for the leftmost equal partner.
+  lessons: [dsa.u2.l5]
+
+- id: tp-count-from-zero
+  short: "Partners for lo start at lo + 1, not at index 0."
+  explain: |
+    Pairs (lo, k) with lo < k ≤ hi: that's hi − lo of them.
+  lessons: [dsa.u2.l5]
+
+- id: tp-count-all-later
+  short: "Partners beyond hi were discarded because they were already too big."
+  explain: |
+    Only indices lo + 1 … hi pair with lo within the target.
+  lessons: [dsa.u2.l5]
+
+- id: sorted-indices-reported
+  short: "Indices in the sorted copy refer to the new order, not to the positions you were given."
+  explain: |
+    Carry each value's original index through the sort and report that.
+  lessons: [dsa.u2.l5]
+
+# ── dsa.u2.l6: sliding window ──
+- id: windows-disjoint
+  short: "Windows overlap: they start one position apart, so there are n − k + 1 of them, not n / k."
+  explain: |
+    n / k counts non-overlapping blocks.
+  lessons: [dsa.u2.l6]
+
+- id: windows-off-by-one
+  short: "Count both ends: starts run from 0 to n − k inclusive."
+  explain: |
+    That's n − k + 1 positions.
+  lessons: [dsa.u2.l6]
+
+- id: windows-equal-n
+  short: "A window can't start in the last k − 1 positions — it would run off the end."
+  explain: |
+    Starts go from 0 to n − k.
+  lessons: [dsa.u2.l6]
+
+- id: windows-same-count
+  short: "Shorter windows have more possible starts; adjacent windows share k − 1 values, not k."
+  explain: |
+    Length L gives n − L + 1 windows.
+  lessons: [dsa.u2.l6]
+
+- id: windows-all-lengths
+  short: "Only lengths up to k count here, not every length up to n."
+  explain: |
+    Sum n − L + 1 for L = 1 … k.
+  lessons: [dsa.u2.l6]
+
+- id: window-sum-free
+  short: "Each window costs something: k reads from scratch, or one add and one subtract when sliding."
+  explain: |
+    Only the sliding update is O(1) per window.
+  lessons: [dsa.u2.l6]
+
+- id: slide-cost-confused
+  short: "One add and one subtract is the cost of a *slide*; a fresh sum reads every value."
+  explain: |
+    From scratch: k reads per window.
+  lessons: [dsa.u2.l6]
+
+- id: window-recompute
+  short: "Sliding never rebuilds a window: each step updates the previous total."
+  explain: |
+    The k factor disappears — O(n) instead of O(nk).
+  lessons: [dsa.u2.l6]
+
+- id: slide-add-only
+  short: "The value that left the window must be subtracted, or the window keeps growing."
+  explain: |
+    total += entering − leaving.
+  lessons: [dsa.u2.l6]
+
+- id: slide-wrong-leaving
+  short: "The value that leaves is the window's leftmost one, a[i]."
+  explain: |
+    Everything else stays inside after the slide.
+  lessons: [dsa.u2.l6]
+
+- id: slide-arithmetic
+  short: "Recheck the arithmetic: old total + entering − leaving."
+  explain: |
+    Write the update down before computing it.
+  lessons: [dsa.u2.l6]
+
+- id: max-like-sum
+  short: "A maximum can't be undone by subtraction: if the max leaves, you need the runner-up."
+  explain: |
+    Sums have inverses; max doesn't. Sliding maxima keep a deque of candidates.
+  lessons: [dsa.u2.l6]
+
+- id: max-entering
+  short: "The entering value is the max only if it beats everything else in the window."
+  explain: |
+    Compare it with the remaining values.
+  lessons: [dsa.u2.l6]
+
+- id: window-first-only
+  short: "Check every window, not just the first."
+  explain: |
+    Slide to the end and keep the best total seen.
+  lessons: [dsa.u2.l6]
+
+- id: window-last-only
+  short: "The final window isn't necessarily the best — track the best as you slide."
+  explain: |
+    Update best after every slide.
+  lessons: [dsa.u2.l6]
+
+- id: window-whole-array
+  short: "The window has a fixed length (or must avoid repeats) — the whole array doesn't qualify."
+  explain: |
+    Respect the window rule.
+  lessons: [dsa.u2.l6]
+
+- id: repeat-ignored
+  short: "A window with a repeated character doesn't count."
+  explain: |
+    Check every character inside the window, not just its ends.
+  lessons: [dsa.u2.l6]
+
+- id: window-restart
+  short: "Don't restart the window — drop just enough from the left to fix it."
+  explain: |
+    Restarting throws away valid work and can miss the answer.
+  lessons: [dsa.u2.l6]
+
+- id: window-last-inside
+  short: "A stored position can be stale — that copy may already be outside the window."
+  explain: |
+    Use i = max(i, last[ch] + 1) so the left end never moves back.
+  lessons: [dsa.u2.l6]
+
+- id: window-index-bound
+  short: "last[ch] is always before j, so i can't pass j anyway."
+  explain: |
+    The max is about stale positions, not about j.
+  lessons: [dsa.u2.l6]
+
+- id: max-speed
+  short: "It's about correctness, not speed."
+  explain: |
+    Without max, a stale position moves the left end backwards.
+  lessons: [dsa.u2.l6]
+
+- id: window-quadratic
+  short: "A nested loop isn't automatically quadratic: count the total moves of each pointer."
+  explain: |
+    Both ends only move forward — at most 2n moves overall.
+  lessons: [dsa.u2.l6]
+
+- id: window-log
+  short: "Nothing is halved in a sliding window, so there's no log factor."
+  explain: |
+    Count pointer moves: at most 2n.
+  lessons: [dsa.u2.l6]
+
+- id: best-starts-zero
+  short: "With negative values the best window sum can be negative — start best at the first window, not at 0."
+  explain: |
+    best = sum(a[:k]) handles every case.
+  lessons: [dsa.u2.l6]
+
+# ── dsa.u2.l7: prefix sums ──
+- id: range-length-off-by-one
+  short: "Inclusive ranges count both ends: l … r has r − l + 1 values."
+  explain: |
+    Days 3 to 7 are 3, 4, 5, 6, 7 — five days.
+  lessons: [dsa.u2.l7]
+
+- id: range-from-zero
+  short: "The range starts at l, not at index 0."
+  explain: |
+    Only a range starting at 0 is a whole prefix.
+  lessons: [dsa.u2.l7]
+
+- id: range-sum-free
+  short: "Without preprocessing, a range sum reads every value in the range."
+  explain: |
+    Only a prefix array makes a question O(1) — after O(n) setup.
+  lessons: [dsa.u2.l7]
+
+- id: range-n-squared
+  short: "The work is questions × range length: it depends on q, not on n twice."
+  explain: |
+    q questions of up to n values: O(nq).
+  lessons: [dsa.u2.l7]
+
+- id: range-sum-free-q
+  short: "Each question reads many values, not one."
+  explain: |
+    A range of length L costs L reads with the plain loop.
+  lessons: [dsa.u2.l7]
+
+- id: range-always-full
+  short: "That's the worst case; random ranges are shorter on average."
+  explain: |
+    A random range covers about a third of the array.
+  lessons: [dsa.u2.l7]
+
+- id: range-half
+  short: "A random range [l, r] averages about a third of the array, not half."
+  explain: |
+    Both ends are random, which shortens the range.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-includes-index
+  short: "P[i] is the sum of the first i values, a[0 … i − 1] — it stops before index i."
+  explain: |
+    P[i + 1] is the first prefix that includes a[i].
+  lessons: [dsa.u2.l7]
+
+- id: prefix-is-value
+  short: "P[i] is a running total, not a single value."
+  explain: |
+    P[i] = a[0] + … + a[i − 1].
+  lessons: [dsa.u2.l7]
+
+- id: prefix-arithmetic
+  short: "Recheck the running total: add one value at a time."
+  explain: |
+    P[i + 1] = P[i] + a[i].
+  lessons: [dsa.u2.l7]
+
+- id: prefix-no-zero
+  short: "The prefix array starts with P[0] = 0, so it has n + 1 entries."
+  explain: |
+    P[0] is the empty prefix; P[n] is the whole array.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-doubles
+  short: "There is one prefix per length 0 … n: n + 1 entries."
+  explain: |
+    Nothing is stored twice.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-zero-language
+  short: "Nothing in the language requires the 0 — it's a design choice to avoid a special case."
+  explain: |
+    With P[0] = 0, every range is P[r + 1] − P[l].
+  lessons: [dsa.u2.l7]
+
+- id: prefix-padding
+  short: "The extra 0 has a precise job: it represents the empty prefix."
+  explain: |
+    It makes ranges starting at index 0 follow the same formula.
+  lessons: [dsa.u2.l7]
+
+- id: range-formula-off
+  short: "Subtracting an earlier prefix includes an extra value on the left."
+  explain: |
+    sum(a[l … r]) = P[r + 1] − P[l].
+  lessons: [dsa.u2.l7]
+
+- id: range-formula-low
+  short: "P[r] stops before a[r] — use P[r + 1] to include it."
+  explain: |
+    sum(a[l … r]) = P[r + 1] − P[l].
+  lessons: [dsa.u2.l7]
+
+- id: average-subtract
+  short: "Averages over different lengths don't subtract — subtract sums, then divide."
+  explain: |
+    Average = (P[r + 1] − P[l]) / (r − l + 1).
+  lessons: [dsa.u2.l7]
+
+- id: prefix-precomputes-all
+  short: "P stores prefixes only, not every range's answer — each question still takes a subtraction."
+  explain: |
+    Storing every range would take O(n²) space.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-rebuild
+  short: "Build P once, before any question — not once per question."
+  explain: |
+    Then each question is a single subtraction: O(n + q).
+  lessons: [dsa.u2.l7]
+
+- id: prefix-always-better
+  short: "Setup isn't free: with one short question, the plain loop is cheaper."
+  explain: |
+    Compare n + q with the total length of the ranges asked.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-q-greater
+  short: "More questions make prefix sums *more* worthwhile, not less."
+  explain: |
+    The O(n) setup is shared by every question.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-needs-positive
+  short: "Prefix sums work with negative values — subtraction is exact for any numbers."
+  explain: |
+    Only the operation must be invertible.
+  lessons: [dsa.u2.l7]
+
+- id: diff-end-included
+  short: "The cancelling update goes at r + 1, just after the range ends."
+  explain: |
+    D[r] −= v would remove the bonus from day r itself.
+  lessons: [dsa.u2.l7]
+
+- id: diff-adds-per-day
+  short: "A difference array touches two entries per update, whatever the range length."
+  explain: |
+    The running sum spreads the change over l … r.
+  lessons: [dsa.u2.l7]
+
+- id: diff-sign
+  short: "The −v at r + 1 only cancels the +v after the range; inside the range the value is +v."
+  explain: |
+    Running sums: 0 before l, v from l to r, 0 after.
+  lessons: [dsa.u2.l7]
+
+- id: diff-two-per-day
+  short: "Two updates per range, not two per day — that's the point of the trick."
+  explain: |
+    Then one final pass of n: O(n + q).
+  lessons: [dsa.u2.l7]
+
+- id: prefix-max
+  short: "Max has no inverse, so it can't be found by subtracting prefixes."
+  explain: |
+    Range maxima need other tools (sparse tables, segment trees).
+  lessons: [dsa.u2.l7]
+
+- id: prefix-median
+  short: "A median needs the actual values in the range, not their total."
+  explain: |
+    Prefix arrays only help for sums and similar invertible operations.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-sorted
+  short: "Sortedness depends on neighbouring pairs, not on a total."
+  explain: |
+    You could prefix-count "descents" — but a plain prefix sum of values doesn't tell you.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-update-one
+  short: "Changing one value changes every prefix that includes it."
+  explain: |
+    Prefix arrays suit data that doesn't change between questions.
+  lessons: [dsa.u2.l7]
+
+- id: diff-answers-sums
+  short: "A difference array makes range updates O(1), but a range sum then needs a pass over D."
+  explain: |
+    Each trick moves the O(n) cost to the other operation.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-both-arrays
+  short: "Keeping both doesn't help: every update would still have to rebuild P."
+  explain: |
+    Interleaved updates and queries need a tree structure, O(log n) each.
+  lessons: [dsa.u2.l7]
+
+- id: prefix-one-read
+  short: "A range needs two prefixes: everything through r, minus everything before l."
+  explain: |
+    sum(a[l … r]) = P[r + 1] − P[l] — two reads and one subtraction.
+  lessons: [dsa.u2.l7]

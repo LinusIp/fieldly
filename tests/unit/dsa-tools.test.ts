@@ -190,11 +190,28 @@ describe('code-runner helpers', () => {
     const [arr, target] = a.args as [number[], number];
     const [i, j] = a.expected as [number, number];
     expect(arr[i] + arr[j]).toBe(target);
+    let pairs = 0;
+    for (let p = 0; p < arr.length; p++)
+      for (let q = p + 1; q < arr.length; q++) if (arr[p] + arr[q] === target) pairs++;
+    expect(pairs).toBe(1);
+    expect(arr.every((v, k) => k === 0 || v > arr[k - 1])).toBe(true);
     const r = generate('rangeSums', { n: 50, q: 20 });
     const [vals, queries] = r.args as [number[], [number, number][]];
     expect(r.expected).toEqual(queries.map(([l, h]) => vals.slice(l, h + 1).reduce((x, y) => x + y, 0)));
-    const s = generate('longestUniqueSubstring', { n: 200 });
-    expect(typeof s.expected).toBe('number');
+    const u = generate('rangeAdds', { n: 40, q: 15 });
+    const [len, updates] = u.args as [number, [number, number, number][]];
+    const naive = new Array<number>(len).fill(0);
+    for (const [l, h, v] of updates) for (let k = l; k <= h; k++) naive[k] += v;
+    expect(u.expected).toEqual(naive);
+    const s = generate('longestUniqueSubstring', { n: 300, pool: 40, breakEvery: 10 });
+    const str = s.args[0] as string;
+    let best = 0;
+    for (let p = 0; p < str.length; p++) {
+      const seen = new Set<string>();
+      for (let q = p; q < str.length && !seen.has(str[q]); q++) seen.add(str[q]);
+      best = Math.max(best, seen.size);
+    }
+    expect(s.expected).toBe(best);
   });
 
   it('runs JavaScript tests and reports errors', () => {
