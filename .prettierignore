@@ -1,0 +1,10 @@
+dist
+dist-e2e
+public/content
+node_modules
+package-lock.json
+test-results
+playwright-report
+content
+BUILD_SPEC.md
+*.md
