@@ -1,0 +1,660 @@
+id: dsa.u2.l1
+title: "Arrays & dynamic arrays"
+version: 1
+concepts: [arrays]
+estimatedMinutes: 20
+
+# Scenario: an array of n 4-byte integers starting at memory address B; operations at index k.
+params:
+  sets:
+    - { B: 1000, n: 50, k: 7 }
+    - { B: 2000, n: 80, k: 12 }
+    - { B: 4096, n: 60, k: 9 }
+
+intro: |
+  An **array** stores its elements side by side in one block of memory. If the block starts at
+  address $B$ and each element takes $s$ bytes, element $i$ lives at
+
+  $$\text{address}(i) = B + s \cdot i$$
+
+  (indices start at 0). One multiplication and one addition find any element, so **indexing is
+  $O(1)$**, however long the array is. That's called *random access*.
+
+  The price is paid when the *order* changes. To **insert** at index $k$, every element from $k$ to
+  the end must shift one place right to open a gap: $n - k$ moves. **Deleting** at $k$ shifts the
+  elements after it left. So:
+
+  - insert or delete **at the end**: $O(1)$ (amortized, for a dynamic array that may need to grow);
+  - insert or delete **at the front**: $O(n)$ — everything shifts.
+
+  Python's `list` is a dynamic array: `append` and `pop()` are fast, but `insert(0, x)` and `pop(0)`
+  are $O(n)$. When you need fast operations at both ends, use `collections.deque`.
+
+workedExample: |
+  An array of 10 integers (4 bytes each) starts at address 500.
+
+  - `arr[3]` is at $500 + 4 \times 3 = 512$: one calculation, no scanning.
+  - Inserting at index 3 shifts indices 3–9 one place right: 7 moves.
+  - Inserting at index 0 would shift all 10.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: arrays
+    clueFor: [s2]
+    establishes: "arr[i] lives at B + 4i: arr[{{k}}] is at {{B + 4*k}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          An array of 4-byte integers starts at address {{B}}. What is the address of `arr[0]`?
+        answer: { expr: "B" }
+        distractors:
+          - { expr: "B + 4", misconception: one-based-index }
+          - { expr: "B - 4", misconception: address-before-base }
+          - { expr: "4", misconception: base-ignored }
+        hints:
+          nudge: "Where does the block start?"
+          partial: "Element 0 is the first element, at offset 0."
+        explanation: |
+          **Answer:** {{B}}
+
+          **Why:** `arr[0]` is at offset $4 \times 0 = 0$ from the start: address {{B}}.
+
+          **Common mistakes:**
+          - {{B+4}} — that's `arr[1]`; indices start at 0.
+          - {{B-4}} — nothing is stored before the block.
+          - 4 — the offset is added to the base address.
+
+          **Connects to:** Q2 — why indexing takes constant time.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          An array of 4-byte integers starts at address {{B}}. What is the address of `arr[{{k}}]`?
+        answer: { expr: "B + 4 * k" }
+        distractors:
+          - { expr: "B + k", misconception: address-ignores-size }
+          - { expr: "B + 4 * (k + 1)", misconception: one-based-index }
+          - { expr: "4 * k", misconception: base-ignored }
+        hints:
+          nudge: "How many bytes come before element {{k}}?"
+          partial: "{{k}} elements of 4 bytes each, after the base address."
+        explanation: |
+          **Answer:** {{B + 4*k}}
+
+          **Why:** Elements 0 … {{k-1}} come first, taking $4 \times {{k}} = {{4*k}}$ bytes: ${{B}} + {{4*k}} = {{B+4*k}}$.
+
+          **Common mistakes:**
+          - {{B+k}} — each element is 4 bytes, not 1.
+          - {{B+4*(k+1)}} — index {{k}} is the {{k+1}}th element, which starts after {{k}} elements.
+          - {{4*k}} — add the base address.
+
+          **Connects to:** Q2 — the cost of indexing.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A 2D array of 4-byte integers with **{{k}} columns** is stored row by row starting at {{B}}. What is the address of
+          the element in row 2, column 3 (both 0-based)?
+        answer: { expr: "B + 4 * (2 * k + 3)" }
+        distractors:
+          - { expr: "B + 4 * (3 * k + 2)", misconception: row-column-swap }
+          - { expr: "B + 4 * (2 + 3)", misconception: address-ignores-size }
+          - { expr: "B + 2 * k + 3", misconception: base-ignored }
+        hints:
+          nudge: "How many whole rows come before row 2?"
+          partial: "Two full rows of {{k}} elements, then 3 more."
+        explanation: |
+          **Answer:** {{B + 4*(2*k+3)}}
+
+          **Why:** Row-major order: before (2, 3) come 2 full rows ($2 \times {{k}}$ elements) and 3 more: ${{2*k+3}}$ elements, so the address is
+          ${{B}} + 4 \times {{2*k+3}} = {{B+4*(2*k+3)}}$. Still $O(1)$.
+
+          **Common mistakes:**
+          - {{B+4*(3*k+2)}} — row and column are swapped.
+          - {{B+20}} — a row contains {{k}} elements, not 1.
+          - {{B+2*k+3}} — multiply by the element size, 4 bytes.
+
+          **Connects to:** Q2 — indexing cost.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: arrays
+    uses: [s1]
+    clueFor: [s3]
+    establishes: "Indexing an array is O(1) — the same cost for arr[0] and arr[{{n-1}}]."
+    standaloneContext: "In an array, element i is stored at address B + s·i (base B, element size s)."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: |
+          Which takes longer for a {{n}}-element array: `arr[0]` or `arr[{{n-1}}]`?
+        options:
+          - { text: "Neither — both are one address calculation", correct: true }
+          - { text: "arr[{{n-1}}] — the computer walks along to it", misconception: access-scans }
+          - { text: "arr[0] — it's further from the end", misconception: access-from-end }
+          - { text: "arr[{{n-1}}], but only if the array is long", misconception: access-depends-on-n }
+        hints:
+          nudge: "Use the address formula for each."
+          partial: "B + 4·0 and B + 4·{{n-1}}: one multiply and add either way."
+        explanation: |
+          **Answer:** neither.
+
+          **Why:** Both addresses come from one calculation, $B + 4i$. No walking through elements.
+
+          **Common mistakes:**
+          - "arr[{{n-1}}]" — arrays aren't scanned to find an index (linked lists are).
+          - "arr[0]" — position doesn't matter.
+          - "Only if long" — the formula doesn't depend on the length.
+
+          **Connects to:** Q3 — operations that *do* depend on position.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          What is the running time of reading `arr[i]` in an array of $n$ elements?
+        options:
+          - { text: '$O(1)$', correct: true }
+          - { text: '$O(i)$ — it scans the first $i$ elements', misconception: access-scans }
+          - { text: '$O(n)$', misconception: access-depends-on-n }
+          - { text: '$O(\\log n)$ — like binary search', misconception: access-binary-search }
+        hints:
+          nudge: "What does the hardware need in order to find element i?"
+          buildsOn: "Q1: arr[{{k}}] is at B + 4·{{k}} = {{B+4*k}}."
+          partial: "One multiplication and one addition — regardless of i or n."
+        explanation: |
+          **Answer:** $O(1)$
+
+          **Why:** The address is $B + 4i$ (Q1): constant work for any $i$ and any $n$. That's random access.
+
+          **Common mistakes:**
+          - $O(i)$ — that's a linked list, which must follow pointers.
+          - $O(n)$ — the length doesn't enter the formula.
+          - $O(\log n)$ — binary search *finds a value*; indexing goes straight to a position.
+
+          **Connects to:** Q3 — inserting, which does shift elements.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          Searching for a **value** (not an index) in an unsorted array of $n$ elements: what is the worst-case cost, and why
+          doesn't $O(1)$ indexing help?
+        options:
+          - { text: "O(n): you must check elements one by one; indexing only helps when you know the position", correct: true }
+          - { text: "O(1): every element can be reached in one step", misconception: index-vs-value-search }
+          - { text: "O(log n): split the array in half each time", misconception: access-binary-search }
+          - { text: "O(n²): compare every pair", misconception: pairs-ordered }
+        hints:
+          nudge: "Do you know *where* the value is?"
+          buildsOn: "Q1: an address comes from an index, not from a value."
+          partial: "Without an index, look at each element until you find it."
+        explanation: |
+          **Answer:** $O(n)$.
+
+          **Why:** Random access needs the **index**. To find a value in an unsorted array you check positions one at a time — up to $n$ of them.
+          (Sorted arrays allow binary search, $O(\log n)$.)
+
+          **Common mistakes:**
+          - $O(1)$ — reaching *a* position is $O(1)$; you still don't know *which*.
+          - $O(\log n)$ — binary search needs sorted data.
+          - $O(n^2)$ — one pass suffices.
+
+          **Connects to:** Q3 — inserting into an array.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: arrays
+    uses: [s2]
+    clueFor: [s4, s5]
+    establishes: "Insert at index {{k}} in {{n}} elements: shift the last {{n-k}} one place right."
+    standaloneContext: "An array of {{n}} elements is stored contiguously; reading arr[i] is O(1)."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          To insert a new value at index 2 of `[10, 20, 30, 40, 50]`, which elements must move one place right?
+        options:
+          - { text: "30, 40 and 50", correct: true }
+          - { text: "None — the new value goes in a free slot", misconception: array-insert-free }
+          - { text: "10 and 20", misconception: shift-wrong-side }
+          - { text: "Only 30", misconception: shift-one-only }
+        hints:
+          nudge: "Index 2 must become free, and order must be kept."
+          partial: "Everything from index 2 onwards moves right."
+        explanation: |
+          **Answer:** 30, 40 and 50.
+
+          **Why:** To open index 2 while keeping order, the elements at indices 2, 3 and 4 each move one place right
+          (starting from the end).
+
+          **Common mistakes:**
+          - "None" — arrays have no gaps in the middle.
+          - "10 and 20" — elements before the insert point stay.
+          - "Only 30" — 30 would overwrite 40 unless 40 moves too.
+
+          **Connects to:** Q4 — counting the shifts.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          A dynamic array holds {{n}} elements (with spare capacity). How many elements are shifted to insert a new value at
+          index {{k}}?
+        answer: { expr: "n - k" }
+        distractors:
+          - { expr: "1", misconception: array-insert-free }
+          - { expr: "k", misconception: shift-wrong-side }
+          - { expr: "n", misconception: shift-everything }
+        hints:
+          nudge: "Which indices must move to free index {{k}}?"
+          buildsOn: "Q2: reaching index {{k}} is O(1) — but making room isn't."
+          partial: "Indices {{k}} … {{n-1}} each move one place right."
+        explanation: |
+          **Answer:** {{n-k}}
+
+          **Why:** Indices {{k}} through {{n-1}} each shift right: ${{n}} - {{k}} = {{n-k}}$ moves. Finding the spot is $O(1)$ (Q2);
+          making room costs $O(n - k)$.
+
+          **Common mistakes:**
+          - 1 — the new value can't just be dropped in; the rest must move.
+          - {{k}} — those before index {{k}} stay put.
+          - {{n}} — only the elements from index {{k}} on move.
+
+          **Connects to:** Q4 — inserting at the front.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          The array holds {{n}} elements. How many elements are shifted to **delete** the element at index {{k}}?
+        answer: { expr: "n - k - 1" }
+        distractors:
+          - { expr: "n - k", misconception: boundary-off-by-one }
+          - { expr: "k", misconception: shift-wrong-side }
+          - { expr: "0", misconception: array-delete-free }
+        hints:
+          nudge: "After removing index {{k}}, which elements close the gap?"
+          buildsOn: "Q2: reading any index is O(1)."
+          partial: "Indices {{k+1}} … {{n-1}} each move one place left."
+        explanation: |
+          **Answer:** {{n-k-1}}
+
+          **Why:** The elements after index {{k}} (indices {{k+1}} … {{n-1}}) move left: ${{n}} - {{k}} - 1 = {{n-k-1}}$.
+
+          **Common mistakes:**
+          - {{n-k}} — the deleted element itself doesn't move.
+          - {{k}} — those before index {{k}} stay put.
+          - 0 — arrays can't leave holes; the gap must be closed.
+
+          **Connects to:** Q4 — operations at the front.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: arrays
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Front insert/delete shifts everything: O(n). Appending at the end: amortized O(1)."
+    standaloneContext: "Inserting into an array at index k shifts the n − k elements after it."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          With {{n}} elements, how many shifts does inserting at **index 0** need?
+        answer: { expr: "n" }
+        distractors:
+          - { expr: "1", misconception: array-front-insert-O1 }
+          - { expr: "0", misconception: array-insert-free }
+          - { expr: "n - 1", misconception: boundary-off-by-one }
+        hints:
+          nudge: "Use n − k with k = 0."
+          partial: "Every element moves."
+        explanation: |
+          **Answer:** {{n}}
+
+          **Why:** $n - 0 = {{n}}$: every element moves right to free index 0.
+
+          **Common mistakes:**
+          - 1 — inserting at the front is the *worst* place.
+          - 0 — the front isn't free.
+          - {{n-1}} — all {{n}} elements move, including the one at index 0.
+
+          **Connects to:** Q6 — choosing a structure for front operations.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          For a Python list of $n$ elements, which pair of operations are **both** $O(n)$?
+        options:
+          - { text: '`insert(0, x)` and `pop(0)`', correct: true }
+          - { text: '`append(x)` and `pop()`', misconception: array-end-ops-slow }
+          - { text: '`lst[i]` and `lst[i] = x`', misconception: access-scans }
+          - { text: '`len(lst)` and `lst[-1]`', misconception: access-depends-on-n }
+        hints:
+          nudge: "Which operations shift every element?"
+          buildsOn: "Q3: inserting at index k shifts n − k elements."
+          partial: "k = 0 is the worst case."
+        explanation: |
+          **Answer:** `insert(0, x)` and `pop(0)`.
+
+          **Why:** At the front, $n - 0$ elements shift (Q3). At the end nothing shifts: `append` is amortized $O(1)$ and `pop()` is $O(1)$.
+          Indexing and `len` are $O(1)$ too.
+
+          **Common mistakes:**
+          - `append`/`pop()` — the end needs no shifting.
+          - Indexing — $O(1)$ random access.
+          - `len`/`lst[-1]` — the length is stored; the last index is computed.
+
+          **Connects to:** Q6 — a better structure for both ends.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          A program removes items from the **front** of a {{n}}-element list with `pop(0)` until it is empty. How many element
+          shifts happen in total?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "n", misconception: array-front-insert-O1 }
+          - { expr: "n^2", misconception: pairs-ordered }
+          - { expr: "n * (n + 1) / 2", misconception: pairs-include-self }
+        hints:
+          nudge: "The first pop shifts {{n-1}}; the next {{n-2}}; …"
+          buildsOn: "Q3: deleting at index k shifts the n − k − 1 elements after it."
+          partial: "$(n-1) + (n-2) + \\dots + 0$"
+        explanation: |
+          **Answer:** {{n*(n-1)/2}}
+
+          **Why:** Each `pop(0)` shifts everything that remains: ${{n-1}} + {{n-2}} + \dots + 0 = {{n*(n-1)/2}}$ — $O(n^2)$ for what looks like
+          a simple loop. `deque.popleft()` would make it $O(n)$.
+
+          **Common mistakes:**
+          - {{n}} — each pop costs more than one step.
+          - {{n^2}} — the list shrinks as you go.
+          - {{n*(n+1)/2}} — the last pop shifts nothing.
+
+          **Connects to:** Q6 — choosing the right structure.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: arrays
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Building {{n}} items with insert(0, x) costs {{n*(n-1)/2}} shifts; with append, none."
+    standaloneContext: "Inserting at index k of an array with m elements shifts m − k elements."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          You build a list of 4 items by calling `insert(0, x)` four times on an empty list. How many shifts happen in total?
+        answer: { expr: "6" }
+        distractors:
+          - { expr: "4", misconception: array-front-insert-O1 }
+          - { expr: "0", misconception: array-insert-free }
+          - { expr: "10", misconception: pairs-include-self }
+        hints:
+          nudge: "The list has 0, then 1, then 2, then 3 items before each insert."
+          partial: "0 + 1 + 2 + 3"
+        explanation: |
+          **Answer:** 6
+
+          **Why:** Before each insert the list holds 0, 1, 2, 3 items, all of which shift: $0 + 1 + 2 + 3 = 6$.
+
+          **Common mistakes:**
+          - 4 — each insert shifts more than one item as the list grows.
+          - 0 — the front is always occupied after the first insert.
+          - 10 — the first insert shifts nothing.
+
+          **Connects to:** Q6 — a better way.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          A program builds a list of {{n}} items by calling `insert(0, x)` {{n}} times on an empty list. How many element
+          shifts happen in total?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "n", misconception: array-front-insert-O1 }
+          - { expr: "n * (n + 1) / 2", misconception: pairs-include-self }
+          - { expr: "0", misconception: array-insert-free }
+        hints:
+          nudge: "How many elements are already in the list before the j-th insert?"
+          buildsOn: "Q3: inserting at index k shifts m − k elements; here k = 0."
+          partial: "$0 + 1 + 2 + \\dots + ({{n-1}})$"
+        explanation: |
+          **Answer:** {{n*(n-1)/2}}
+
+          **Why:** The $j$-th insert finds $j - 1$ items and shifts them all (Q3 with $k = 0$): $0 + 1 + \dots + {{n-1}} = {{n*(n-1)/2}}$ —
+          quadratic. Appending {{n}} times and reversing once would cost $O(n)$.
+
+          **Common mistakes:**
+          - {{n}} — each insert shifts the whole current list.
+          - {{n*(n+1)/2}} — the first insert has nothing to shift.
+          - 0 — only `append` avoids shifting.
+
+          **Connects to:** Q6 — choosing a structure.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A program inserts {{n}} items, each at the **middle** of the current list. Roughly how many shifts in total?
+        answer: { expr: "n * (n - 1) / 4" }
+        distractors:
+          - { expr: "n * (n - 1) / 2", misconception: shift-everything }
+          - { expr: "n / 2", misconception: array-front-insert-O1 }
+          - { expr: "n * log2(n)", misconception: access-binary-search }
+        hints:
+          nudge: "Inserting in the middle of m items shifts about m/2."
+          buildsOn: "Q3: inserting at index k shifts m − k."
+          partial: "$\\tfrac12(0 + 1 + \\dots + (n-1))$"
+        explanation: |
+          **Answer:** about {{n*(n-1)/4}}
+
+          **Why:** With $m$ items, the middle insert shifts about $m/2$, so the total is about $\tfrac12 \cdot \tfrac{n(n-1)}{2} = {{n*(n-1)/4}}$ —
+          half of the front-insert cost, but still $O(n^2)$.
+
+          **Common mistakes:**
+          - {{n*(n-1)/2}} — that's inserting at the front.
+          - {{n/2}} — each insert shifts many elements, not one.
+          - $n \log n$ — finding the middle is $O(1)$, but shifting is linear.
+
+          **Connects to:** Q6 — choosing a structure.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: arrays
+    uses: [s4, s5]
+    establishes: "For fast front operations use a deque; for fast indexing, an array."
+    standaloneContext: |
+      In a dynamic array, indexing and appending are fast, but inserting or removing at the front shifts every element.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: "Which operation is the dynamic array **best** at?"
+        options:
+          - { text: "Reading or overwriting the element at a given index", correct: true }
+          - { text: "Inserting at the front", misconception: array-front-insert-O1 }
+          - { text: "Finding an unknown value in unsorted data", misconception: index-vs-value-search }
+          - { text: "Removing from the middle", misconception: array-delete-free }
+        hints:
+          nudge: "Which operation needs no shifting and no scanning?"
+          partial: "Address = B + s·i."
+        explanation: |
+          **Answer:** indexed reads and writes.
+
+          **Why:** One address calculation, $O(1)$. Front and middle operations shift; value search scans.
+
+          **Common mistakes:**
+          - "Front insert" — shifts everything.
+          - "Find a value" — that's a linear scan.
+          - "Middle removal" — shifts the tail.
+
+          **Connects to:** the challenge — shifting by hand.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          A print queue adds jobs at the back and takes them from the front, thousands per second. A list with
+          `append` and `pop(0)` is slow. What should it use?
+        options:
+          - { text: "`collections.deque` — O(1) append and popleft", correct: true }
+          - { text: "A list, but with `insert(0, x)` and `pop()` instead", misconception: array-front-insert-O1 }
+          - { text: "A sorted list, so the next job is found by binary search", misconception: access-binary-search }
+          - { text: "A list is fine — pop(0) is amortized O(1) like append", misconception: array-end-ops-slow }
+        hints:
+          nudge: "Which end operations does a list do slowly?"
+          buildsOn: "Q4: pop(0) shifts everything. Q5: repeated front operations add up to O(n²)."
+          partial: "You need O(1) at both ends."
+        explanation: |
+          **Answer:** `collections.deque`.
+
+          **Why:** `pop(0)` shifts the whole list (Q4), and thousands of them add up quadratically (Q5). A deque supports $O(1)$ operations at
+          both ends.
+
+          **Common mistakes:**
+          - `insert(0, x)` + `pop()` — that just moves the slow operation to the other end.
+          - "Sorted list" — sorting is beside the point; the cost is in shifting.
+          - "Amortized O(1)" — only `append` is; `pop(0)` is genuinely $O(n)$.
+
+          **Connects to:** the challenge — shifting by hand.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A `deque` has O(1) operations at both ends. What do you give up compared with a list?
+        options:
+          - { text: "Fast indexing in the middle — `d[i]` is O(n) for a deque", correct: true }
+          - { text: "Nothing; deques are strictly better", misconception: deque-strictly-better }
+          - { text: "Fast append at the back", misconception: array-end-ops-slow }
+          - { text: "The ability to store more than one type", misconception: deque-types }
+        hints:
+          nudge: "A deque is built from linked blocks rather than one contiguous array."
+          buildsOn: "Q4 and Q5: lists are slow at the front."
+          partial: "Without one contiguous block, B + s·i no longer works."
+        explanation: |
+          **Answer:** $O(1)$ random access in the middle.
+
+          **Why:** CPython's deque is a linked list of blocks: great at the ends, but `d[i]` near the middle must walk across blocks — $O(n)$.
+          Every structure trades some operations for others.
+
+          **Common mistakes:**
+          - "Strictly better" — indexing gets slower.
+          - "Append" — appending at either end is $O(1)$.
+          - "Types" — deques hold any Python objects.
+
+          **Connects to:** the challenge — shifting by hand.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: arrays
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Why must elements shift when you insert into the middle of an array?"
+        options:
+          - { text: "Elements are stored contiguously in order, so there are no gaps to fill", correct: true }
+          - { text: "To keep the array sorted", misconception: shift-to-sort }
+          - { text: "Because the array is full", misconception: array-insert-free }
+          - { text: "They don't — Python leaves a gap", misconception: array-delete-free }
+        hints:
+          nudge: "What does 'contiguous' mean for where element i lives?"
+          partial: "Element i must stay at B + s·i, with no holes."
+        explanation: |
+          **Answer:** contiguous storage leaves no gaps.
+
+          **Why:** For $B + s \cdot i$ to work, the elements must sit back-to-back in order. A new middle element needs a slot, so the later ones move right.
+
+          **Common mistakes:**
+          - "Sorted" — order of insertion is kept, sorted or not.
+          - "Full" — even with spare capacity, the spare room is at the end.
+          - "Gap" — gaps would break $B + s \cdot i$.
+
+          **Connects to:** Q3 — counting shifts.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l1.ch
+  type: algorithm-stepper
+  title: "Make room"
+  concept: arrays
+  uses: [s3, s4]
+  params:
+    sets:
+      - { v: 99 }
+      - { v: 7 }
+      - { v: 55 }
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Insert {{v}} at index 3 of the array by shifting elements yourself, then writing the value. At most 2 mistakes."
+      config:
+        algorithm: array-insert
+        input: { values: [4, 8, 15, 16, 23, 42], index: 3, value: "v" }
+      check: { expr: "done and mistakes <= 2" }
+      feedback:
+        - { if: "not done", say: "Keep going: shift, then write." }
+        - { if: "mistakes > 2", say: "Shift from the right-hand end first, so nothing is overwritten.", misconception: shift-wrong-side }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "Which element can move right without overwriting anything?"
+        buildsOn: "From Q3: indices 3 … 5 must each move one place right."
+        partial: "Start with the last element, then work left."
+      solution: { followTrace: true }
+      explanation: |
+        Three shifts (indices 5, 4, 3), then the write: inserting at index $k$ of $n$ costs $n - k$ moves.
+    standard:
+      difficulty: 3
+      goal: "Insert {{v}} at the **front** (index 0) of an 8-element array. At most 1 mistake."
+      config:
+        algorithm: array-insert
+        input: { values: [3, 1, 4, 1, 5, 9, 2, 6], index: 0, value: "v" }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep going — every element must move." }
+        - { if: "mistakes > 1", say: "Work from the right end; moving a left element first overwrites its neighbour.", misconception: shift-wrong-side }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "Inserting at the front: how many elements move?"
+        buildsOn: "From Q4: a front insert shifts all n elements."
+        partial: "Shift index 7, then 6, … down to 0."
+      solution: { followTrace: true }
+      explanation: |
+        Eight shifts for one front insert — that's why `insert(0, x)` is $O(n)$.
+    harder:
+      difficulty: 4
+      goal: "Insert {{v}} at index 2 of a 10-element array **without a single mistake**."
+      config:
+        algorithm: array-insert
+        input: { values: [12, 21, 34, 43, 56, 65, 78, 87, 90, 99], index: 2, value: "v" }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 0", say: "Every shift must go right-to-left, and only elements from index 2 onward move.", misconception: shift-wrong-side }
+        - { if: "true", say: "No mistakes allowed." }
+      hints:
+        nudge: "Which indices must move, and in which order?"
+        buildsOn: "From Q3: n − k elements shift."
+        partial: "Indices 9, 8, …, 2 — then write at index 2."
+      solution: { followTrace: true }
+      explanation: |
+        $n - k = 10 - 2 = 8$ shifts, right to left, then one write.
+
+summary:
+  keyTakeaways:
+    - "Arrays are contiguous: element i is at B + s·i, so indexing is O(1)."
+    - "Inserting or deleting at index k shifts the elements after k: O(n − k); the front is the worst case, O(n)."
+    - "Append and pop() at the end are fast (amortized O(1)); insert(0, x) and pop(0) are O(n)."
+    - "Repeated front operations add up to O(n²) — use collections.deque for fast operations at both ends."
+  next: dsa.u2.l2

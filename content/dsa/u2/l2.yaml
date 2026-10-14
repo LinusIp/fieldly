@@ -1,0 +1,661 @@
+id: dsa.u2.l2
+title: "Linked lists"
+version: 1
+concepts: [linked-lists]
+estimatedMinutes: 20
+
+# Scenario: a singly linked list of n nodes, head pointer only; working at position k (0-based).
+params:
+  sets:
+    - { n: 10, k: 4 }
+    - { n: 20, k: 7 }
+    - { n: 15, k: 6 }
+
+intro: |
+  A **linked list** stores each element in a separate **node** holding the value and a pointer to
+  the next node. The list itself is just a pointer to the first node, the **head**; the last node
+  points to `None`.
+
+  ```python
+  class Node:
+      def __init__(self, value, next=None):
+          self.value = value
+          self.next = next
+  ```
+
+  Nodes can live anywhere in memory, so there's no address formula: to reach the node at position
+  $k$ you start at the head and follow $k$ links — $O(k)$, not $O(1)$.
+
+  In exchange, **inserting or removing next to a node you already have** needs no shifting: just
+  redirect one or two pointers, $O(1)$. Adding at the head is always $O(1)$.
+
+  The order of pointer updates matters: overwrite a `next` pointer too early and you lose the
+  rest of the list. A **doubly linked** list also stores a `prev` pointer in each node, so it can
+  remove a node, or step backwards, in $O(1)$.
+
+workedExample: |
+  List: 3 → 8 → 5 → None. Insert 6 after the node holding 8:
+
+  - Walk from the head: one link to reach 8.
+  - Make the new node point at 8's successor: `new.next = node8.next` (the 5).
+  - Then link it in: `node8.next = new`. Result: 3 → 8 → 6 → 5.
+  - Reversing those two steps would make 8 point to 6 and lose the 5.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: linked-lists
+    clueFor: [s3]
+    establishes: "Reaching position {{k}} means following {{k}} links from the head — O(k), not O(1)."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          In a linked list, `head` is the node at position 0. Starting there, how many `.next` links do you follow to reach the
+          node at position 3?
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "1", misconception: linked-random-access }
+          - { expr: "4", misconception: one-based-index }
+          - { expr: "0", misconception: access-scans }
+        hints:
+          nudge: "Position 1 is head.next."
+          partial: "Position 3 is head.next.next.next."
+        explanation: |
+          **Answer:** 3
+
+          **Why:** Each `.next` advances one position: 0 → 1 → 2 → 3.
+
+          **Common mistakes:**
+          - 1 — there's no shortcut; nodes are reached one link at a time.
+          - 4 — position 3 is three links from position 0.
+          - 0 — only position 0 needs no links.
+
+          **Connects to:** Q3 — inserting in the middle.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          A singly linked list has {{n}} nodes. Starting from `head`, how many links must you follow to read the value at
+          position {{k}} (0-based)?
+        answer: { expr: "k" }
+        distractors:
+          - { expr: "1", misconception: linked-random-access }
+          - { expr: "n", misconception: traverse-whole-list }
+          - { expr: "k + 1", misconception: one-based-index }
+        hints:
+          nudge: "There's no address formula. How do you get from one node to the next?"
+          partial: "head is position 0; each `.next` moves one position."
+        explanation: |
+          **Answer:** {{k}}
+
+          **Why:** Nodes are scattered in memory, so you must hop {{k}} times from the head. Access is $O(k)$, and $O(n)$ in the worst case —
+          unlike an array's $O(1)$ indexing.
+
+          **Common mistakes:**
+          - 1 — linked lists have no random access.
+          - {{n}} — you can stop at position {{k}}.
+          - {{k+1}} — the head is already position 0.
+
+          **Connects to:** Q3 — inserting after position {{k}}.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          A program reads every element of the {{n}}-node list with `for i in range(n): get(i)`, where `get(i)` walks from the head
+          each time. How many links are followed in total?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "n", misconception: linked-random-access }
+          - { expr: "n^2", misconception: pairs-ordered }
+          - { expr: "n - 1", misconception: walk-reused }
+        hints:
+          nudge: "get(i) follows i links."
+          partial: "$0 + 1 + 2 + \\dots + (n-1)$"
+        explanation: |
+          **Answer:** {{n*(n-1)/2}}
+
+          **Why:** get(i) follows $i$ links, so the total is $0 + 1 + \dots + {{n-1}} = {{n*(n-1)/2}}$ — $O(n^2)$. Iterating with
+          `node = node.next` instead visits every node in $O(n)$.
+
+          **Common mistakes:**
+          - {{n}} — each get starts again from the head.
+          - {{n^2}} — get(i) follows $i$ links, not $n$.
+          - {{n-1}} — that's one walk that keeps its place, not repeated get calls.
+
+          **Connects to:** Q3 — inserting in the middle.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: linked-lists
+    clueFor: [s3, s4]
+    establishes: "Insert at head: new.next = head, then head = new — O(1), nothing shifts."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: "How long does it take to add a new node at the **head** of a linked list with $n$ nodes?"
+        options:
+          - { text: '$O(1)$', correct: true }
+          - { text: '$O(n)$ — the other nodes must shift', misconception: linked-insert-shifts }
+          - { text: '$O(n)$ — you must walk to the end first', misconception: traverse-whole-list }
+          - { text: '$O(\\log n)$', misconception: access-binary-search }
+        hints:
+          nudge: "Do any existing nodes move?"
+          partial: "Only the new node's `next` and the `head` pointer change."
+        explanation: |
+          **Answer:** $O(1)$
+
+          **Why:** The new node points at the old head, and `head` points at the new node. No other node is touched.
+
+          **Common mistakes:**
+          - "Shift" — nodes don't move; only pointers change.
+          - "Walk to the end" — the head is right there.
+          - $O(\log n)$ — no searching is involved.
+
+          **Connects to:** Q3 — inserting further along.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          To insert a new node `new` at the head, which order of steps is correct?
+        options:
+          - { text: "`new.next = head`, then `head = new`", correct: true }
+          - { text: "`head = new`, then `new.next = head`", misconception: pointer-order-wrong }
+          - { text: "`head.next = new`, then `head = new`", misconception: pointer-direction-wrong }
+          - { text: "Shift every node one place, then put `new` first", misconception: linked-insert-shifts }
+        hints:
+          nudge: "After `head = new`, can you still find the old first node?"
+          partial: "Link the new node to the rest of the list before moving `head`."
+        explanation: |
+          **Answer:** `new.next = head`, then `head = new`.
+
+          **Why:** First attach the old list behind the new node, then move `head`. Reversed, `head = new` loses the only pointer to the old
+          list, and `new.next = head` makes the node point to itself.
+
+          **Common mistakes:**
+          - Reversed order — the old list is lost.
+          - `head.next = new` — that inserts *after* the first node, and then breaks it.
+          - "Shift" — linked lists never shift.
+
+          **Connects to:** Q3 and Q4 — the same care in the middle.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A program builds a linked list of {{n}} values by inserting each at the **head**. What does it cost in total, and in what order
+          do the values end up?
+        options:
+          - { text: "O(n) in total; the values end up in reverse order of insertion", correct: true }
+          - { text: "O(n²); same order as inserted", misconception: linked-insert-shifts }
+          - { text: "O(n); same order as inserted", misconception: head-insert-order }
+          - { text: "O(n log n); sorted order", misconception: shift-to-sort }
+        hints:
+          nudge: "Each head insert is O(1). Where does each new value go?"
+          partial: "The last value inserted is at the head."
+        explanation: |
+          **Answer:** $O(n)$; reverse order.
+
+          **Why:** {{n}} constant-time inserts cost $O(n)$. Each new value goes in front of the previous one, so the list reads last-inserted first.
+          (A Python list with `insert(0, x)` gives the same order but costs $O(n^2)$.)
+
+          **Common mistakes:**
+          - "O(n²)" — nothing shifts in a linked list.
+          - "Same order" — each new node goes in front.
+          - "Sorted" — no comparisons are made.
+
+          **Connects to:** Q3 — inserting in the middle.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: linked-lists
+    uses: [s1, s2]
+    clueFor: [s6]
+    establishes: "Insert after position {{k}}: {{k}} links to get there, then 2 pointer updates — O(k)."
+    standaloneContext: "In a singly linked list, reaching position k takes k link-follows; linking a new node in takes two pointer updates."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          `p` is the node holding 8 in 3 → 8 → 5. To insert `new` (holding 6) after `p`, which **first** step keeps the list intact?
+        options:
+          - { text: "`new.next = p.next`", correct: true }
+          - { text: "`p.next = new`", misconception: pointer-order-wrong }
+          - { text: "`new.next = p`", misconception: pointer-direction-wrong }
+          - { text: "`p = new`", misconception: pointer-variable-confusion }
+        hints:
+          nudge: "Which pointer would you lose if you overwrote `p.next` first?"
+          partial: "Save the link to 5 inside the new node first."
+        explanation: |
+          **Answer:** `new.next = p.next`.
+
+          **Why:** It hooks the new node to the 5 before anything is overwritten; then `p.next = new` completes the insert.
+
+          **Common mistakes:**
+          - `p.next = new` first — the link to 5 is lost.
+          - `new.next = p` — that points backwards and makes a cycle.
+          - `p = new` — that only changes a local variable.
+
+          **Connects to:** Q6 — comparing arrays and linked lists.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          In the {{n}}-node list, you insert a new node **after position {{k}}**. How many links do you follow, and how many
+          pointers do you change?
+        options:
+          - { text: "{{k}} links, then 2 pointer changes", correct: true }
+          - { text: "1 link (random access), then 2 pointer changes", misconception: linked-random-access }
+          - { text: "{{k}} links, then {{n-k-1}} shifts", misconception: linked-insert-shifts }
+          - { text: "{{n}} links, then 1 pointer change", misconception: traverse-whole-list }
+        hints:
+          nudge: "Reach the node first, then link the new one in."
+          buildsOn: "Q1: reaching position {{k}} takes {{k}} links. Q2: linking in takes `new.next = …` then `… = new`."
+          partial: "Two pointers change: `new.next` and the predecessor's `next`."
+        explanation: |
+          **Answer:** {{k}} links, then 2 pointer changes.
+
+          **Why:** Walking to position {{k}} follows {{k}} links (Q1). Then `new.next = p.next` and `p.next = new`, in that order (Q2).
+          Total $O(k)$ — the walk dominates; the insert itself is $O(1)$.
+
+          **Common mistakes:**
+          - "1 link" — linked lists have no random access.
+          - "Shifts" — no nodes move.
+          - "{{n}} links" — you stop at position {{k}}.
+
+          **Connects to:** Q6 — choosing a structure.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          A program inserts {{n}} values one by one at the **end** of a singly linked list that keeps only a `head` pointer. How many
+          links are followed in total?
+        answer: { expr: "n * (n - 1) / 2 - (n - 1)" }
+        distractors:
+          - { expr: "n", misconception: tail-pointer-assumed }
+          - { expr: "n * (n - 1) / 2", misconception: boundary-off-by-one }
+          - { expr: "n^2", misconception: pairs-ordered }
+        hints:
+          nudge: "To append, walk from the head to the last node. With j nodes, how many links is that?"
+          buildsOn: "Q1: reaching position j takes j links. Q2: the actual linking is O(1)."
+          partial: "With j ≥ 1 nodes, reaching the last takes j − 1 links: sum over j = 1 … n − 1."
+        explanation: |
+          **Answer:** {{n*(n-1)/2 - (n-1)}}
+
+          **Why:** Appending to a list of $j$ nodes walks $j - 1$ links to the last node (Q1). Summing over $j = 1 \dots {{n-1}}$:
+          $\frac{(n-1)(n-2)}{2} = {{n*(n-1)/2 - (n-1)}}$ — $O(n^2)$. Keeping a `tail` pointer makes each append $O(1)$.
+
+          **Common mistakes:**
+          - {{n}} — without a tail pointer, every append walks the list.
+          - {{n*(n-1)/2}} — reaching the last of $j$ nodes takes $j - 1$ links, not $j$.
+          - {{n^2}} — the list starts empty and grows.
+
+          **Connects to:** Q6 — choosing a structure.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: linked-lists
+    uses: [s2]
+    clueFor: [s5]
+    establishes: "Delete the node after p: p.next = p.next.next — O(1) once you have p."
+    standaloneContext: "Each node holds a value and a `next` pointer; changing pointers, not moving nodes, edits the list."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: |
+          List 3 → 8 → 5 → 9. `p` is the node holding 8. Which statement removes the 5?
+        options:
+          - { text: "`p.next = p.next.next`", correct: true }
+          - { text: "`p.next = None`", misconception: delete-cuts-list }
+          - { text: "`p = p.next`", misconception: pointer-variable-confusion }
+          - { text: "`p.next.next = p`", misconception: pointer-direction-wrong }
+        hints:
+          nudge: "8 should point past the 5, to the 9."
+          partial: "8's new `next` is 5's `next`."
+        explanation: |
+          **Answer:** `p.next = p.next.next`.
+
+          **Why:** 8 now points to 9; nothing points to 5, so it's gone from the list (Python frees it).
+
+          **Common mistakes:**
+          - `p.next = None` — that also cuts off the 9.
+          - `p = p.next` — that moves a local variable; the list is unchanged.
+          - `p.next.next = p` — that creates a cycle.
+
+          **Connects to:** Q5 — deleting the last node.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: |
+          You hold a pointer `p` to a node in the middle of a long singly linked list. What does it cost to delete the node **after** `p`?
+        options:
+          - { text: "O(1): `p.next = p.next.next`", correct: true }
+          - { text: "O(n): the later nodes must shift left", misconception: linked-insert-shifts }
+          - { text: "O(n): you must walk from the head to find it", misconception: traverse-whole-list }
+          - { text: "O(1), but only if the node is the last one", misconception: delete-cuts-list }
+        hints:
+          nudge: "You already have the predecessor. What has to change?"
+          buildsOn: "Q2: edits are pointer changes, not moves."
+          partial: "One pointer: p.next."
+        explanation: |
+          **Answer:** $O(1)$.
+
+          **Why:** One pointer change bypasses the node (Q2's idea: edit pointers, never move nodes). No shifting, no searching — you already
+          have `p`.
+
+          **Common mistakes:**
+          - "Shift" — linked lists don't shift.
+          - "Walk from the head" — not needed when you hold the predecessor.
+          - "Only the last" — any node after `p` can be bypassed.
+
+          **Connects to:** Q5 — what if you don't have the predecessor?
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          You hold a pointer to node `x` (not the last) but **not** its predecessor, in a singly linked list. How can you delete `x`'s
+          value in O(1)?
+        options:
+          - { text: "Copy the next node's value into x, then bypass the next node", correct: true }
+          - { text: "Set x = None", misconception: pointer-variable-confusion }
+          - { text: "It's impossible without walking from the head", misconception: traverse-whole-list }
+          - { text: "Set x.next = None", misconception: delete-cuts-list }
+        hints:
+          nudge: "You can't change the predecessor's pointer — but you can change x itself."
+          buildsOn: "Q2: you can only change pointers you can reach."
+          partial: "Make x *become* its successor, then delete the successor."
+        explanation: |
+          **Answer:** copy the next value into `x`, then `x.next = x.next.next`.
+
+          **Why:** Without the predecessor you can't redirect the link *into* `x`, but you can overwrite `x` with its successor's value and
+          bypass the successor — $O(1)$. (It doesn't work for the last node.)
+
+          **Common mistakes:**
+          - `x = None` — rebinds a variable; the list still contains the node.
+          - "Impossible" — the copy trick avoids the walk.
+          - `x.next = None` — that cuts off the rest of the list.
+
+          **Connects to:** Q5 — deleting the last node.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: linked-lists
+    uses: [s1, s4]
+    clueFor: [s6]
+    establishes: "Deleting the last node of a singly linked list: walk {{n-2}} links to its predecessor — O(n)."
+    standaloneContext: "In a singly linked list, deleting the node after p is O(1), but reaching a node means following links from the head."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          To delete the last node of the {{n}}-node singly linked list, you need its predecessor (position {{n-2}}). How many links
+          from the head is that?
+        answer: { expr: "n - 2" }
+        distractors:
+          - { expr: "1", misconception: linked-random-access }
+          - { expr: "n - 1", misconception: boundary-off-by-one }
+          - { expr: "n", misconception: traverse-whole-list }
+        hints:
+          nudge: "Position p is p links from the head."
+          partial: "The predecessor of the last node is at position {{n-2}}."
+        explanation: |
+          **Answer:** {{n-2}}
+
+          **Why:** The last node is at position {{n-1}}; its predecessor at {{n-2}}, which takes {{n-2}} links.
+
+          **Common mistakes:**
+          - 1 — no random access.
+          - {{n-1}} — that reaches the last node itself, which is one step too far.
+          - {{n}} — there are only {{n}} nodes.
+
+          **Connects to:** Q6 — choosing a structure.
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          A singly linked list keeps `head` **and** `tail` pointers. Which operation is still $O(n)$?
+        options:
+          - { text: "Deleting the last node", correct: true }
+          - { text: "Appending a node at the end", misconception: tail-pointer-assumed }
+          - { text: "Deleting the first node", misconception: traverse-whole-list }
+          - { text: "Inserting at the head", misconception: linked-insert-shifts }
+        hints:
+          nudge: "After deleting the tail, what must the new tail be — and how do you find it?"
+          buildsOn: "Q1: finding a node means walking from the head. Q4: deleting needs the predecessor."
+          partial: "`tail` doesn't tell you the node *before* the tail."
+        explanation: |
+          **Answer:** deleting the last node.
+
+          **Why:** Deleting needs the predecessor (Q4), and with only `next` pointers the node before the tail must be found by walking from
+          the head (Q1): $O(n)$. A doubly linked list stores `prev`, making this $O(1)$.
+
+          **Common mistakes:**
+          - Appending — with a `tail` pointer it's $O(1)$.
+          - Deleting the first — `head = head.next`, $O(1)$.
+          - Inserting at the head — $O(1)$.
+
+          **Connects to:** Q6 — choosing the right list.
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          A doubly linked list (each node has `prev` and `next`) keeps `head` and `tail`. To delete a node `x` in the middle, which
+          pointers change?
+        options:
+          - { text: "`x.prev.next = x.next` and `x.next.prev = x.prev`", correct: true }
+          - { text: "Only `x.prev.next = x.next`", misconception: doubly-one-side }
+          - { text: "`x.next = x.prev` and `x.prev = x.next`", misconception: pointer-direction-wrong }
+          - { text: "Every node after x must update its prev", misconception: linked-insert-shifts }
+        hints:
+          nudge: "Both neighbours point at x. Each needs to skip it."
+          buildsOn: "Q4: deleting means bypassing. Q1: no walking needed when you hold x."
+          partial: "The left neighbour's `next` and the right neighbour's `prev`."
+        explanation: |
+          **Answer:** `x.prev.next = x.next` and `x.next.prev = x.prev`.
+
+          **Why:** Both neighbours must bypass `x`; with `prev` pointers you reach the left neighbour directly, so deletion is $O(1)$ —
+          no walk from the head (Q1). Updating only one side leaves a dangling backward link.
+
+          **Common mistakes:**
+          - One pointer — the right neighbour still points back at `x`.
+          - Swapping x's own pointers — x is being removed; its neighbours are what change.
+          - "Every node after x" — only the two neighbours are affected.
+
+          **Connects to:** Q6 — choosing the right structure.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: linked-lists
+    uses: [s3, s5]
+    establishes: "Linked lists: O(1) splicing where you hold a node, O(k) to reach position k; arrays: the reverse."
+    standaloneContext: |
+      Linked lists insert/delete next to a known node in O(1) but need O(k) to reach position k. Arrays index in O(1) but shift on inserts.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: "Which operation is a linked list clearly **worse** at than an array?"
+        options:
+          - { text: "Reading the element at position i", correct: true }
+          - { text: "Inserting at the front", misconception: array-front-insert-O1 }
+          - { text: "Deleting the node after one you hold", misconception: linked-insert-shifts }
+          - { text: "Adding at the front of a long list", misconception: traverse-whole-list }
+        hints:
+          nudge: "Which operation uses the array's address formula?"
+          partial: "Arrays: B + s·i. Linked lists: i hops."
+        explanation: |
+          **Answer:** reading position i.
+
+          **Why:** Arrays compute the address in $O(1)$; linked lists hop $i$ times.
+
+          **Common mistakes:**
+          - "Front insert" — that's where linked lists shine (O(1)) and arrays struggle (O(n)).
+          - "Delete after a held node" — $O(1)$ for linked lists.
+          - "Add at the front" — $O(1)$ for linked lists.
+
+          **Connects to:** the challenge — reversing a list.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          A text editor stores a document as a sequence of lines. The cursor moves line by line, and the user often inserts and deletes
+          lines **at the cursor**. Which structure suits it best?
+        options:
+          - { text: "A doubly linked list of lines, with a pointer to the cursor's node", correct: true }
+          - { text: "An array of lines — insertion at the cursor is O(1)", misconception: array-insert-free }
+          - { text: "A singly linked list with only a head pointer, re-walked to the cursor for each edit", misconception: linked-random-access }
+          - { text: "Either: they have the same costs", misconception: structures-equivalent }
+        hints:
+          nudge: "Edits happen next to a node you already hold."
+          buildsOn: "Q3: inserting next to a held node is O(1). Q5: doubly linked lists can also delete it in O(1)."
+          partial: "Keep a pointer to the cursor node; splice there."
+        explanation: |
+          **Answer:** a doubly linked list with a cursor pointer.
+
+          **Why:** Edits at the cursor are $O(1)$ splices (Q3), and with `prev` pointers deleting the cursor's line is $O(1)$ too (Q5).
+          Moving up and down is one hop per line. An array would shift every later line on each edit.
+
+          **Common mistakes:**
+          - Array — insertion shifts all later lines, $O(n)$.
+          - Re-walking from the head — throws away the cursor's position: $O(n)$ per edit.
+          - "Same costs" — their trade-offs are opposite.
+
+          **Connects to:** the challenge — reversing a list.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          In theory, linked-list insertion at a held node is O(1) and array insertion is O(n). Yet for lists of a few thousand
+          integers, arrays are often faster even with middle inserts. Why?
+        options:
+          - { text: "Arrays are contiguous, so shifting is fast in cache, while linked-list nodes are scattered and walking them misses the cache", correct: true }
+          - { text: "Big-O is wrong for small n", misconception: big-o-means-worst-case }
+          - { text: "Arrays don't really shift — they leave gaps", misconception: array-delete-free }
+          - { text: "Linked lists must re-sort after each insert", misconception: shift-to-sort }
+        hints:
+          nudge: "Big-O hides constant factors. Which structure is friendlier to the CPU cache?"
+          buildsOn: "Q3: you must still *reach* the insertion point. Q5: walking costs O(n)."
+          partial: "Reaching position k in a linked list is O(k) pointer-chasing anyway."
+        explanation: |
+          **Answer:** cache-friendliness and constant factors.
+
+          **Why:** Finding the insertion point in a linked list is itself $O(k)$ pointer-chasing (Q3, Q5), and each hop may miss the cache.
+          Shifting a contiguous array is a fast memory copy. Big-O is right about growth, but constants decide at moderate $n$.
+
+          **Common mistakes:**
+          - "Big-O is wrong" — it's correct asymptotically; constants matter in practice.
+          - "Gaps" — arrays do shift.
+          - "Re-sort" — linked lists don't sort themselves.
+
+          **Connects to:** the challenge — reversing a list.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: linked-lists
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "Why does the order of the two pointer updates matter when inserting after node `p`?"
+        options:
+          - { text: "Overwriting `p.next` first loses the only link to the rest of the list", correct: true }
+          - { text: "It doesn't matter — both orders work", misconception: pointer-order-wrong }
+          - { text: "The new node must be sorted into place first", misconception: shift-to-sort }
+          - { text: "Python requires pointer updates in alphabetical order", misconception: pointer-variable-confusion }
+        hints:
+          nudge: "After `p.next = new`, where is the old `p.next`?"
+          partial: "Nothing else points to it."
+        explanation: |
+          **Answer:** overwriting `p.next` first loses the rest of the list.
+
+          **Why:** `p.next` is the only pointer to the following nodes. Save it into `new.next` first, then redirect `p.next`.
+
+          **Common mistakes:**
+          - "Doesn't matter" — one order loses data.
+          - "Sorted" — insertion position is chosen by you.
+          - "Alphabetical" — the order is about not losing references.
+
+          **Connects to:** Q3 — inserting after position k.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l2.ch
+  type: algorithm-stepper
+  title: "Reverse a linked list"
+  concept: linked-lists
+  uses: [s2, s4]
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Reverse the list A → B → C → D, one pointer at a time. At most 2 mistakes."
+      config:
+        algorithm: list-reverse
+        input: { values: ["A", "B", "C", "D"] }
+      check: { expr: "done and mistakes <= 2" }
+      feedback:
+        - { if: "not done", say: "Keep going until every node points backwards." }
+        - { if: "mistakes > 2", say: "Each node's next should point to the node *before* it — that's prev.", misconception: pointer-direction-wrong }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "When you redirect curr.next, what should it point to?"
+        buildsOn: "From Q2: change pointers in an order that doesn't lose the list."
+        partial: "curr.next = prev (None for the first node)."
+      solution: { followTrace: true }
+      explanation: |
+        Save `next`, point `curr.next` back at `prev`, then advance `prev` and `curr`. Four nodes, four pointer flips: $O(n)$ time, $O(1)$ space.
+    standard:
+      difficulty: 3
+      goal: "Reverse a 6-node list. At most 1 mistake."
+      config:
+        algorithm: list-reverse
+        input: { values: [3, 1, 4, 1, 5, 9] }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 1", say: "The first node becomes the tail, so its next is None; after that, always point to prev.", misconception: pointer-direction-wrong }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "What is prev before the first step?"
+        buildsOn: "From Q2: order of pointer updates matters."
+        partial: "prev starts as None."
+      solution: { followTrace: true }
+      explanation: |
+        Six flips; the old tail (9) becomes the new head.
+    harder:
+      difficulty: 4
+      goal: "Reverse an 8-node list **with no mistakes**."
+      config:
+        algorithm: list-reverse
+        input: { values: ["s", "t", "a", "c", "k", "i", "n", "g"] }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 0", say: "Every flip points curr back at prev — no exceptions.", misconception: pointer-direction-wrong }
+        - { if: "true", say: "No mistakes allowed." }
+      hints:
+        nudge: "Track prev carefully as it moves forward."
+        buildsOn: "From Q2: never lose the rest of the list."
+        partial: "prev is always the node you flipped just before."
+      solution: { followTrace: true }
+      explanation: |
+        One pass, eight flips, constant extra space: the classic in-place reversal.
+
+summary:
+  keyTakeaways:
+    - "Linked lists have no address formula: reaching position k follows k links — O(k)."
+    - "Inserting or deleting next to a node you hold is O(1): change pointers, never move nodes."
+    - "Update pointers in a safe order: link the new node to the rest *before* redirecting its predecessor."
+    - "Singly linked lists can't delete their tail in O(1); doubly linked lists (prev pointers) can."
+  next: dsa.u2.l3

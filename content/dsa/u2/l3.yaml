@@ -1,0 +1,647 @@
+id: dsa.u2.l3
+title: "Stacks"
+version: 1
+concepts: [stacks]
+estimatedMinutes: 20
+
+# Scenario: a stack used by a code editor — pushes a, b, c; bracket checking; next-greater lookups on n items.
+params:
+  sets:
+    - { a: 4, b: 7, c: 2, n: 12 }
+    - { a: 9, b: 3, c: 6, n: 20 }
+    - { a: 5, b: 8, c: 1, n: 16 }
+
+intro: |
+  A **stack** is a collection where you only touch the **top**: **push** adds an item on top, **pop**
+  removes and returns the top item, and **peek** looks at it. The last item in is the first out:
+  **LIFO**.
+
+  In Python, a list is a perfect stack: `append(x)` pushes and `pop()` pops, both at the **end** of the
+  list, so both are $O(1)$. (Using the front — `insert(0, x)` / `pop(0)` — would make each operation $O(n)$.)
+
+  Stacks fit problems where the most recent unfinished thing must be finished first:
+
+  - **Balanced brackets**: push each opening bracket; on a closing bracket, the top must be its
+    partner — pop it. Leftover openers at the end, or a mismatch, mean unbalanced.
+  - **Function calls**: the call stack from the recursion lesson.
+  - **Monotonic stacks**: to find each element's *next greater element*, keep a stack of indices still
+    waiting for an answer; when a bigger value arrives, pop everything it beats.
+
+  Each item is pushed once and popped at most once, so these algorithms are $O(n)$.
+
+workedExample: |
+  Check `{()}`:
+
+  - `{` → push. Stack: `{`
+  - `(` → push. Stack: `{(`
+  - `)` → top is `(`, a match → pop. Stack: `{`
+  - `}` → top is `{`, a match → pop. Stack empty at the end → balanced.
+
+chain:
+  # ───────────────────────── s1 ─────────────────────────
+  - id: s1
+    role: core
+    concept: stacks
+    clueFor: [s3]
+    establishes: "LIFO: after push {{a}}, push {{b}}, pop, push {{c}}, the next pop returns {{c}}."
+    variants:
+      easier:
+        id: s1-e
+        difficulty: 1
+        prompt: |
+          You push {{a}}, then push {{b}}, onto an empty stack. What does `pop()` return?
+        options:
+          - { text: "{{b}}", correct: true }
+          - { text: "{{a}}", misconception: stack-as-queue }
+          - { text: "Both, as a pair", misconception: pop-returns-all }
+          - { text: "Nothing — pop only removes", misconception: pop-no-value }
+        hints:
+          nudge: "Which item went in last?"
+          partial: "Last in, first out."
+        explanation: |
+          **Answer:** {{b}}
+
+          **Why:** {{b}} was pushed last, so it's on top: LIFO.
+
+          **Common mistakes:**
+          - {{a}} — first-in-first-out is a *queue*.
+          - "Both" — pop removes one item.
+          - "Nothing" — pop removes the top and returns it.
+
+          **Connects to:** Q3 — brackets use the same rule.
+      standard:
+        id: s1-s
+        difficulty: 2
+        prompt: |
+          Starting from an empty stack: push {{a}}, push {{b}}, pop, push {{c}}. What does the **next** `pop()` return?
+        options:
+          - { text: "{{c}}", correct: true }
+          - { text: "{{a}}", misconception: stack-as-queue }
+          - { text: "{{b}}", misconception: pop-not-removed }
+          - { text: "Nothing — the stack is empty", misconception: stack-size-miscount }
+        hints:
+          nudge: "Track the stack after each step."
+          partial: "After the first pop the stack holds only {{a}}; then {{c}} goes on top."
+        explanation: |
+          **Answer:** {{c}}
+
+          **Why:** [{{a}}] → [{{a}}, {{b}}] → pop {{b}} → [{{a}}] → push → [{{a}}, {{c}}]. The top is {{c}}.
+
+          **Common mistakes:**
+          - {{a}} — that's the oldest item; a stack serves the newest.
+          - {{b}} — {{b}} was already popped.
+          - "Empty" — {{a}} and {{c}} are still there.
+
+          **Connects to:** Q3 — matching brackets.
+      harder:
+        id: s1-h
+        difficulty: 3
+        prompt: |
+          Items {{a}}, {{b}}, {{c}} arrive in that order. You may pop at any time, and each popped item is printed. Which output is
+          **impossible**?
+        options:
+          - { text: "{{c}}, {{a}}, {{b}}", correct: true }
+          - { text: "{{c}}, {{b}}, {{a}}", misconception: stack-as-queue }
+          - { text: "{{a}}, {{b}}, {{c}}", misconception: pop-not-removed }
+          - { text: "{{b}}, {{c}}, {{a}}", misconception: stack-order-fixed }
+        hints:
+          nudge: "If {{c}} is printed first, where are {{a}} and {{b}} at that moment?"
+          partial: "Both are on the stack, with {{b}} above {{a}}."
+        explanation: |
+          **Answer:** {{c}}, {{a}}, {{b}}
+
+          **Why:** To print {{c}} first, {{a}} and {{b}} must already be pushed, with {{b}} on top. The next pop must give {{b}}, not {{a}}.
+
+          **Common mistakes:**
+          - "{{c}}, {{b}}, {{a}}" — push all, pop all: possible.
+          - "{{a}}, {{b}}, {{c}}" — push and pop each immediately: possible.
+          - "{{b}}, {{c}}, {{a}}" — push {{a}}, push {{b}}, pop, push {{c}}, pop, pop: possible.
+
+          **Connects to:** Q3 — matching brackets.
+
+  # ───────────────────────── s2 ─────────────────────────
+  - id: s2
+    role: core
+    concept: stacks
+    clueFor: [s5]
+    establishes: "A Python list is a stack with append() and pop() — both O(1) at the end."
+    variants:
+      easier:
+        id: s2-e
+        difficulty: 1
+        prompt: "Which list methods implement push and pop for a stack?"
+        options:
+          - { text: "`append(x)` and `pop()`", correct: true }
+          - { text: "`append(x)` and `pop(0)`", misconception: stack-as-queue }
+          - { text: "`insert(0, x)` and `pop()`", misconception: stack-ends-mixed }
+          - { text: "`sort()` and `pop()`", misconception: shift-to-sort }
+        hints:
+          nudge: "Push and pop must use the same end."
+          partial: "The end of a list is the cheap end."
+        explanation: |
+          **Answer:** `append(x)` and `pop()`.
+
+          **Why:** Both work at the end of the list, which is the top of the stack.
+
+          **Common mistakes:**
+          - `pop(0)` — removing from the other end makes a queue.
+          - `insert(0, x)` with `pop()` — the two ends don't match.
+          - `sort()` — stacks keep arrival order.
+
+          **Connects to:** Q5 — a stack algorithm.
+      standard:
+        id: s2-s
+        difficulty: 2
+        prompt: |
+          A stack is implemented with a Python list, using `insert(0, x)` to push and `pop(0)` to pop. It holds $n$ items. What is
+          wrong?
+        options:
+          - { text: "It's correct LIFO, but each push and pop is O(n) — use append/pop() instead", correct: true }
+          - { text: "It isn't LIFO any more", misconception: stack-ends-mixed }
+          - { text: "Nothing — every list operation is O(1)", misconception: array-front-insert-O1 }
+          - { text: "pop(0) returns the wrong element", misconception: stack-as-queue }
+        hints:
+          nudge: "Both operations use the front. Is that still LIFO? Is it fast?"
+          partial: "Same end → still LIFO. Front of a list → everything shifts."
+        explanation: |
+          **Answer:** correct but slow.
+
+          **Why:** Push and pop use the same end, so it's still LIFO. But the front of a list shifts every element: $O(n)$ per operation.
+          The end is $O(1)$.
+
+          **Common mistakes:**
+          - "Not LIFO" — LIFO only needs both operations on the same end.
+          - "All O(1)" — front operations shift.
+          - "Wrong element" — `pop(0)` returns the most recent `insert(0, x)`.
+
+          **Connects to:** Q5 — a stack algorithm.
+      harder:
+        id: s2-h
+        difficulty: 3
+        prompt: |
+          A stack (a Python list) receives {{n}} pushes, then {{n}} pops. What's the total cost, and what's the worst single operation?
+        options:
+          - { text: "O(n) total; one push can be O(n) when the list resizes (amortized O(1))", correct: true }
+          - { text: "O(n²) total, because pops shift elements", misconception: array-front-insert-O1 }
+          - { text: "O(n) total, and every operation is strictly O(1)", misconception: amortized-every-step }
+          - { text: "O(n log n) total", misconception: amortized-log }
+        hints:
+          nudge: "Pushes are appends. What happens to a dynamic array occasionally?"
+          partial: "Append is amortized O(1)."
+        explanation: |
+          **Answer:** $O(n)$ total; one push may be $O(n)$.
+
+          **Why:** Append is amortized $O(1)$ (dynamic-array doubling), and `pop()` from the end is $O(1)$. Total $O(n)$, though a resizing push
+          copies everything once.
+
+          **Common mistakes:**
+          - $O(n^2)$ — popping from the end doesn't shift.
+          - "Strictly O(1)" — resizing pushes are linear.
+          - $O(n \log n)$ — amortized cost is constant.
+
+          **Connects to:** Q5 — a stack algorithm.
+
+  # ───────────────────────── s3 ─────────────────────────
+  - id: s3
+    role: core
+    concept: stacks
+    uses: [s1]
+    clueFor: [s4]
+    establishes: "Checking ([{}])(): push openers, pop on matching closers — the stack peaks at 3."
+    standaloneContext: "A stack is last-in, first-out: pop always returns the most recently pushed item."
+    variants:
+      easier:
+        id: s3-e
+        difficulty: 1
+        prompt: |
+          Checking `(()` with a stack: push on `(`, pop on `)`. What is on the stack after reading all three characters?
+        options:
+          - { text: "One `(`", correct: true }
+          - { text: "Nothing", misconception: stack-size-miscount }
+          - { text: "`(()`", misconception: stack-holds-all }
+          - { text: "One `)`", misconception: push-closers }
+        hints:
+          nudge: "Push, push, pop."
+          partial: "Two openers in, one taken out."
+        explanation: |
+          **Answer:** one `(`
+
+          **Why:** `(` push, `(` push, `)` pop → one `(` left over, so the string is unbalanced.
+
+          **Common mistakes:**
+          - "Nothing" — two pushes, one pop.
+          - "`(()`" — closers aren't pushed.
+          - "`)`" — closing brackets pop; they don't get pushed.
+
+          **Connects to:** Q4 — reading the verdict off the stack.
+      standard:
+        id: s3-s
+        difficulty: 2
+        prompt: |
+          Checking `([{}])()` with a stack (push openers, pop matching closers): what is the **largest** number of items on the stack
+          at any moment?
+        answer: { expr: "3" }
+        distractors:
+          - { expr: "2", misconception: stack-size-miscount }
+          - { expr: "8", misconception: stack-holds-all }
+          - { expr: "4", misconception: push-closers }
+        hints:
+          nudge: "Track the stack after each character."
+          buildsOn: "Q1: the most recent opener is always on top."
+          partial: "`(` `[` `{` are pushed before anything is popped."
+        explanation: |
+          **Answer:** 3
+
+          **Why:** `(`, `[`, `{` are pushed (size 3); then `}`, `]`, `)` pop them in reverse order (LIFO, Q1); then `(` `)` peaks at 1.
+          The maximum is the deepest nesting: 3.
+
+          **Common mistakes:**
+          - 2 — three openers are open at once.
+          - 8 — closers pop; only openers are stored.
+          - 4 — the second `(` is pushed after the first group is fully closed.
+
+          **Connects to:** Q4 — detecting unbalanced strings.
+      harder:
+        id: s3-h
+        difficulty: 3
+        prompt: |
+          A string consists of {{n/2}} opening brackets followed by {{n/2}} matching closing brackets (fully nested, {{n}} characters).
+          How many pushes and pops does the checker do in total?
+        answer: { expr: "n" }
+        distractors:
+          - { expr: "2 * n", misconception: push-closers }
+          - { expr: "n / 2", misconception: stack-size-miscount }
+          - { expr: "n^2 / 4", misconception: pairs-ordered }
+        hints:
+          nudge: "Each character causes exactly one stack operation."
+          buildsOn: "Q1: push and pop are O(1) each."
+          partial: "{{n/2}} pushes + {{n/2}} pops."
+        explanation: |
+          **Answer:** {{n}}
+
+          **Why:** Every opener is pushed once and popped once by its partner: ${{n/2}} + {{n/2}} = {{n}}$ operations — one per character,
+          $O(n)$ overall.
+
+          **Common mistakes:**
+          - {{2*n}} — closers aren't pushed.
+          - {{n/2}} — that counts only the pushes.
+          - {{n^2/4}} — no character is compared with every other.
+
+          **Connects to:** Q4 — detecting unbalanced strings.
+
+  # ───────────────────────── s4 ─────────────────────────
+  - id: s4
+    role: core
+    concept: stacks
+    uses: [s3]
+    clueFor: [s6]
+    establishes: "Unbalanced if a closer doesn't match the top (or the stack is empty), or openers remain at the end."
+    standaloneContext: "The bracket checker pushes opening brackets and pops when a closing bracket matches the top."
+    variants:
+      easier:
+        id: s4-e
+        difficulty: 1
+        prompt: "Checking `(]`: what happens at the `]`?"
+        options:
+          - { text: "The top is `(`, which doesn't match `]` — unbalanced", correct: true }
+          - { text: "Pop the `(`; brackets of any kind cancel out", misconception: brackets-any-match }
+          - { text: "Push the `]`", misconception: push-closers }
+          - { text: "Ignore it and continue", misconception: brackets-skip }
+        hints:
+          nudge: "Does `]` close a `(`?"
+          partial: "`]` needs a `[` on top."
+        explanation: |
+          **Answer:** mismatch → unbalanced.
+
+          **Why:** A closer must match the most recent unclosed opener — the top. `(` doesn't match `]`.
+
+          **Common mistakes:**
+          - "Any kind cancels" — types must match: `(` with `)`.
+          - "Push" — only openers are pushed.
+          - "Ignore" — every bracket counts.
+
+          **Connects to:** Q6 — the checker's cost.
+      standard:
+        id: s4-s
+        difficulty: 2
+        prompt: "Which string makes the checker report **unbalanced**, and why?"
+        options:
+          - { text: "`([)]` — at `)` the top is `[`", correct: true }
+          - { text: "`([])` — the brackets are of different kinds", misconception: brackets-same-kind }
+          - { text: "`()[]` — the stack becomes empty in the middle", misconception: empty-mid-unbalanced }
+          - { text: "`{[()]}` — it is nested too deeply", misconception: nesting-limit }
+        hints:
+          nudge: "Run the checker on each one."
+          buildsOn: "Q3: the stack always holds the openers still waiting, newest on top."
+          partial: "Crossing pairs like `( [ ) ]` close in the wrong order."
+        explanation: |
+          **Answer:** `([)]`.
+
+          **Why:** After `(` `[` the top is `[`; the `)` doesn't match it (Q3's top-of-stack rule). Brackets must close in reverse order of opening.
+
+          **Common mistakes:**
+          - `([])` — mixing kinds is fine if each closes properly.
+          - `()[]` — an empty stack mid-way just means one group finished.
+          - `{[()]}` — depth isn't limited.
+
+          **Connects to:** Q6 — the checker's cost.
+      harder:
+        id: s4-h
+        difficulty: 3
+        prompt: |
+          The checker reads `())`. Which check catches the error, and when?
+        options:
+          - { text: "At the last `)`: the stack is already empty, so there's nothing to match", correct: true }
+          - { text: "At the end: openers remain on the stack", misconception: stack-size-miscount }
+          - { text: "At the first `)`: it doesn't match", misconception: brackets-any-match }
+          - { text: "It reports balanced: two `)` and one `(` cancel", misconception: brackets-count-only }
+        hints:
+          nudge: "What's on the stack before the third character?"
+          buildsOn: "Q3: pops remove the matching opener."
+          partial: "`(` push, `)` pop → empty; then `)` …"
+        explanation: |
+          **Answer:** at the last `)`, because the stack is empty.
+
+          **Why:** After `()` the stack is empty (Q3); the extra `)` has no opener to close. The checker must test for an empty stack before popping.
+
+          **Common mistakes:**
+          - "Openers remain" — that's the other failure, e.g. `(()`.
+          - "First `)`" — it matches the `(`.
+          - "Cancel" — counting isn't enough; order and emptiness matter.
+
+          **Connects to:** Q6 — the checker's cost.
+
+  # ───────────────────────── s5 ─────────────────────────
+  - id: s5
+    role: core
+    concept: stacks
+    uses: [s1, s2]
+    clueFor: [s6]
+    establishes: "Monotonic stack: a new larger value pops every smaller waiting item and becomes their next greater element."
+    standaloneContext: "A stack serves its newest item first; pushes and pops at the end of a Python list are O(1)."
+    variants:
+      easier:
+        id: s5-e
+        difficulty: 2
+        prompt: |
+          In `[2, 7, 3, 5, 4, 6, 8]`, what is the **next greater element** of 3 (the first value to its right that is larger)?
+        options:
+          - { text: "5", correct: true }
+          - { text: "7", misconception: nge-looks-left }
+          - { text: "8", misconception: nge-maximum }
+          - { text: "4", misconception: nge-next-element }
+        hints:
+          nudge: "Scan to the right of 3."
+          partial: "5 is the first value after 3 that's bigger."
+        explanation: |
+          **Answer:** 5
+
+          **Why:** Right of 3 come 5, 4, 6, 8; the first larger value is 5.
+
+          **Common mistakes:**
+          - 7 — that's to the left.
+          - 8 — the *next* greater, not the largest.
+          - 4 — 4 is also larger than 3, but 5 comes first.
+
+          **Connects to:** Q6 — computing all of them in O(n).
+      standard:
+        id: s5-s
+        difficulty: 3
+        prompt: |
+          A monotonic stack finds next greater elements for `[2, 7, 3, 5, 4, 6, 8]`, scanning left to right. Just **before** 6 is
+          processed, the stack holds the values waiting for an answer: `[7, 5, 4]`. When 6 arrives, what happens?
+        options:
+          - { text: "4 and 5 are popped (6 is their next greater element); 7 stays; 6 is pushed", correct: true }
+          - { text: "Only 4 is popped; then 6 is pushed", misconception: monotonic-pop-once }
+          - { text: "7, 5 and 4 are all popped", misconception: monotonic-pop-all }
+          - { text: "6 is pushed on top without popping anything", misconception: pop-not-removed }
+        hints:
+          nudge: "Pop while the top is smaller than 6."
+          buildsOn: "Q1: pop removes the newest item. Q2: push and pop are O(1)."
+          partial: "4 < 6 pop; 5 < 6 pop; 7 > 6 stop."
+        explanation: |
+          **Answer:** pop 4 and 5, keep 7, push 6.
+
+          **Why:** While the top (the newest waiting item, Q1) is smaller than 6, 6 is its answer — pop it. 7 is bigger, so it keeps waiting.
+          The stack is now `[7, 6]`.
+
+          **Common mistakes:**
+          - "Only 4" — keep popping while the top is smaller.
+          - "All three" — 7 is bigger than 6.
+          - "No pops" — 6 answers the smaller waiting values.
+
+          **Connects to:** Q6 — why this is O(n).
+      harder:
+        id: s5-h
+        difficulty: 4
+        prompt: |
+          After the whole array `[2, 7, 3, 5, 4, 6, 8]` is processed, which values are left on the stack, and what does that mean?
+        options:
+          - { text: "Just 8 — it has no next greater element", correct: true }
+          - { text: "7 and 8 — both are large", misconception: monotonic-pop-once }
+          - { text: "Nothing — every element finds an answer", misconception: nge-always-exists }
+          - { text: "2 — the first element is never popped", misconception: nge-looks-left }
+        hints:
+          nudge: "8 arrives last: what does it pop?"
+          buildsOn: "Q1–Q2: popping waiting items is how answers are assigned."
+          partial: "8 pops 7 and 6; nothing comes after 8."
+        explanation: |
+          **Answer:** just 8.
+
+          **Why:** 8 pops 6 and 7 (their answer is 8). Nothing follows 8, so it stays: items left on the stack have **no** next greater element.
+
+          **Common mistakes:**
+          - "7 and 8" — 8 is greater than 7, so it pops 7.
+          - "Nothing" — the largest final value never finds an answer.
+          - "2" — 2 was popped by 7 at the second step.
+
+          **Connects to:** Q6 — the running time.
+
+  # ───────────────────────── s6 ─────────────────────────
+  - id: s6
+    role: core
+    concept: stacks
+    uses: [s4, s5]
+    establishes: "Both stack algorithms are O(n): every item is pushed once and popped at most once."
+    standaloneContext: |
+      The bracket checker and the next-greater-element algorithm each push items onto a stack and pop them later.
+    variants:
+      easier:
+        id: s6-e
+        difficulty: 2
+        prompt: |
+          In the next-greater-element algorithm on {{n}} values, each value is pushed once and popped at most once. At most how many
+          push + pop operations happen?
+        answer: { expr: "2 * n" }
+        distractors:
+          - { expr: "n^2", misconception: monotonic-quadratic }
+          - { expr: "n", misconception: pop-not-removed }
+          - { expr: "n * log2(n)", misconception: amortized-log }
+        hints:
+          nudge: "Count pushes and pops separately."
+          partial: "{{n}} pushes + at most {{n}} pops."
+        explanation: |
+          **Answer:** {{2*n}}
+
+          **Why:** {{n}} pushes plus at most {{n}} pops: $O(n)$ in total.
+
+          **Common mistakes:**
+          - {{n^2}} — a pop can happen only to something previously pushed.
+          - {{n}} — pops count too.
+          - $n \log n$ — no halving here.
+
+          **Connects to:** the challenge — run the bracket checker.
+      standard:
+        id: s6-s
+        difficulty: 3
+        prompt: |
+          The next-greater-element loop has an inner `while` that may pop many items for one new value. Why is the algorithm still O(n)?
+        options:
+          - { text: "Each item is popped at most once over the whole run, so all the inner loops together do at most n pops", correct: true }
+          - { text: "The inner loop pops at most one item per value", misconception: monotonic-pop-once }
+          - { text: "It isn't — nested loops make it O(n²)", misconception: monotonic-quadratic }
+          - { text: "Because the stack stays sorted, so pops use binary search", misconception: access-binary-search }
+        hints:
+          nudge: "Count pops over the *whole* run, not per iteration."
+          buildsOn: "Q4: bracket checking pops each opener once. Q5: the monotonic stack pops a run of smaller values."
+          partial: "An item can't be popped twice; there are only n items."
+        explanation: |
+          **Answer:** each item is popped at most once in total.
+
+          **Why:** A single value can trigger many pops (Q5), but every pop removes an item pushed earlier, and each item is pushed once —
+          so all inner loops together pop at most $n$ times. Same argument for the bracket checker (Q4). This is amortized reasoning.
+
+          **Common mistakes:**
+          - "One pop per value" — one value can pop several.
+          - "O(n²)" — nested loops don't always multiply; count total work.
+          - "Binary search" — pops are plain $O(1)$ stack operations.
+
+          **Connects to:** the challenge — run the bracket checker.
+      harder:
+        id: s6-h
+        difficulty: 4
+        prompt: |
+          A **brute-force** next-greater-element scans right from each position until it finds a larger value. For a strictly
+          **decreasing** array of {{n}} values, how many comparisons does it make?
+        answer: { expr: "n * (n - 1) / 2" }
+        distractors:
+          - { expr: "2 * n", misconception: monotonic-quadratic }
+          - { expr: "n", misconception: nge-next-element }
+          - { expr: "n^2", misconception: pairs-ordered }
+        hints:
+          nudge: "In a decreasing array, does any scan stop early?"
+          buildsOn: "Q4 and Q5: the stack versions are linear. This one isn't."
+          partial: "Position i scans all n − 1 − i values to its right."
+        explanation: |
+          **Answer:** {{n*(n-1)/2}}
+
+          **Why:** Nothing to the right is ever larger, so position $i$ checks all $n - 1 - i$ values: ${{n-1}} + \dots + 0 = {{n*(n-1)/2}}$ —
+          $O(n^2)$, versus at most {{2*n}} stack operations with the monotonic stack.
+
+          **Common mistakes:**
+          - {{2*n}} — that's the stack algorithm.
+          - {{n}} — every scan runs to the end here.
+          - {{n^2}} — position $i$ only looks to its right.
+
+          **Connects to:** the challenge — run the bracket checker.
+
+  # ─────────────── remediation ───────────────
+  - id: r1
+    role: remediation
+    remediates: s3
+    concept: stacks
+    variants:
+      standard:
+        id: r1-s
+        difficulty: 2
+        prompt: "In the bracket checker, why must a closing bracket match the **top** of the stack?"
+        options:
+          - { text: "The top is the most recently opened bracket still open, which must close first", correct: true }
+          - { text: "Because the bottom of the stack can't be reached", misconception: stack-as-queue }
+          - { text: "Any bracket on the stack could match — the top is just quickest", misconception: brackets-any-match }
+          - { text: "Because closing brackets are pushed on top", misconception: push-closers }
+        hints:
+          nudge: "In `( [ ] )`, which bracket must close first?"
+          partial: "The innermost one — the newest."
+        explanation: |
+          **Answer:** the top is the most recent unclosed opener, which must close first.
+
+          **Why:** Proper nesting closes in reverse order of opening — exactly LIFO.
+
+          **Common mistakes:**
+          - "Can't reach the bottom" — the point is nesting order, not access.
+          - "Any could match" — `([)]` would then wrongly pass.
+          - "Closers are pushed" — only openers are stored.
+
+          **Connects to:** Q3 — running the checker.
+
+# ───────────────────────── challenge ─────────────────────────
+challenge:
+  id: dsa.u2.l3.ch
+  type: algorithm-stepper
+  title: "Check the brackets"
+  concept: stacks
+  uses: [s3, s4]
+  variants:
+    easier:
+      difficulty: 2
+      goal: "Run the bracket checker on `(()[])` — push, pop or stop for each character. At most 2 mistakes."
+      config:
+        algorithm: brackets
+        input: { text: "(()[])" }
+      check: { expr: "done and mistakes <= 2" }
+      feedback:
+        - { if: "not done", say: "Keep going to the end of the string." }
+        - { if: "mistakes > 2", say: "Openers are pushed; closers pop only if they match the top.", misconception: push-closers }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "What does each character do to the stack?"
+        buildsOn: "From Q3: push openers, pop matching closers."
+        partial: "Empty stack at the end = balanced."
+      solution: { followTrace: true }
+      explanation: |
+        Every closer matched the top, and the stack ended empty: balanced.
+    standard:
+      difficulty: 3
+      goal: "Run the checker on `{[()()]}[` — decide the verdict too. At most 1 mistake."
+      config:
+        algorithm: brackets
+        input: { text: "{[()()]}[" }
+      check: { expr: "done and mistakes <= 1" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 1", say: "At the end, look at what's left on the stack.", misconception: stack-size-miscount }
+        - { if: "true", say: "Fewer mistakes, please." }
+      hints:
+        nudge: "What's left on the stack after the last character?"
+        buildsOn: "From Q4: leftover openers mean unbalanced."
+        partial: "The final `[` is never closed."
+      solution: { followTrace: true }
+      explanation: |
+        Everything matches until the last `[`, which is still on the stack at the end: unbalanced.
+    harder:
+      difficulty: 4
+      goal: "Run the checker on `([{}])(]` **with no mistakes**."
+      config:
+        algorithm: brackets
+        input: { text: "([{}])(]" }
+      check: { expr: "done and mistakes == 0" }
+      feedback:
+        - { if: "not done", say: "Keep going." }
+        - { if: "mistakes > 0", say: "A closer must match the top exactly — `]` can't close `(`.", misconception: brackets-any-match }
+        - { if: "true", say: "No mistakes allowed." }
+      hints:
+        nudge: "Watch the kinds of bracket, not just open/close."
+        buildsOn: "From Q4: a mismatch stops the check."
+        partial: "At the final `]` the top is `(`."
+      solution: { followTrace: true }
+      explanation: |
+        The first six characters balance; then `(` is pushed and `]` doesn't match it — stop: unbalanced.
+
+summary:
+  keyTakeaways:
+    - "A stack is LIFO: push and pop at the top. A Python list does both in O(1) at its end."
+    - "Bracket checking: push openers; a closer must match the top; leftover openers mean unbalanced."
+    - "A monotonic stack finds every next greater element in one pass."
+    - "Each item is pushed once and popped at most once, so these stack algorithms are O(n)."
+  next: dsa.u2.l4

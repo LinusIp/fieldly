@@ -574,3 +574,330 @@
   explain: |
     Average-case analysis assumes a distribution of inputs; amortized analysis bounds the total for every sequence.
   lessons: [dsa.u1.l5]
+
+# ── dsa.u2.l1: arrays ──
+- id: one-based-index
+  short: "Indices start at 0: element i comes after i elements."
+  explain: |
+    arr[0] is at the base address; arr[i] is i elements later, at B + s·i.
+  lessons: [dsa.u2.l1]
+
+- id: address-before-base
+  short: "Nothing is stored before the start of the block."
+  explain: |
+    The array's first element sits exactly at the base address.
+  lessons: [dsa.u2.l1]
+
+- id: base-ignored
+  short: "The offset is added to the base address."
+  explain: |
+    Address = base + element size × index.
+  lessons: [dsa.u2.l1]
+
+- id: address-ignores-size
+  short: "Multiply the index by the element size — each element takes several bytes."
+  explain: |
+    With 4-byte integers, consecutive elements are 4 addresses apart.
+  lessons: [dsa.u2.l1]
+
+- id: row-column-swap
+  short: "Row-major order: skip whole rows first (row × columns), then add the column."
+  explain: |
+    Element (r, c) in a table with C columns is element r·C + c of the flat array.
+  lessons: [dsa.u2.l1]
+
+- id: access-scans
+  short: "Arrays compute an element's address directly — no scanning."
+  explain: |
+    arr[i] is at B + s·i: O(1). Following links one by one is what *linked lists* must do.
+  lessons: [dsa.u2.l1, dsa.u2.l2]
+
+- id: access-from-end
+  short: "Position in the array doesn't affect access time."
+  explain: |
+    Any index needs the same single address calculation.
+  lessons: [dsa.u2.l1]
+
+- id: access-depends-on-n
+  short: "The array's length doesn't enter the address formula."
+  explain: |
+    B + s·i costs the same for 10 elements or 10 million.
+  lessons: [dsa.u2.l1]
+
+- id: access-binary-search
+  short: "Indexing goes straight to a position; binary search is for finding a *value* in sorted data."
+  explain: |
+    Reading arr[i] is O(1). Binary search (O(log n)) answers "where is this value?" in a sorted array.
+  lessons: [dsa.u2.l1]
+
+- id: index-vs-value-search
+  short: "Fast indexing needs the position — finding an unknown value still means checking elements."
+  explain: |
+    In unsorted data you must scan, O(n), even though each individual read is O(1).
+  lessons: [dsa.u2.l1]
+
+- id: array-insert-free
+  short: "Arrays have no gaps in the middle — elements must shift to make room."
+  explain: |
+    Any spare capacity is at the end. Inserting at index k moves the n − k elements after it.
+  lessons: [dsa.u2.l1]
+
+- id: shift-wrong-side
+  short: "Only the elements after the insertion point move — and the rightmost moves first."
+  explain: |
+    Shifting right must start at the end so no element is overwritten before it has moved.
+  lessons: [dsa.u2.l1]
+
+- id: shift-one-only
+  short: "Moving one element would overwrite the next — they all have to move."
+  explain: |
+    Every element from the insertion point to the end shifts one place.
+  lessons: [dsa.u2.l1]
+
+- id: shift-everything
+  short: "Elements before the insertion point stay where they are."
+  explain: |
+    Inserting at index k shifts n − k elements, not all n (unless k = 0).
+  lessons: [dsa.u2.l1]
+
+- id: array-delete-free
+  short: "Deleting leaves a gap that the later elements must close."
+  explain: |
+    Arrays can't have holes: deleting index k shifts the n − k − 1 later elements left.
+  lessons: [dsa.u2.l1]
+
+- id: array-front-insert-O1
+  short: "Inserting or removing at the front of an array shifts every element — O(n)."
+  explain: |
+    list.insert(0, x) and list.pop(0) are linear. Use collections.deque for O(1) operations at the front.
+  lessons: [dsa.u2.l1, dsa.u2.l4]
+
+- id: array-end-ops-slow
+  short: "Operations at the *end* need no shifting: append is amortized O(1), pop() is O(1)."
+  explain: |
+    Only front and middle operations shift elements.
+  lessons: [dsa.u2.l1]
+
+- id: deque-strictly-better
+  short: "Every structure trades something: a deque gives up fast indexing in the middle."
+  explain: |
+    CPython's deque is a linked list of blocks: O(1) at both ends, O(n) for d[i] in the middle.
+  lessons: [dsa.u2.l1]
+
+- id: deque-types
+  short: "Deques hold any Python objects, like lists."
+  explain: |
+    The trade-off is in operation costs, not in what can be stored.
+  lessons: [dsa.u2.l1]
+
+- id: shift-to-sort
+  short: "Shifting keeps the existing order (whatever it is) and makes room — it doesn't sort."
+  explain: |
+    Contiguous storage means a middle insert needs a free slot, so the later elements move right.
+  lessons: [dsa.u2.l1]
+
+# ── dsa.u2.l2: linked lists ──
+- id: linked-random-access
+  short: "Linked lists have no random access — reaching position k means following k links."
+  explain: |
+    Nodes are scattered in memory, so there's no address formula. Access is O(k), O(n) in the worst case.
+  lessons: [dsa.u2.l2]
+
+- id: traverse-whole-list
+  short: "You only walk as far as you need — and head operations need no walk at all."
+  explain: |
+    Reaching position k takes k links; inserting or deleting at the head takes none.
+  lessons: [dsa.u2.l2]
+
+- id: walk-reused
+  short: "Each get(i) call starts again from the head."
+  explain: |
+    Calling get(i) for every i costs 0 + 1 + … + (n − 1). Iterate with node = node.next instead.
+  lessons: [dsa.u2.l2]
+
+- id: linked-insert-shifts
+  short: "Linked-list nodes never move — only pointers change."
+  explain: |
+    Inserting or deleting next to a node you hold is O(1): no shifting.
+  lessons: [dsa.u2.l2]
+
+- id: pointer-order-wrong
+  short: "Overwriting a next pointer first loses the rest of the list."
+  explain: |
+    Link the new node to its successor (new.next = p.next) before redirecting p.next.
+  lessons: [dsa.u2.l2]
+
+- id: pointer-direction-wrong
+  short: "Check which way the pointer goes — that assignment points the wrong way or makes a cycle."
+  explain: |
+    In a singly linked list each node points to its successor. Reversal makes each node point to its predecessor.
+  lessons: [dsa.u2.l2]
+
+- id: head-insert-order
+  short: "Each head insert puts the new value in front, so the list comes out reversed."
+  explain: |
+    Inserting 1, 2, 3 at the head gives 3 → 2 → 1.
+  lessons: [dsa.u2.l2]
+
+- id: pointer-variable-confusion
+  short: "Rebinding a local variable doesn't change the list's links."
+  explain: |
+    p = p.next only moves your finger along the list; to edit it, assign to a .next field.
+  lessons: [dsa.u2.l2]
+
+- id: tail-pointer-assumed
+  short: "Without a tail pointer, reaching the end means walking the whole list."
+  explain: |
+    Keep a tail reference to append in O(1).
+  lessons: [dsa.u2.l2]
+
+- id: delete-cuts-list
+  short: "Setting next to None cuts off everything after it, not just one node."
+  explain: |
+    To remove one node, bypass it: p.next = p.next.next.
+  lessons: [dsa.u2.l2]
+
+- id: doubly-one-side
+  short: "In a doubly linked list both neighbours point at the node — update both."
+  explain: |
+    x.prev.next = x.next and x.next.prev = x.prev.
+  lessons: [dsa.u2.l2]
+
+- id: structures-equivalent
+  short: "Arrays and linked lists have opposite strengths — pick by the operations you need."
+  explain: |
+    Arrays: O(1) indexing, O(n) middle inserts. Linked lists: O(1) splicing at a held node, O(n) to reach a position.
+  lessons: [dsa.u2.l2]
+
+# ── dsa.u2.l3: stacks ──
+- id: stack-as-queue
+  short: "That's first-in-first-out — a queue. A stack returns the most recent item."
+  explain: |
+    Stacks are LIFO: push and pop happen at the same end, the top.
+  lessons: [dsa.u2.l3, dsa.u2.l4]
+
+- id: pop-returns-all
+  short: "pop removes and returns one item — the top."
+  explain: |
+    Each pop takes exactly one item off the stack.
+  lessons: [dsa.u2.l3]
+
+- id: pop-no-value
+  short: "pop both removes the top item and returns it."
+  explain: |
+    Use peek (lst[-1]) to look without removing.
+  lessons: [dsa.u2.l3]
+
+- id: pop-not-removed
+  short: "A popped item is gone from the stack."
+  explain: |
+    After pop, the next item down becomes the top.
+  lessons: [dsa.u2.l3]
+
+- id: stack-size-miscount
+  short: "Track the stack step by step: each push adds one, each pop removes one."
+  explain: |
+    Write out the stack contents after every operation.
+  lessons: [dsa.u2.l3]
+
+- id: stack-order-fixed
+  short: "Interleaving pushes and pops allows many output orders — just not all of them."
+  explain: |
+    An order is possible unless it needs an item from below the top.
+  lessons: [dsa.u2.l3]
+
+- id: stack-ends-mixed
+  short: "Push and pop must use the same end of the list."
+  explain: |
+    Using opposite ends turns the stack into a queue.
+  lessons: [dsa.u2.l3]
+
+- id: stack-holds-all
+  short: "Only opening brackets are stored; closers pop them."
+  explain: |
+    The stack holds the openers still waiting to be closed.
+  lessons: [dsa.u2.l3]
+
+- id: push-closers
+  short: "Closing brackets are never pushed — they pop a matching opener."
+  explain: |
+    Push on (, [, {; on ), ], } check and pop the top.
+  lessons: [dsa.u2.l3]
+
+- id: brackets-any-match
+  short: "A closer must match the *top* exactly — same kind, most recent opener."
+  explain: |
+    `([)]` fails because at `)` the top is `[`.
+  lessons: [dsa.u2.l3]
+
+- id: brackets-skip
+  short: "Every bracket matters to the check."
+  explain: |
+    A non-matching closer means the string is unbalanced; it can't be skipped.
+  lessons: [dsa.u2.l3]
+
+- id: brackets-same-kind
+  short: "Different kinds are fine as long as each closes properly."
+  explain: |
+    `([])` is balanced: every closer matches the top when it arrives.
+  lessons: [dsa.u2.l3]
+
+- id: empty-mid-unbalanced
+  short: "An empty stack in the middle just means one group is complete."
+  explain: |
+    Only the *end* state (and mismatches) decide the verdict.
+  lessons: [dsa.u2.l3]
+
+- id: nesting-limit
+  short: "Deep nesting is fine — the stack simply grows."
+  explain: |
+    Balance depends on matching order, not depth.
+  lessons: [dsa.u2.l3]
+
+- id: brackets-count-only
+  short: "Counting brackets isn't enough — order matters, and a closer needs an opener before it."
+  explain: |
+    `)(` has equal counts but is unbalanced.
+  lessons: [dsa.u2.l3]
+
+- id: nge-looks-left
+  short: "The next greater element is to the *right*."
+  explain: |
+    Scan forward from the element for the first larger value.
+  lessons: [dsa.u2.l3]
+
+- id: nge-maximum
+  short: "It's the *first* larger value to the right, not the largest."
+  explain: |
+    The search stops at the first value that beats the element.
+  lessons: [dsa.u2.l3]
+
+- id: nge-next-element
+  short: "The next element isn't necessarily larger — keep scanning until one is."
+  explain: |
+    The answer may be several positions to the right, or not exist at all.
+  lessons: [dsa.u2.l3]
+
+- id: monotonic-pop-once
+  short: "Keep popping while the top is smaller than the new value."
+  explain: |
+    One new value can be the answer for several waiting values.
+  lessons: [dsa.u2.l3]
+
+- id: monotonic-pop-all
+  short: "Stop popping at the first value larger than the new one."
+  explain: |
+    Larger waiting values haven't found their answer yet.
+  lessons: [dsa.u2.l3]
+
+- id: nge-always-exists
+  short: "Values with nothing larger to their right have no next greater element."
+  explain: |
+    Whatever is left on the stack at the end has no answer (often reported as −1).
+  lessons: [dsa.u2.l3]
+
+- id: monotonic-quadratic
+  short: "Each item is popped at most once in the whole run — total work is O(n), not n²."
+  explain: |
+    Count pops over the entire algorithm: at most one per pushed item.
+  lessons: [dsa.u2.l3]
